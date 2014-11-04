@@ -6,17 +6,14 @@
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
-//#include <sys/types.h>
 #include <sys/time.h>
-//#include <sys/socket.h>
 #include <string.h>
-//#include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 #include <netdb.h>
-
-
-
+//#include <sys/types.h>
+//#include <sys/socket.h>
+//#include <netinet/in.h>
 
 
 /*  Just returns current time as double, with most possible precision...  */
@@ -91,40 +88,29 @@ uint16_t ip_checksum(void* vdata,size_t length) {
 
 size_t nsent;//global sequence number for IP
 
+void debug_print(struct icmp *icmp, ssize_t n);
+
+
 #define SIZE 1024
 
 int main (int arc, char *argv[]) {
 
 	int fd;
-	int datalen = 56; //data for echo msg
-	int len = 8 + datalen;
+	size_t datalen = 56; /* data for echo msg */
+	size_t len = 8 + datalen;
+    struct icmp *icmp;
 	struct addrinfo *res;
 	struct addrinfo hints = {0};
-	struct icmp *icmp;
+    struct sockaddr_in adr;
+    socklen_t adrlen = sizeof(adr);
 	char *packet[SIZE] = {0};
 	char *packet_rcv[SIZE] = {0};
-	nsent = rand();/*get random number for seq #*/
-
-	struct iovec iov;
-
-	/* set up icmp message header*/
-	icmp = (struct icmp *) packet;
-	icmp->icmp_type = ICMP_ECHO;
-	icmp->icmp_code = 0;
-	icmp->icmp_id = getpid();
-	icmp->icmp_seq = nsent++;
-	memset(icmp->icmp_data, 0xa5, datalen);
-	gettimeofday((struct timeval *) icmp->icmp_data, NULL);
-	//icmp->icmp_data = (int)get_time();
-	icmp->icmp_cksum = 0;
-	icmp->icmp_cksum = ip_checksum(icmp, len);
-
-
-
-
+	nsent = (size_t) rand();/*get random number for seq #*/
 
 	fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-	if(fd ==-1){
+    setuid(getuid());/*give up privileges */
+
+    if(fd ==-1){
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);// consider doing something better here
 	}
@@ -135,6 +121,19 @@ int main (int arc, char *argv[]) {
 		exit( EXIT_FAILURE);
 	}
 */
+
+    /* set up icmp message header*/
+    icmp = (struct icmp *) packet;
+    icmp->icmp_type = ICMP_ECHO;
+    icmp->icmp_code = 0;
+    icmp->icmp_id = (u_int16_t) getpid();
+    icmp->icmp_seq = (u_int16_t) nsent++;
+    memset(icmp->icmp_data, 0xa5, datalen);
+    gettimeofday((struct timeval *) icmp->icmp_data, NULL);
+    icmp->icmp_cksum = 0;
+    icmp->icmp_cksum = ip_checksum(icmp, len);
+
+    /* set up hints for getaddrinfo() */
 	hints.ai_flags = AI_CANONNAME;
 	hints.ai_family = AF_INET;
 	hints.ai_socktype =0;
@@ -149,19 +148,16 @@ int main (int arc, char *argv[]) {
 	}
 
 
-	printf("ICMP send type: %d\n", icmp->icmp_type);
-
 	double d = get_time();
 	sendto(fd, packet, len, 0, res->ai_addr, res->ai_addrlen );
 	int size = 60*1024;
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size) );
 
+#ifdef DEBUG
+	printf("ICMP send type: %d\n", icmp->icmp_type);
 	printf("msg sent\n\n");
-
-	struct sockaddr_in adr;
-	int adrlen = sizeof(adr);
-
-	size_t n;
+#endif
+	ssize_t n;
 	struct timeval *tp, tv;
 	for(;;){
 
@@ -179,25 +175,25 @@ int main (int arc, char *argv[]) {
 
 	struct ip *ip;
 	ip = (struct ip *) packet_rcv;
-	int hlen1 = ip->ip_hl <<2;
+	int hlen1 = ip->ip_hl << 2;
 	tp = (struct timeval *) icmp->icmp_data;
 	icmp = (struct icmp *) (packet_rcv + hlen1);
 
-//	icmp = (struct icmp *) packet_rcv;
-
-	printf("Receved: %zu bytes.\n", n);
-	printf("Process ID: %d\n", getpid());
-	printf("ICMP ECHO type: %d\n", ICMP_ECHO);
-	printf("ICMP reply type: %d\n", icmp->icmp_type);
-	printf("ICMP reply ID: %d\n", icmp->icmp_id);
-
-
-	double elapsed = sub_time(&tv, tp);
+#ifdef DEBUG
+    debug_print(icmp, n);
+#endif
+    double elapsed = sub_time(&tv, tp);
 
 	printf("Total elapsed time = %f seconds\nBut d = %f\n", elapsed, d);
 	printf("Or Total elapsed time = %f milliseconds\nBut d = %f\n", elapsed*1000, d*1000);
 
-
-
      return 0;
+}
+
+void debug_print(struct icmp *icmp, ssize_t n) {
+    printf("Receved: %zu bytes.\n", n);
+    printf("Process ID: %d\n", getpid());
+    printf("ICMP ECHO type: %d\n", ICMP_ECHO);
+    printf("ICMP reply type: %d\n", icmp->icmp_type);
+    printf("ICMP reply ID: %d\n", icmp->icmp_id);
 }
