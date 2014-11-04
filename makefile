@@ -16,4 +16,4 @@ client: client.c icmp.c icmp.h
 	gcc client.c icmp.c -o client 
 
 clean:
-	rm client server ncd *.o
+	rm client server ncd *.o skel

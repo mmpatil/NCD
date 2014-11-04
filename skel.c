@@ -3,9 +3,20 @@
 */
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
 #include <unistd.h>
+//#include <sys/types.h>
 #include <sys/time.h>
+//#include <sys/socket.h>
 #include <string.h>
+//#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <netdb.h>
+
+
+
 
 
 /*  Just returns current time as double, with most possible precision...  */
@@ -70,8 +81,100 @@ uint16_t ip_checksum(void* vdata,size_t length) {
     return htons(~acc);
 }
 
+size_t nsent;//global sequence number for IP
+
+#define SIZE 1024
 
 int main (int arc, char *argv[]) {
+
+	int fd;
+	int datalen = 56; //data for echo msg
+	int len = 8 + datalen;
+	struct addrinfo *res;
+	struct addrinfo hints = {0};
+	struct icmp *icmp;
+	char *packet[SIZE] = {0};
+	char *packet_rcv[SIZE] = {0};
+	nsent = rand();/*get random number for seq #*/
+
+	struct iovec iov;
+
+	/* set up icmp message header*/
+	icmp = (struct icmp *) packet;
+	icmp->icmp_type = ICMP_ECHO;
+	icmp->icmp_code = 0;
+	icmp->icmp_id = getpid();
+	icmp->icmp_seq = nsent++;
+	memset(icmp->icmp_data, 0xa5, datalen);
+	gettimeofday((struct timeval *) icmp->icmp_data, NULL);
+	//icmp->icmp_data = (int)get_time();
+	icmp->icmp_cksum = 0;
+	icmp->icmp_cksum = ip_checksum(icmp, sizeof(len));
+
+
+
+
+
+	fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+	if(fd ==-1){
+		perror("call to socket() failed");
+		exit(EXIT_FAILURE);// consider doing something better here
+	}
+
+	int hdrincl = 1;
+	if (setsockopt(fd,IPPROTO_IP,IP_HDRINCL,&hdrincl,sizeof(hdrincl))==-1) {
+		perror("setsockopt() failed");
+		exit( EXIT_FAILURE);
+	}
+
+	hints.ai_flags = AI_CANONNAME;
+	hints.ai_family = AF_INET;
+	hints.ai_socktype =0;
+	int err = getaddrinfo(argv[1], NULL, &hints, &res);
+
+	if (err != 0){
+		if (err == EAI_SYSTEM)
+			fprintf(stderr, "looking up www.example.com: %s\n", strerror(errno));
+		else
+			fprintf(stderr, "looking up www.example.com: %s\n", gai_strerror(err));
+		exit(EXIT_FAILURE);
+	}
+
+
+	printf("ICMP send type: %d\n", icmp->icmp_type);
+
+	sendto(fd, packet_rcv, len, 0, res->ai_addr, res->ai_addrlen );
+	int size = 60*1024;
+	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size) );
+
+	printf("msg sent\n\n");
+
+
+	size_t n;
+	for(;;){
+
+		if ( (n=recvfrom(fd, packet_rcv, len, 0, hints.ai_addr, &hints.ai_addrlen )) < 0) {
+			if( errno == EINTR )
+				continue;
+			perror("ping: recvfrom");
+			continue;
+		}
+	}
+/*
+	struct ip *ip;
+	ip = (struct ip *) packet_rcv;
+	int hlen1 = ip->ip_hl <<2;
+	icmp = (struct icmp *) (packet_rcv + hlen1);
+*/
+	icmp = packet_rcv;
+
+	printf("Receved: %zu bytes.\n", n);
+	printf("Process ID: %d\n", getpid());
+	printf("ICMP ECHO type: %d\n", ICMP_ECHO);
+	printf("ICMP reply type: %d\n", icmp->icmp_type);
+	printf("ICMP relply ID: %d\n", icmp->icmp_id);
+
+
 
      return 0;
 }
