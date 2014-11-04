@@ -28,6 +28,14 @@ double get_time (void) {
 	return d;
 }
 
+double sub_time (struct timeval *out, struct timeval *in ) {
+	struct timeval tv;
+	double d;
+	tv.tv_usec = out->tv_usec - in->tv_usec;
+	tv.tv_sec = out->tv_sec - in->tv_sec;
+	d = ((double) tv.tv_usec) / 1000000. + (unsigned long) tv.tv_sec;
+	return d;
+}
 
 uint16_t ip_checksum(void* vdata,size_t length) {
     // Cast the data pointer to one that can be indexed.
@@ -109,7 +117,7 @@ int main (int arc, char *argv[]) {
 	gettimeofday((struct timeval *) icmp->icmp_data, NULL);
 	//icmp->icmp_data = (int)get_time();
 	icmp->icmp_cksum = 0;
-	icmp->icmp_cksum = ip_checksum(icmp, sizeof(len));
+	icmp->icmp_cksum = ip_checksum(icmp, len);
 
 
 
@@ -120,13 +128,13 @@ int main (int arc, char *argv[]) {
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);// consider doing something better here
 	}
-
+/*
 	int hdrincl = 1;
 	if (setsockopt(fd,IPPROTO_IP,IP_HDRINCL,&hdrincl,sizeof(hdrincl))==-1) {
 		perror("setsockopt() failed");
 		exit( EXIT_FAILURE);
 	}
-
+*/
 	hints.ai_flags = AI_CANONNAME;
 	hints.ai_family = AF_INET;
 	hints.ai_socktype =0;
@@ -143,36 +151,51 @@ int main (int arc, char *argv[]) {
 
 	printf("ICMP send type: %d\n", icmp->icmp_type);
 
-	sendto(fd, packet_rcv, len, 0, res->ai_addr, res->ai_addrlen );
+	double d = get_time();
+	sendto(fd, packet, len, 0, res->ai_addr, res->ai_addrlen );
 	int size = 60*1024;
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size) );
 
 	printf("msg sent\n\n");
 
+	struct sockaddr_in adr;
+	int adrlen = sizeof(adr);
 
 	size_t n;
+	struct timeval *tp, tv;
 	for(;;){
 
-		if ( (n=recvfrom(fd, packet_rcv, len, 0, hints.ai_addr, &hints.ai_addrlen )) < 0) {
+		if ( (n=recvfrom(fd, packet_rcv, len, 0, (struct sockaddr *) &adr, &adrlen )) < 0) {
 			if( errno == EINTR )
 				continue;
 			perror("ping: recvfrom");
 			continue;
+		}else{
+			gettimeofday(&tv, NULL);
+			d = get_time() - d;
+			break;
 		}
 	}
-/*
+
 	struct ip *ip;
 	ip = (struct ip *) packet_rcv;
 	int hlen1 = ip->ip_hl <<2;
+	tp = (struct timeval *) icmp->icmp_data;
 	icmp = (struct icmp *) (packet_rcv + hlen1);
-*/
-	icmp = packet_rcv;
+
+//	icmp = (struct icmp *) packet_rcv;
 
 	printf("Receved: %zu bytes.\n", n);
 	printf("Process ID: %d\n", getpid());
 	printf("ICMP ECHO type: %d\n", ICMP_ECHO);
 	printf("ICMP reply type: %d\n", icmp->icmp_type);
-	printf("ICMP relply ID: %d\n", icmp->icmp_id);
+	printf("ICMP reply ID: %d\n", icmp->icmp_id);
+
+
+	double elapsed = sub_time(&tv, tp);
+
+	printf("Total elapsed time = %f seconds\nBut d = %f\n", elapsed, d);
+	printf("Or Total elapsed time = %f milliseconds\nBut d = %f\n", elapsed*1000, d*1000);
 
 
 
