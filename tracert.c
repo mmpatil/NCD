@@ -10,7 +10,9 @@
 #include <string.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
+#include <netinet/udp.h>
 #include <netdb.h>
+#include <fcntl.h>
 //#include <sys/types.h>
 //#include <sys/socket.h>
 //#include <netinet/in.h>
@@ -106,23 +108,80 @@ int main (int arc, char *argv[]) {
 	char *packet[SIZE] = {0};
 	char *packet_rcv[SIZE] = {0};
 	nsent = (size_t) rand();/*get random number for seq #*/
+    struct timeval *tp, tv;
 
 	fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-    setuid(getuid());/*give up privileges */
 
     if(fd ==-1){
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);// consider doing something better here
 	}
-/*
+
 	int hdrincl = 1;
 	if (setsockopt(fd,IPPROTO_IP,IP_HDRINCL,&hdrincl,sizeof(hdrincl))==-1) {
 		perror("setsockopt() failed");
 		exit( EXIT_FAILURE);
 	}
-*/
+
+    setuid(getuid());/*give up privileges */
+
+    /* set up hints for getaddrinfo() */
+    hints.ai_flags = AI_CANONNAME;
+    hints.ai_family = AF_INET;
+    hints.ai_socktype =0;
+    int err = getaddrinfo(argv[1], NULL, &hints, &res);
+
+    if (err != 0){
+        if (err == EAI_SYSTEM)
+            fprintf(stderr, "looking up www.example.com: %s\n", strerror(errno));
+        else
+            fprintf(stderr, "looking up www.example.com: %s\n", gai_strerror(err));
+        exit(EXIT_FAILURE);
+    }
+
+    /* create IP header*/
+    struct ip *ip;
+    ip = (struct ip *) packet;
+
+    ip->ip_v = 4;
+    ip->ip_hl = 20;
+    ip->ip_len = ip->ip_hl + datalen;
+    ip->ip_id = getpid();
+    ip->ip_tos = 0;
+    ip->ip_src = adr.sin_addr;
+    ip->ip_dst = *(struct in_addr*) res->ai_addr;
+    ip->ip_ttl = 255;
+    ip->ip_p = IPPROTO_UDP;
+
+
+
+
+
+
+
+    /*create udp packet*/
+    struct udphdr *udp = (struct udphdr *)(ip + ip->ip_hl) ;
+    udp->source; /* set source port*/
+    udp->dest; /* set destination port */
+    udp->len; /* set udp length */
+
+
+
+    /* fill with random data from /dev/urandom */
+    /*get random data for high entropy datagrams*/
+    int random = open("/dev/urandom", O_RDONLY);
+    read(random, udp+1, udp->len - sizeof(*udp));
+    close(random);
+
+    /* insert current time */
+    gettimeofday((struct timeval *) udp+1, NULL);
+
+    udp->check = ip_checksum(udp, len); /* set udp checksum */
+
+    /* receive ICMP reply*/
 
     /* set up icmp message header*/
+    /*
     icmp = (struct icmp *) packet;
     icmp->icmp_type = ICMP_ECHO;
     icmp->icmp_code = 0;
@@ -132,20 +191,8 @@ int main (int arc, char *argv[]) {
     gettimeofday((struct timeval *) icmp->icmp_data, NULL);
     icmp->icmp_cksum = 0;
     icmp->icmp_cksum = ip_checksum(icmp, len);
+*/
 
-    /* set up hints for getaddrinfo() */
-	hints.ai_flags = AI_CANONNAME;
-	hints.ai_family = AF_INET;
-	hints.ai_socktype =0;
-	int err = getaddrinfo(argv[1], NULL, &hints, &res);
-
-	if (err != 0){
-		if (err == EAI_SYSTEM)
-			fprintf(stderr, "looking up www.example.com: %s\n", strerror(errno));
-		else
-			fprintf(stderr, "looking up www.example.com: %s\n", gai_strerror(err));
-		exit(EXIT_FAILURE);
-	}
 
 
 	double d = get_time();
@@ -158,7 +205,9 @@ int main (int arc, char *argv[]) {
 	printf("msg sent\n\n");
 #endif
 	ssize_t n;
-	struct timeval *tp, tv;
+    tp = (struct timeval *) icmp->icmp_data;
+    icmp = (struct icmp *) (packet_rcv + hlen1);
+
 	for(;;){
 
 		if ( (n=recvfrom(fd, packet_rcv, len, 0, (struct sockaddr *) &adr, &adrlen )) < 0) {
@@ -173,11 +222,7 @@ int main (int arc, char *argv[]) {
 		}
 	}
 
-	struct ip *ip;
-	ip = (struct ip *) packet_rcv;
-	int hlen1 = ip->ip_hl << 2;
-	tp = (struct timeval *) icmp->icmp_data;
-	icmp = (struct icmp *) (packet_rcv + hlen1);
+
 
 #ifdef DEBUG
     debug_print(icmp, n);
