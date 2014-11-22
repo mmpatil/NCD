@@ -162,9 +162,9 @@ int main (int arc, char *argv[]) {
 
     /*create udp packet*/
     struct udphdr *udp = (struct udphdr *)(ip + ip->ip_hl) ;
-    udp->source; /* set source port*/
-    udp->dest; /* set destination port */
-    udp->len; /* set udp length */
+    udp->source = htons(9876); /* set source port*/
+    udp->dest = htons(9876); /* set destination port */
+    udp->len= htons(22); /* set udp length */
 
 
 
