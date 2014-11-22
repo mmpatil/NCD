@@ -144,14 +144,15 @@ int main (int arc, char *argv[]) {
     ip = (struct ip *) packet;
 
     ip->ip_v = 4;
-    ip->ip_hl = 20;
-    ip->ip_len = ip->ip_hl + datalen;
+    ip->ip_hl = 5;
+    ip->ip_len = htons(40);
     ip->ip_id = getpid();
     ip->ip_tos = 0;
     ip->ip_src = adr.sin_addr;
     ip->ip_dst = *(struct in_addr*) res->ai_addr;
     ip->ip_ttl = 255;
-    ip->ip_p = IPPROTO_UDP;
+    ip->ip_p = IPPROTO_RAW;
+    //ip->ip_p = IPPROTO_UDP;
 
 
 
