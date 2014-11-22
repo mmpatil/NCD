@@ -100,6 +100,7 @@ void debug_print(struct icmp *icmp, ssize_t n);
 
 int main(int arc, char *argv[])
 {
+	int port = 9876;
 
 	int fd;
 	size_t datalen = 56; /* data for echo msg */
@@ -114,19 +115,19 @@ int main(int arc, char *argv[])
 	nsent = (size_t) rand();/*get random number for seq #*/
 	struct timeval *tp, tv;
 
-	fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
+	fd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
 
 	if(fd == -1){
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);    // consider doing something better here
 	}
 
-	int hdrincl = 1;
+	/*int hdrincl = 1;
 	if(setsockopt(fd, IPPROTO_IP, IP_HDRINCL, &hdrincl, sizeof(hdrincl))
 			== -1){
 		perror("setsockopt() failed");
 		exit(EXIT_FAILURE);
-	}
+	}/**/
 
 	setuid(getuid());/*give up privileges */
 
@@ -145,63 +146,48 @@ int main(int arc, char *argv[])
 					gai_strerror(err));
 		exit(EXIT_FAILURE);
 	}
-	//adr = *((struct sockaddr_in*)res->ai_addr);
 
 	/* create IP header*/
 	struct ip *ip;
 	ip = (struct ip *) packet;
 
-	ip->ip_v = 4;
+	ip->ip_v = AF_INET;
 	ip->ip_hl = 5;
-	ip->ip_len = htons(40);
-	//ip->ip_id = getpid();
+	ip->ip_len = htons(1024);
+	ip->ip_id = htonl(getpid());
 	ip->ip_tos = 0;
 	//ip->ip_src = adr.sin_addr;
 	ip->ip_dst =  ((struct sockaddr_in*)res->ai_addr)->sin_addr;
 	ip->ip_ttl = 255;
-	ip->ip_p = IPPROTO_RAW;
-	//ip->ip_p = IPPROTO_UDP;
+	//ip->ip_p = IPPROTO_RAW;
+	ip->ip_p = IPPROTO_UDP;
 
 	printf("setup ip header\n");
 
 	/*create udp packet*/
-	struct udphdr *udp = (struct udphdr *) (ip + sizeof(*ip));
-	udp->source = htons(9876); /* set source port*/
-	udp->dest = htons(9876); /* set destination port */
-	udp->len = htons(50); /* set udp length */
-
-
-
 	int offset = sizeof(struct udphdr) + sizeof(struct ip);
+	struct udphdr *udp = (struct udphdr *) (ip + sizeof(*ip));
+	udp->source = htons(port); /* set source port*/
+	udp->dest = htons(port); /* set destination port */
+	udp->len = htons(sizeof(packet) - sizeof(*ip)); /* set udp length */
+
+
 	/* fill with random data from /dev/urandom */
 	/*get random data for high entropy datagrams*/
 	int random = open("/dev/urandom", O_RDONLY);
-	read(random, packet + offset, sizeof(packet) - offset);
+	int udp_len = sizeof(packet) - offset;
+	read(random, packet + offset, udp_len);
 	close(random);
 
 	/* insert current time */
 	gettimeofday((struct timeval *) udp + 1, NULL);
 
-	udp->check = ip_checksum(udp, len); /* set udp checksum */
+	udp->check = ip_checksum(udp, udp_len); /* set udp checksum */
 	printf("setup udp header\n");
 
-	/* receive ICMP reply*/
-
-	/* set up icmp message header*/
-	/*
-	 icmp = (struct icmp *) packet;
-	 icmp->icmp_type = ICMP_ECHO;
-	 icmp->icmp_code = 0;
-	 icmp->icmp_id = (u_int16_t) getpid();
-	 icmp->icmp_seq = (u_int16_t) nsent++;
-	 memset(icmp->icmp_data, 0xa5, datalen);
-	 gettimeofday((struct timeval *) icmp->icmp_data, NULL);
-	 icmp->icmp_cksum = 0;
-	 icmp->icmp_cksum = ip_checksum(icmp, len);
-	 */
 
 	double d = get_time();
-	sendto(fd, packet, len, 0, res->ai_addr, res->ai_addrlen);
+	sendto(fd, packet, SIZE, 0, res->ai_addr, res->ai_addrlen);
 	int size = 60 * 1024;
 	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
 
@@ -218,23 +204,23 @@ int main(int arc, char *argv[])
 
 	printf("msg sent\n\n");
 #endif
-	//bzero(packet, sizeof(packet));
 	ssize_t n;
-
 	int hlen1 = ip->ip_hl << 2;
 	tp = (struct timeval *) icmp->icmp_data;
 	icmp = (struct icmp *) (packet_rcv + hlen1);
 	ip = (struct ip *)packet_rcv;
+	udp = (struct udphdr *) (ip + sizeof(*ip));
 
 	for(;;){
 
 		if((n = recvfrom(fd, packet_rcv, len, 0,
-				(struct sockaddr *) &adr, &adrlen)) < 0){
-			if(errno == EINTR)
+				(struct sockaddr *) &adr, &adrlen)) < 0 ){
+			if(errno == EINTR )
 				continue;
 			perror("tracert: recvfrom");
 			continue;
-		}else{
+		}//else if( udp->dest != htons(port))continue;
+		else{
 			gettimeofday(&tv, NULL);
 			d = get_time() - d;
 			break;
@@ -252,6 +238,7 @@ int main(int arc, char *argv[])
 	printf("source address: %s\n", str);
 	printf("ip header length:%d\n", ip->ip_hl);
 	printf("TTL: %d\n", ip->ip_ttl);
+	printf("Port #: %d", ntohs(udp->dest));
 
 #endif
 	double elapsed = sub_time(&tv, tp);
