@@ -1,19 +1,11 @@
-all: server client ncd skel
+CC=gcc
+#CFLAGS=-DDEBUG
 
-ncd: ncd_main.c ncd.o
-	gcc ncd_main.c ncd.o -o ncd
 
-ncd.o: ncd.h ncd.c
-	gcc -c ncd.c 
+all: tracrt
 
-skel: skel.c
-	gcc skel.c -o skel
-
-server: server.c
-	gcc server.c -o server 
-
-client: client.c icmp.c icmp.h
-	gcc client.c icmp.c -o client 
+tracrt: tracert.c
+	$(CC) tracert.c -o tracert $(CFLAGS)
 
 clean:
-	rm client server ncd *.o skel
+	rm *.o 

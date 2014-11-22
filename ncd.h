@@ -22,7 +22,7 @@
 #include <fcntl.h>
 
 /*  consider not using this ....*/
-struct trans_info{
+struct trans_info {
 	char * address;
 	size_t num_packets;
 	size_t time_wait;
@@ -48,14 +48,12 @@ char* host; /*the host address stored as a string*/
  * @param time_wait the wait between trains
  * @return returns 0 for no compressin detection, 1 for compression, -1 for error
  * */
-int comp_det(char* address, char * port,size_t num_packets, size_t time_wait);
-
+int comp_det(char* address, char * port, size_t num_packets, size_t time_wait);
 
 /**
  * sends data to the end host with leading and trailing icmp timestamps
  */
 int send_data();
-
 
 /**
  * recieves timestamps from end host to detect compression
@@ -66,11 +64,9 @@ int recv_data();
  * creates an ICMP packet header
  * @return returns a pointer to a new icmp header
  */
-struct icmphdr* make_icmp(char *address, unsigned char code, void * data, ssize_t data_len);// maybe make this different...
+struct icmphdr* make_icmp(char *address, unsigned char code, void * data,
+		ssize_t data_len); // maybe make this different...
 
-uint16_t ip_checksum(void* vdata,size_t length);
-
-
-
+uint16_t ip_checksum(void* vdata, size_t length);
 
 #endif
