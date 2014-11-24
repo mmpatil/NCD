@@ -42,7 +42,7 @@ uint16_t ip_checksum(void* vdata, size_t length)
 	// Cast the data pointer to one that can be indexed.
 	char* data = (char*) vdata;
 
-	// Initialise the accumulator.
+	// Initialize the accumulator.
 	uint64_t acc = 0xffff;
 
 	// Handle any partial block at the start of the data.
@@ -102,7 +102,10 @@ int main(int arc, char *argv[])
 {
 	int port = 9876;
 
-	int fd;
+	int my_pipe[2];
+	pipe(my_pipe);
+
+	int fd, fd2;
 	size_t datalen = 56; /* data for echo msg */
 	size_t len = 8 + datalen;
 	struct icmp *icmp;
@@ -110,19 +113,21 @@ int main(int arc, char *argv[])
 	struct addrinfo hints = { 0 };
 	struct sockaddr_in adr;
 	socklen_t adrlen = sizeof(adr);
-	char *packet[SIZE] = { 0 };
-	char *packet_rcv[SIZE] = { 0 };
+	char packet[SIZE] = { 0 };
+	char packet_rcv[SIZE] = { 0 };
+	char str[INET_ADDRSTRLEN];
 	nsent = (size_t) rand();/*get random number for seq #*/
 	struct timeval *tp, tv;
 
-	fd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+	fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
+	fd2 = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 
 	if(fd == -1){
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);    // consider doing something better here
 	}
 
-	/*int hdrincl = 1;
+	int hdrincl = 1;
 	if(setsockopt(fd, IPPROTO_IP, IP_HDRINCL, &hdrincl, sizeof(hdrincl))
 			== -1){
 		perror("setsockopt() failed");
@@ -148,9 +153,7 @@ int main(int arc, char *argv[])
 	}
 
 	/* create IP header*/
-	struct ip *ip;
-	ip = (struct ip *) packet;
-
+	struct ip *ip = (struct ip *) packet;
 	ip->ip_v = AF_INET;
 	ip->ip_hl = 5;
 	ip->ip_len = htons(1024);
@@ -158,18 +161,16 @@ int main(int arc, char *argv[])
 	ip->ip_tos = 0;
 	//ip->ip_src = adr.sin_addr;
 	ip->ip_dst =  ((struct sockaddr_in*)res->ai_addr)->sin_addr;
-	ip->ip_ttl = 255;
-	//ip->ip_p = IPPROTO_RAW;
+	ip->ip_ttl = 4;
 	ip->ip_p = IPPROTO_UDP;
-
-	printf("setup ip header\n");
 
 	/*create udp packet*/
 	int offset = sizeof(struct udphdr) + sizeof(struct ip);
-	struct udphdr *udp = (struct udphdr *) (ip + sizeof(*ip));
+	struct udphdr *udp = (struct udphdr *) (ip + sizeof(struct ip));
 	udp->source = htons(port); /* set source port*/
 	udp->dest = htons(port); /* set destination port */
 	udp->len = htons(sizeof(packet) - sizeof(*ip)); /* set udp length */
+
 
 
 	/* fill with random data from /dev/urandom */
@@ -183,18 +184,61 @@ int main(int arc, char *argv[])
 	gettimeofday((struct timeval *) udp + 1, NULL);
 
 	udp->check = ip_checksum(udp, udp_len); /* set udp checksum */
-	printf("setup udp header\n");
-
 
 	double d = get_time();
+	if(fork() == 0)
+	{
+		ssize_t n;
+		int hlen1 = ip->ip_hl << 2;
+		tp = (struct timeval *) icmp->icmp_data;
+		icmp = (struct icmp *) (packet_rcv + hlen1);
+		ip = (struct ip *)packet_rcv;
+		udp = (struct udphdr *) (ip + sizeof(*ip));
+
+		for(;;){
+
+			if((n = recvfrom(fd2, packet_rcv, len, 0,
+					(struct sockaddr *) &adr, &adrlen)) < 0 ){
+				if(errno == EINTR )
+					continue;
+				perror("tracert: recvfrom");
+				continue;
+			}//else if(icmp->icmp_type != 3)continue;
+			else{
+				gettimeofday(&tv, NULL);
+				d = get_time() - d;
+				break;
+			}
+		}
+		close(fd2);
+
+	#ifdef DEBUG
+		debug_print(icmp, n);
+		printf("ip header:\n");
+		inet_ntop(AF_INET, &(ip->ip_dst.s_addr), str, INET_ADDRSTRLEN );
+		printf("destination address: %s\n", str);
+		inet_ntop(AF_INET, &(ip->ip_src.s_addr), str, INET_ADDRSTRLEN );
+		printf("source address: %s\n", str);
+		printf("ip header length:%d\n", ip->ip_hl);
+		printf("TTL: %d\n", ip->ip_ttl);
+	#endif
+		//double elapsed = sub_time(&tv, tp);
+
+		//printf("Total elapsed time = %f seconds\nBut d = %f\n", elapsed, d);
+		printf("d = %f\n", d * 1000);
+		write(my_pipe[1], &d, sizeof(d));
+
+		return EXIT_SUCCESS;
+	}// end fork()
+
+
 	sendto(fd, packet, SIZE, 0, res->ai_addr, res->ai_addrlen);
-	int size = 60 * 1024;
-	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
+
+	read(my_pipe[0], &d, sizeof(d));
 
 
 #ifdef DEBUG
 	printf("ip header:\n");
-	char str[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &(ip->ip_dst.s_addr), str, INET_ADDRSTRLEN );
 	printf("destination address: %s\n", str);
 	inet_ntop(AF_INET, &(ip->ip_src.s_addr), str, INET_ADDRSTRLEN );
@@ -204,48 +248,10 @@ int main(int arc, char *argv[])
 
 	printf("msg sent\n\n");
 #endif
-	ssize_t n;
-	int hlen1 = ip->ip_hl << 2;
-	tp = (struct timeval *) icmp->icmp_data;
-	icmp = (struct icmp *) (packet_rcv + hlen1);
-	ip = (struct ip *)packet_rcv;
-	udp = (struct udphdr *) (ip + sizeof(*ip));
-
-	for(;;){
-
-		if((n = recvfrom(fd, packet_rcv, len, 0,
-				(struct sockaddr *) &adr, &adrlen)) < 0 ){
-			if(errno == EINTR )
-				continue;
-			perror("tracert: recvfrom");
-			continue;
-		}//else if( udp->dest != htons(port))continue;
-		else{
-			gettimeofday(&tv, NULL);
-			d = get_time() - d;
-			break;
-		}
-	}
-
-#ifdef DEBUG
-	debug_print(icmp, n);
 
 
-	printf("ip header:\n");
-	inet_ntop(AF_INET, &(ip->ip_dst.s_addr), str, INET_ADDRSTRLEN );
-	printf("destination address: %s\n", str);
-	inet_ntop(AF_INET, &(ip->ip_src.s_addr), str, INET_ADDRSTRLEN );
-	printf("source address: %s\n", str);
-	printf("ip header length:%d\n", ip->ip_hl);
-	printf("TTL: %d\n", ip->ip_ttl);
-	printf("Port #: %d", ntohs(udp->dest));
-
-#endif
-	double elapsed = sub_time(&tv, tp);
-
-	printf("Total elapsed time = %f seconds\nBut d = %f\n", elapsed, d);
-	printf("Or Total elapsed time = %f milliseconds\nBut d = %f\n",
-			elapsed * 1000, d * 1000);
+	close(fd);
+	printf("Time elapsed: %f\n", d);
 
 	return 0;
 }
