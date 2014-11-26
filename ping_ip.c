@@ -152,7 +152,7 @@ int main(int arc, char *argv[])
 	ip->ip_v = 4;
 	ip->ip_hl = 5;
 	ip->ip_len = sizeof(struct ip) + len;
-	ip->ip_id = htons(1234);
+	//ip->ip_id = htons(1234);
 	//ip->ip_tos = 0;
 	//ip->ip_src = adr.sin_addr;
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
