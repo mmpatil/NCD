@@ -102,14 +102,14 @@ struct pseudo_header
 {
 	u_int32_t source;
 	u_int32_t dest;
-	unsigned char zero;
-	unsigned char proto;
+	u_int8_t zero;
+	u_int8_t proto;
 	uint16_t len;
 };
 
 int main(int arc, char *argv[])
 {
-	int port = 9876;
+	int port = 33434;
 
 	int my_pipe[2];
 	pipe(my_pipe);
@@ -181,8 +181,9 @@ int main(int arc, char *argv[])
 	ip->ip_hl = 5;
 	ip->ip_len = htons(SIZE);
 	ip->ip_id = htons(1234);
+	ip->ip_src.s_addr =  inet_addr("192.168.1.100");
 	ip->ip_dst = ((struct sockaddr_in*)res->ai_addr)->sin_addr;
-	ip->ip_ttl = 255;
+	ip->ip_ttl = atoi(argv[2]);
 	ip->ip_p = IPPROTO_UDP;
 
 	/*create udp packet*/
@@ -203,7 +204,7 @@ int main(int arc, char *argv[])
 	close(random);
 
 
-	/*void* data = udp+1;
+	void* data = udp+1;
 
 	struct pseudo_header *ps;
 	ps = (struct pseudo_header *)packet_rcv;
@@ -216,9 +217,9 @@ int main(int arc, char *argv[])
 
 	memcpy(ps+1, udp, udp_len);
 	udp->check = ip_checksum(ps, ntohs(ps->len)); /* set udp checksum */
-	//ip->ip_sum = ip_checksum(ip, SIZE);/**/
+	ip->ip_sum = ip_checksum(ip, SIZE);/**/
 
-	//bzero(packet_rcv, SIZE);
+	bzero(packet_rcv, SIZE);
 	
 	double d = get_time();
 	if(fork() == 0)
