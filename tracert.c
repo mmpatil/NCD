@@ -116,17 +116,17 @@ int main(int arc, char *argv[])
 
 	int send_fd, recv_fd, n;
 	size_t datalen = 56; /* data for ICMP msg */
-	size_t len = 8 + datalen;
-	size_t icmp_len = sizeof(struct ip) + len; // size of ICMP reply
-	struct icmp *icmp;
-	struct addrinfo *res;
-	struct addrinfo hints = { 0 };
-	struct sockaddr_in addr;
-	socklen_t adrlen = sizeof(addr);
+	size_t len = sizeof(struct icmp) + datalen; //size of icmp packet
+	size_t icmp_len = sizeof(struct ip) + len; // size of ICMP reply + ip header
+	struct icmp *icmp;			/* ICMP header */
+	struct addrinfo *res;			/* for get addrinfo */
+	struct addrinfo hints = { 0 };		/* for get addrinfor */
+	struct sockaddr_in addr;		/* to recieve data with*/
+	socklen_t adrlen = sizeof(addr);	/* length of address */
 
-	char packet_send[SIZE] = { 0 };
-	char packet_rcv[SIZE] = { 0 };
-	char str[INET_ADDRSTRLEN];
+	char packet_send[SIZE] = { 0 };		/* buffer to send data with */
+	char packet_rcv[SIZE] = { 0 };		/* buffer to recieve data into */
+	char str[INET_ADDRSTRLEN];		/* buffer to debug with -- remove, or wrap with #ifdef*/
 
 	nsent = (size_t) rand();/*get random number for seq #*/
 	//struct timeval *tp, tv;
@@ -140,7 +140,8 @@ int main(int arc, char *argv[])
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);    // consider doing something better here
 	}
-
+	
+	/* set up our own ip header */
 	int hdrincl = 1;
 	if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &hdrincl, sizeof(hdrincl))
 			== -1){
@@ -150,6 +151,7 @@ int main(int arc, char *argv[])
 
 	setuid(getuid());/*give up privileges */
 
+	/* not used, -- remove*/
 	addr.sin_addr.s_addr = inet_addr(argv[0]);
 	addr.sin_port = htons(port);
 	addr.sin_family = AF_INET;
@@ -162,7 +164,7 @@ int main(int arc, char *argv[])
 
 	int err = getaddrinfo(argv[1], NULL, &hints, &res);
 
-	/*USE BETTER ERROR MESSAGES HERE!!!!*/
+	/*USE BETTER ERROR MESSAGES HERE!!!! taken from _____ --find site*/
 	if(err != 0){
 		if(err == EAI_SYSTEM)
 			fprintf(stderr, "looking up www.example.com: %s\n",
@@ -186,7 +188,7 @@ int main(int arc, char *argv[])
 	/*create udp packet*/
 	int offset = sizeof(struct udphdr) + sizeof(struct ip);
 	int udp_len = SIZE - sizeof(struct ip);
-	printf("Offset: %d\n", offset);
+	//printf("Offset: %d\n", offset);
 
 	struct udphdr *udp = (struct udphdr *) (ip +1);
 	udp->uh_sport = htons(port); /* set source port*/
@@ -216,7 +218,8 @@ int main(int arc, char *argv[])
 	udp->check = ip_checksum(ps, ntohs(ps->len)); /* set udp checksum */
 	//ip->ip_sum = ip_checksum(ip, SIZE);/**/
 
-	bzero(packet_rcv, SIZE);
+	//bzero(packet_rcv, SIZE);
+	
 	double d = get_time();
 	if(fork() == 0)
 	{
