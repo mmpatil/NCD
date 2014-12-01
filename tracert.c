@@ -13,9 +13,6 @@
 #include <netinet/udp.h>
 #include <netdb.h>
 #include <fcntl.h>
-//#include <sys/types.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -95,7 +92,7 @@ size_t nsent;    //global sequence number for IP
 
 void debug_print(struct icmp *icmp, ssize_t n);
 
-#define SIZE 256
+#define SIZE 1500    //maximum ip packet size
 //#define DEBUG
 
 struct pseudo_header {
@@ -112,11 +109,16 @@ int main(int arc, char *argv[])
 
 	int my_pipe[2];
 	pipe(my_pipe);
+	int udp_data_len = atoi(argv[2]);
+	if(SIZE <= udp_data_len + 40 + sizeof(struct udphdr)){
+		perror("Maximum packet size exceeded");
+		exit(EXIT_FAILURE);
+	}
 
 	int send_fd, recv_fd, n;
 	size_t datalen = 56; /* data for ICMP msg */
-	size_t len = sizeof(struct icmp) + datalen; //size of icmp packet
-	size_t icmp_len = sizeof(struct ip) + len; // size of ICMP reply + ip header
+	size_t len = sizeof(struct icmp) + datalen; /*size of icmp packet*/
+	size_t icmp_len = sizeof(struct ip) + len; /* size of ICMP reply + ip header */
 	struct icmp *icmp; /* ICMP header */
 	struct addrinfo *res; /* for get addrinfo */
 	struct addrinfo hints = { 0 }; /* for get addrinfor */
@@ -127,7 +129,6 @@ int main(int arc, char *argv[])
 	char packet_rcv[SIZE] = { 0 }; /* buffer to recieve data into */
 	char str[INET_ADDRSTRLEN]; /* buffer to debug with -- remove, or wrap with #ifdef*/
 
-
 	send_fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
 	recv_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	int size = 60 * 1024;
@@ -135,7 +136,7 @@ int main(int arc, char *argv[])
 
 	if(send_fd == -1){
 		perror("call to socket() failed");
-		exit(EXIT_FAILURE);    // consider doing something better here
+		exit(EXIT_FAILURE);
 	}
 
 	/* set up our own ip header */
@@ -187,7 +188,6 @@ int main(int arc, char *argv[])
 	/*create udp packet*/
 	int offset = sizeof(struct udphdr) + sizeof(struct ip);
 	int udp_len = SIZE - sizeof(struct ip);
-	//printf("Offset: %d\n", offset);
 
 	struct udphdr *udp = (struct udphdr *) (ip + 1);
 	udp->uh_sport = htons(port); /* set source port*/
@@ -197,8 +197,7 @@ int main(int arc, char *argv[])
 	/* fill with random data from /dev/urandom */
 	/*get random data for high entropy datagrams*/
 	int random = open("/dev/urandom", O_RDONLY);
-	int udp_data_len = (SIZE - offset);
-	//read(random, (udp + 1), udp_data_len);
+	read(random, (udp + 1), udp_data_len);
 	close(random);
 
 	void* data = udp + 1;
@@ -346,7 +345,7 @@ int main(int arc, char *argv[])
 	close(send_fd);
 	printf("Time elapsed TTL = 3: %f sec\n", d);
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 void debug_print(struct icmp *icmp, ssize_t n)
