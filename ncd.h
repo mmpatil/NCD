@@ -22,7 +22,6 @@
 #include <fcntl.h>
 
 #define SIZE 1500    //maximum ip packet size
-
 struct pseudo_header {
 	u_int32_t source;
 	u_int32_t dest;
@@ -64,13 +63,6 @@ int send_data(char* address, char * port, char hl, size_t data_size,
  * recieves ICMP responses from end host and records times
  */
 double recv_data();
-
-/**
- * creates an ICMP packet header
- * @return returns a pointer to a new icmp header
- */
-struct icmphdr* make_icmp(char *address, unsigned char code, void * data,
-		ssize_t data_len); // maybe make this different...
 
 uint16_t ip_checksum(void* vdata, size_t length);
 

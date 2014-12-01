@@ -13,7 +13,7 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 		size_t num_packets, ushort ttl, size_t time_wait, int n_tail)
 {
 	char c = tolower(hl);
-	if(c != 'h' || c != 'l'){
+	if(c != 'h' && c != 'l'){
 		perror(
 				"Invalid setting for High or Low entropy data, use 'H', or 'L'");
 		exit(EXIT_FAILURE);
@@ -25,7 +25,8 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 	}
 
 	if(fork() == 0){
-		send_data(address, port, num_packets, data_size, time_wait);
+		send_data(address, port, hl, data_size, num_packets, ttl,
+				time_wait, n_tail);
 	}
 
 	double time = recv_data();
@@ -54,6 +55,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	struct addrinfo hints = { 0 }; /* for get addrinfor */
 
 	char packet_send[SIZE] = { 0 }; /* buffer to send data with */
+	char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
 
 	char icmp_packet[64];
 
@@ -63,6 +65,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);
 	}
+
 
 	/* set up our own ip header */
 	int hdrincl = 1;
@@ -93,7 +96,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	hints.ai_flags = AI_CANONNAME;
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = 0;
-	//hints.ai_protocol = IPPROTO_UDP;
+	hints.ai_protocol = IPPROTO_UDP;
 
 	int err = getaddrinfo(address, NULL, &hints, &res);
 
@@ -116,6 +119,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	ip->ip_id = htons(1234);
 	ip->ip_src.s_addr = inet_addr("192.168.1.100");
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
+	ip->ip_off |= ntohs(IP_DF);
 	//ip->ip_ttl = atoi(argv[2]);
 	ip->ip_ttl = ttl;
 	ip->ip_p = IPPROTO_UDP;
@@ -137,15 +141,26 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		close(random);
 	}
 
+	struct pseudo_header *ps;
+	ps = (struct pseudo_header *) pseudo;
+	ps->source = ip->ip_src.s_addr;
+	ps->dest = ip->ip_dst.s_addr;
+	ps->zero = 0;
+	ps->proto = IPPROTO_UDP;
+	ps->len = htons(udp_len);
+
+	memcpy(ps + 1, udp, udp_len);
+	udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header)); /* set udp checksum */
+	ip->ip_sum = ip_checksum(ip, packet_size);/**/
+
 	/*Create ICMP Packets*/
 	/* create IP header*/
 	struct ip *ip_icmp = (struct ip *) icmp_packet;
 	ip_icmp->ip_v = 4;
 	ip_icmp->ip_hl = 5;
 	ip_icmp->ip_len = sizeof(struct ip) + len;
-	//ip_icmp->ip_id = htons(1234);
-	//ip_icmp->ip_tos = 0;
-	//ip_icmp->ip_src = adr.sin_addr;
+	ip_icmp->ip_off |= ntohs(IP_DF);
+	ip_icmp->ip_id = htons(1234);
 	ip_icmp->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 	ip_icmp->ip_ttl = ttl;
 	ip_icmp->ip_p = IPPROTO_ICMP;
@@ -165,7 +180,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 
 	/*send Head ICMP Packet*/
 
-	n = sendto(send_fd, icmp_packet, icmp_len, 0, res->ai_addr,
+	n = sendto(icmp_fd, icmp_packet, icmp_len, 0, res->ai_addr,
 			res->ai_addrlen);
 	if(n == -1){
 		perror("Send error");
@@ -184,16 +199,17 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	}
 
 	/*send tail ICMP Packets w/ timer*/
-	for(i = 0; i <n_tail; ++i){
-		n = sendto(send_fd, icmp_packet, icmp_len, 0, res->ai_addr,
+	for(i = 0; i < n_tail; ++i){
+		n = sendto(icmp_fd, icmp_packet, icmp_len, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error");
 			return EXIT_FAILURE;
 		}
-		sleep(time_wait);//fix this !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		sleep(time_wait);	//fix this !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	}
 
+	printf("\nfinished sending\n");
 	int ret = 0;
 
 	return ret;
@@ -238,21 +254,16 @@ double recv_data()
 			continue;
 		}else if(icmp->icmp_type == 8 && count == 0){
 			d = get_time();
-			count++;
+			count= 1;
+			printf("Received first reply\n");
 
 		}else if(icmp->icmp_type == 8 && count == 1){
 			d = get_time() - d;
+			printf("Received last reply\n");
 			break;
 		}
 	}
 
-	/*process and ignore ICMP port unreachable*/
-
-	/* recieve and timestamp tail ICMP response*/
-
-	/*output the difference*/
-
-	/*exit*/
 
 	return d;
 }
@@ -319,6 +330,7 @@ uint16_t ip_checksum(void* vdata, size_t length)
 
 int main(int argc, char *argv[])
 {
-	return comp_det(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]);
+	return comp_det(argv[1], argv[2], argv[3][0], atoi(argv[4]),
+			atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]));
 
 }
