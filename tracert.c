@@ -110,6 +110,11 @@ int main(int arc, char *argv[])
 	int my_pipe[2];
 	pipe(my_pipe);
 	int udp_data_len = atoi(argv[2]);
+	int udp_len = udp_data_len + 8;
+	int packet_size = udp_len +20;
+
+
+
 	if(SIZE <= udp_data_len + 40 + sizeof(struct udphdr)){
 		perror("Maximum packet size exceeded");
 		exit(EXIT_FAILURE);
@@ -177,7 +182,7 @@ int main(int arc, char *argv[])
 	struct ip *ip = (struct ip *) packet_send;
 	ip->ip_v = 4;
 	ip->ip_hl = 5;
-	ip->ip_len = htons(SIZE);
+	ip->ip_len = htons(packet_size);
 	ip->ip_id = htons(1234);
 	ip->ip_src.s_addr = inet_addr("192.168.1.100");
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
@@ -187,7 +192,7 @@ int main(int arc, char *argv[])
 
 	/*create udp packet*/
 	int offset = sizeof(struct udphdr) + sizeof(struct ip);
-	int udp_len = SIZE - sizeof(struct ip);
+	//int udp_len = SIZE - sizeof(struct ip);
 
 	struct udphdr *udp = (struct udphdr *) (ip + 1);
 	udp->uh_sport = htons(port); /* set source port*/
@@ -211,8 +216,8 @@ int main(int arc, char *argv[])
 	ps->len = htons(udp_len);
 
 	memcpy(ps + 1, udp, udp_len);
-	udp->check = ip_checksum(ps, ntohs(ps->len)); /* set udp checksum */
-	ip->ip_sum = ip_checksum(ip, SIZE);/**/
+	udp->check = ip_checksum(ps, udp_len+sizeof(struct pseudo_header)); /* set udp checksum */
+	ip->ip_sum = ip_checksum(ip, packet_size);/**/
 
 	bzero(packet_rcv, SIZE);
 
@@ -257,7 +262,7 @@ int main(int arc, char *argv[])
 		return EXIT_SUCCESS;
 	}    // end fork()
 
-	n = sendto(send_fd, packet_send, SIZE, 0, res->ai_addr,
+	n = sendto(send_fd, packet_send, packet_size, 0, res->ai_addr,
 			res->ai_addrlen);
 	if(n == -1){
 		perror("Send error");
@@ -291,7 +296,7 @@ int main(int arc, char *argv[])
 	printf("Time elapsed TTL = 255: %f sec\n", d);
 
 	ip->ip_ttl = 3;
-	ip->ip_sum = ip_checksum(ip, SIZE);/**/
+	ip->ip_sum = ip_checksum(ip, packet_size);/**/
 
 	d = get_time();
 	if(fork() == 0){
@@ -334,7 +339,7 @@ int main(int arc, char *argv[])
 		return EXIT_SUCCESS;
 	}    // end fork()
 
-	n = sendto(send_fd, packet_send, SIZE, 0, res->ai_addr,
+	n = sendto(send_fd, packet_send, packet_size, 0, res->ai_addr,
 			res->ai_addrlen);
 	if(n == -1){
 		perror("Send error");
