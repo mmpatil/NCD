@@ -160,7 +160,7 @@ int main(int arc, char *argv[])
 	ip->ip_p = IPPROTO_ICMP;
 
 	/* set up icmp message header*/
-	icmp = (struct icmp *) (ip+1);
+	icmp = (struct icmp *) (ip + 1);
 	icmp->icmp_type = ICMP_ECHO;
 	icmp->icmp_code = 0;
 	icmp->icmp_id = (u_int16_t) getpid();
@@ -202,7 +202,6 @@ int main(int arc, char *argv[])
 	printf("version: %d\n", ip->ip_v);
 
 #endif
-
 
 	struct timeval *tp, tv;
 	for(;;){

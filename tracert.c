@@ -96,10 +96,9 @@ size_t nsent;    //global sequence number for IP
 void debug_print(struct icmp *icmp, ssize_t n);
 
 #define SIZE 256
-#define DEBUG
+//#define DEBUG
 
-struct pseudo_header
-{
+struct pseudo_header {
 	u_int32_t source;
 	u_int32_t dest;
 	u_int8_t zero;
@@ -118,18 +117,16 @@ int main(int arc, char *argv[])
 	size_t datalen = 56; /* data for ICMP msg */
 	size_t len = sizeof(struct icmp) + datalen; //size of icmp packet
 	size_t icmp_len = sizeof(struct ip) + len; // size of ICMP reply + ip header
-	struct icmp *icmp;			/* ICMP header */
-	struct addrinfo *res;			/* for get addrinfo */
-	struct addrinfo hints = { 0 };		/* for get addrinfor */
-	struct sockaddr_in addr;		/* to recieve data with*/
-	socklen_t adrlen = sizeof(addr);	/* length of address */
+	struct icmp *icmp; /* ICMP header */
+	struct addrinfo *res; /* for get addrinfo */
+	struct addrinfo hints = { 0 }; /* for get addrinfor */
+	struct sockaddr_in addr; /* to recieve data with*/
+	socklen_t adrlen = sizeof(addr); /* length of address */
 
-	char packet_send[SIZE] = { 0 };		/* buffer to send data with */
-	char packet_rcv[SIZE] = { 0 };		/* buffer to recieve data into */
-	char str[INET_ADDRSTRLEN];		/* buffer to debug with -- remove, or wrap with #ifdef*/
+	char packet_send[SIZE] = { 0 }; /* buffer to send data with */
+	char packet_rcv[SIZE] = { 0 }; /* buffer to recieve data into */
+	char str[INET_ADDRSTRLEN]; /* buffer to debug with -- remove, or wrap with #ifdef*/
 
-	nsent = (size_t) rand();/*get random number for seq #*/
-	//struct timeval *tp, tv;
 
 	send_fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
 	recv_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
@@ -140,11 +137,11 @@ int main(int arc, char *argv[])
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);    // consider doing something better here
 	}
-	
+
 	/* set up our own ip header */
 	int hdrincl = 1;
-	if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &hdrincl, sizeof(hdrincl))
-			== -1){
+	if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &hdrincl,
+			sizeof(hdrincl)) == -1){
 		perror("setsockopt() failed");
 		exit(EXIT_FAILURE);
 	}/**/
@@ -181,9 +178,10 @@ int main(int arc, char *argv[])
 	ip->ip_hl = 5;
 	ip->ip_len = htons(SIZE);
 	ip->ip_id = htons(1234);
-	ip->ip_src.s_addr =  inet_addr("192.168.1.100");
-	ip->ip_dst = ((struct sockaddr_in*)res->ai_addr)->sin_addr;
-	ip->ip_ttl = atoi(argv[2]);
+	ip->ip_src.s_addr = inet_addr("192.168.1.100");
+	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
+	//ip->ip_ttl = atoi(argv[2]);
+	ip->ip_ttl = 255;
 	ip->ip_p = IPPROTO_UDP;
 
 	/*create udp packet*/
@@ -191,7 +189,7 @@ int main(int arc, char *argv[])
 	int udp_len = SIZE - sizeof(struct ip);
 	//printf("Offset: %d\n", offset);
 
-	struct udphdr *udp = (struct udphdr *) (ip +1);
+	struct udphdr *udp = (struct udphdr *) (ip + 1);
 	udp->uh_sport = htons(port); /* set source port*/
 	udp->uh_dport = htons(port); /* set destination port */
 	udp->uh_ulen = htons(udp_len); /* set udp length */
@@ -203,86 +201,78 @@ int main(int arc, char *argv[])
 	//read(random, (udp + 1), udp_data_len);
 	close(random);
 
-
-	void* data = udp+1;
+	void* data = udp + 1;
 
 	struct pseudo_header *ps;
-	ps = (struct pseudo_header *)packet_rcv;
+	ps = (struct pseudo_header *) packet_rcv;
 	ps->source = ip->ip_src.s_addr;
 	ps->dest = ip->ip_dst.s_addr;
-	ps->zero= 0;
+	ps->zero = 0;
 	ps->proto = IPPROTO_UDP;
 	ps->len = htons(udp_len);
 
-
-	memcpy(ps+1, udp, udp_len);
+	memcpy(ps + 1, udp, udp_len);
 	udp->check = ip_checksum(ps, ntohs(ps->len)); /* set udp checksum */
 	ip->ip_sum = ip_checksum(ip, SIZE);/**/
 
 	bzero(packet_rcv, SIZE);
-	
+
 	double d = get_time();
-	if(fork() == 0)
-	{
-		ip = (struct ip *)packet_rcv;
+	if(fork() == 0){
+		ip = (struct ip *) packet_rcv;
 		icmp = (struct icmp *) (ip + 1);
 
 		for(;;){
 
 			if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
-					(struct sockaddr *) &addr, &adrlen)) < 0 ){
-				if(errno == EINTR )
+					(struct sockaddr *) &addr, &adrlen))
+					< 0){
+				if(errno == EINTR)
 					continue;
 				perror("tracert: recvfrom");
 				continue;
-			}//else if(icmp->icmp_type != 3)continue;
+			}else if(icmp->icmp_type != 3 && icmp->icmp_code != 3)
+				continue;
 			else{
 				d = get_time() - d;
 				break;
 			}
 		}
-		close(recv_fd);
 
-	#ifdef DEBUG
+#ifdef DEBUG
 		printf("\nIn Child Process\n");
 		debug_print(icmp, n);
 		printf("ip header:\n");
-		inet_ntop(AF_INET, &(ip->ip_dst.s_addr), str, INET_ADDRSTRLEN );
+		inet_ntop(AF_INET, &(ip->ip_dst.s_addr), str, INET_ADDRSTRLEN);
 		printf("destination address: %s\n", str);
-		inet_ntop(AF_INET, &(ip->ip_src.s_addr), str, INET_ADDRSTRLEN );
+		inet_ntop(AF_INET, &(ip->ip_src.s_addr), str, INET_ADDRSTRLEN);
 		printf("source address: %s\n", str);
 		printf("ip header length:%d\n", ip->ip_hl);
 		printf("TTL: %d\n", ip->ip_ttl);
 		printf("Protocol: %d\n", ip->ip_p);
 		printf("version: %d\n", ip->ip_v);
-	#endif
-		//double elapsed = sub_time(&tv, tp);
+#endif
 
-		//printf("Total elapsed time = %f seconds\nBut d = %f\n", elapsed, d);
-		printf("d = %f\n", d * 1000);
 		write(my_pipe[1], &d, sizeof(d));
 
 		return EXIT_SUCCESS;
-	}// end fork()
+	}    // end fork()
 
-
-	n = sendto(send_fd, packet_send, SIZE, 0, res->ai_addr, res->ai_addrlen);
+	n = sendto(send_fd, packet_send, SIZE, 0, res->ai_addr,
+			res->ai_addrlen);
 	if(n == -1){
 		perror("Send error");
 		return EXIT_FAILURE;
 	}
-
-
-
 
 #ifdef DEBUG
 	printf("\nIn Parent Process\n");
 	printf("msg sent\n");
 	printf("Sent: %d bytes.\n", n);
 	printf("ip header:\n");
-	inet_ntop(AF_INET, &(ip->ip_dst.s_addr), str, INET_ADDRSTRLEN );
+	inet_ntop(AF_INET, &(ip->ip_dst.s_addr), str, INET_ADDRSTRLEN);
 	printf("destination address: %s\n", str);
-	inet_ntop(AF_INET, &(ip->ip_src.s_addr), str, INET_ADDRSTRLEN );
+	inet_ntop(AF_INET, &(ip->ip_src.s_addr), str, INET_ADDRSTRLEN);
 	printf("source address: %s\n", str);
 	printf("ip header length:%d\n", ip->ip_hl);
 	printf("TTL: %d\n", ip->ip_ttl);
@@ -299,10 +289,62 @@ int main(int arc, char *argv[])
 
 	freeaddrinfo(res);
 	read(my_pipe[0], &d, sizeof(d));
+	printf("Time elapsed TTL = 255: %f sec\n", d);
 
+	ip->ip_ttl = 3;
+	ip->ip_sum = ip_checksum(ip, SIZE);/**/
 
+	d = get_time();
+	if(fork() == 0){
+		ip = (struct ip *) packet_rcv;
+		icmp = (struct icmp *) (ip + 1);
+
+		for(;;){
+
+			if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
+					(struct sockaddr *) &addr, &adrlen))
+					< 0){
+				if(errno == EINTR)
+					continue;
+				perror("tracert: recvfrom");
+				continue;
+			}else if(icmp->icmp_type != 11)
+				continue;
+			else{
+				d = get_time() - d;
+				break;
+			}
+		}
+		close(recv_fd);
+
+#ifdef DEBUG
+		printf("\nIn Child Process\n");
+		debug_print(icmp, n);
+		printf("ip header:\n");
+		inet_ntop(AF_INET, &(ip->ip_dst.s_addr), str, INET_ADDRSTRLEN);
+		printf("destination address: %s\n", str);
+		inet_ntop(AF_INET, &(ip->ip_src.s_addr), str, INET_ADDRSTRLEN);
+		printf("source address: %s\n", str);
+		printf("ip header length:%d\n", ip->ip_hl);
+		printf("TTL: %d\n", ip->ip_ttl);
+		printf("Protocol: %d\n", ip->ip_p);
+		printf("version: %d\n", ip->ip_v);
+#endif
+		write(my_pipe[1], &d, sizeof(d));
+
+		return EXIT_SUCCESS;
+	}    // end fork()
+
+	n = sendto(send_fd, packet_send, SIZE, 0, res->ai_addr,
+			res->ai_addrlen);
+	if(n == -1){
+		perror("Send error");
+		return EXIT_FAILURE;
+	}
+
+	read(my_pipe[0], &d, sizeof(d));
 	close(send_fd);
-	printf("Time elapsed: %f\n", d);
+	printf("Time elapsed TTL = 3: %f sec\n", d);
 
 	return 0;
 }
@@ -312,7 +354,7 @@ void debug_print(struct icmp *icmp, ssize_t n)
 	printf("Receved: %zu bytes.\n", n);
 	printf("Process ID: %d\n", getpid());
 	printf("ICMP reply type: %d\n", icmp->icmp_type);
-	printf("ICMP CODE: %d\n",icmp->icmp_code);
+	printf("ICMP CODE: %d\n", icmp->icmp_code);
 	printf("ICMP reply ID: %d\n", icmp->icmp_id);
 
 }
