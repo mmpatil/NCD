@@ -111,9 +111,7 @@ int main(int arc, char *argv[])
 	pipe(my_pipe);
 	int udp_data_len = atoi(argv[2]);
 	int udp_len = udp_data_len + 8;
-	int packet_size = udp_len +20;
-
-
+	int packet_size = udp_len + 20;
 
 	if(SIZE <= udp_data_len + 40 + sizeof(struct udphdr)){
 		perror("Maximum packet size exceeded");
@@ -216,7 +214,7 @@ int main(int arc, char *argv[])
 	ps->len = htons(udp_len);
 
 	memcpy(ps + 1, udp, udp_len);
-	udp->check = ip_checksum(ps, udp_len+sizeof(struct pseudo_header)); /* set udp checksum */
+	udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header)); /* set udp checksum */
 	ip->ip_sum = ip_checksum(ip, packet_size);/**/
 
 	bzero(packet_rcv, SIZE);

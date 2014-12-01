@@ -1,52 +1,103 @@
 #include "ncd.h"
-
-int comp_det(char* address, char * port, size_t num_packets, size_t time_wait)
+/*  Just returns current time as double, with most possible precision...  */
+double get_time(void)
 {
+	struct timeval tv;
+	double d;
+	gettimeofday(&tv, NULL);
+	d = ((double) tv.tv_usec) / 1000000. + (unsigned long) tv.tv_sec;
+	return d;
+}
 
-	printf("Address %s\nport: %s\nnum_packets: %d\ntime_wait: %d\n\n",
-			address, port, num_packets, time_wait);
-
-	//data
-	int ret = 0; //integer code for the return 1 == compression, 0 == no compression, -1 == error
-	struct addrinfo *res, hints;
-
-	char low_data[1100] = { 0 }; /* low entropy data*/
-	char high_data[1100]; /* high entropy data*/
-
-	/*get random data for high entropy datagrams*/
-	int random = open("/dev/urandom", O_RDONLY);
-	read(random, high_data, sizeof(high_data));
-	close(random);
-
-	//set up ICMP Timestamp packets
-	struct icmphdr req;
-	bzero(&hints, sizeof hints);
-	hints.ai_flags = AI_CANONNAME;
-	hints.ai_family = 0;
-	hints.ai_socktype = 0;
-
-	int fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-	if(fd == -1){
-		perror("call to socket() failed");
-		exit(EXIT_FAILURE); // consider doing something better here
-	}
-
-	int hdrincl = 1;
-	if(setsockopt(fd, IPPROTO_IP, IP_HDRINCL, &hdrincl, sizeof(hdrincl))
-			== -1){
-		perror("setsockopt() failed");
+int comp_det(char* address, char * port, char hl, size_t data_size,
+		size_t num_packets, ushort ttl, size_t time_wait, int n_tail)
+{
+	char c = tolower(hl);
+	if(c != 'h' || c != 'l'){
+		perror(
+				"Invalid setting for High or Low entropy data, use 'H', or 'L'");
 		exit(EXIT_FAILURE);
 	}
 
-	req.type = ICMP_TIMESTAMP;
-	req.code = 0;
-	req.checksum = 0;
-	req.un.echo.id = htons(rand());		//maybe change
-	req.un.echo.sequence = htons(1);	// ditto ....
-	req.checksum = ip_checksum(&req, sizeof(req));
+	if(SIZE <= data_size + 40 + sizeof(struct udphdr)){
+		perror("Maximum packet size exceeded");
+		exit(EXIT_FAILURE);
+	}
+
+	if(fork() == 0){
+		send_data(address, port, num_packets, data_size, time_wait);
+	}
+
+	double time = recv_data();
+	printf("Time elapsed was: %f s", time);
+
+	return 0;
+}
+
+int send_data(char* address, char * port_name, char hl, size_t data_size,
+		size_t num_packets, ushort ttl, size_t time_wait, int n_tail)
+{
+	size_t nsent = (size_t) rand();/*get random number for seq #*/
+	int port = atoi(port_name);
+
+	int udp_data_len = data_size;
+	int udp_len = udp_data_len + 8;
+	int packet_size = udp_len + 20;
+	size_t datalen = 56; /* data for ICMP msg */
+	size_t len = sizeof(struct icmp) + datalen; /*size of icmp packet*/
+	size_t icmp_len = sizeof(struct ip) + len; /* size of ICMP reply + ip header */
+	struct icmp *icmp; /* ICMP header */
+
+	int send_fd, icmp_fd, n;
+
+	struct addrinfo *res; /* for get addrinfo */
+	struct addrinfo hints = { 0 }; /* for get addrinfor */
+
+	char packet_send[SIZE] = { 0 }; /* buffer to send data with */
+
+	char icmp_packet[64];
+
+	send_fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
+
+	if(send_fd == -1){
+		perror("call to socket() failed");
+		exit(EXIT_FAILURE);
+	}
+
+	/* set up our own ip header */
+	int hdrincl = 1;
+	if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &hdrincl,
+			sizeof(hdrincl)) == -1){
+		perror("setsockopt() failed");
+		exit(EXIT_FAILURE);
+	}/**/
+
+	icmp_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+
+	if(icmp_fd == -1){
+		perror("call to socket() failed");
+		exit(EXIT_FAILURE);    // consider doing something better here
+	}
+
+	int icmp_hdrincl = 1;
+	if(setsockopt(icmp_fd, IPPROTO_IP, IP_HDRINCL, &icmp_hdrincl,
+			sizeof(icmp_hdrincl)) == -1){
+		perror("setsockopt() failed");
+		exit(EXIT_FAILURE);
+	}
+	/**/
+
+	setuid(getuid());/*give up privileges */
+
+	/* set up hints for getaddrinfo() */
+	hints.ai_flags = AI_CANONNAME;
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = 0;
+	//hints.ai_protocol = IPPROTO_UDP;
 
 	int err = getaddrinfo(address, NULL, &hints, &res);
 
+	/*USE BETTER ERROR MESSAGES HERE!!!! taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
 	if(err != 0){
 		if(err == EAI_SYSTEM)
 			fprintf(stderr, "looking up www.example.com: %s\n",
@@ -57,41 +108,153 @@ int comp_det(char* address, char * port, size_t num_packets, size_t time_wait)
 		exit(EXIT_FAILURE);
 	}
 
-	printf("\ncannon name: %s \nsa_data %s\nai_protocol: %d\n\n",
-			res->ai_canonname, res->ai_addr->sa_data,
-			res->ai_protocol);
-	printf("\nAI_FLAGS:%d \nSocket_type: %d\n\n", res->ai_flags,
-			res->ai_socktype);
+	/* create IP header*/
+	struct ip *ip = (struct ip *) packet_send;
+	ip->ip_v = 4;
+	ip->ip_hl = 5;
+	ip->ip_len = htons(packet_size);
+	ip->ip_id = htons(1234);
+	ip->ip_src.s_addr = inet_addr("192.168.1.100");
+	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
+	//ip->ip_ttl = atoi(argv[2]);
+	ip->ip_ttl = ttl;
+	ip->ip_p = IPPROTO_UDP;
 
-	if(sendto(fd, &req, 8, res->ai_flags, res->ai_addr, res->ai_addrlen)
-			== -1){
-		perror("icmp sendto() failed");
+	/*create udp packet*/
+	int offset = sizeof(struct udphdr) + sizeof(struct ip);
+	//int udp_len = SIZE - sizeof(struct ip);
+
+	struct udphdr *udp = (struct udphdr *) (ip + 1);
+	udp->uh_sport = htons(port); /* set source port*/
+	udp->uh_dport = htons(port); /* set destination port */
+	udp->uh_ulen = htons(udp_len); /* set udp length */
+
+	/* fill with random data from /dev/urandom */
+	/*get random data for high entropy datagrams*/
+	if('h' == tolower(hl)){
+		int random = open("/dev/urandom", O_RDONLY);
+		read(random, (udp + 1), udp_data_len);
+		close(random);
+	}
+
+	/*Create ICMP Packets*/
+	/* create IP header*/
+	struct ip *ip_icmp = (struct ip *) icmp_packet;
+	ip_icmp->ip_v = 4;
+	ip_icmp->ip_hl = 5;
+	ip_icmp->ip_len = sizeof(struct ip) + len;
+	//ip_icmp->ip_id = htons(1234);
+	//ip_icmp->ip_tos = 0;
+	//ip_icmp->ip_src = adr.sin_addr;
+	ip_icmp->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
+	ip_icmp->ip_ttl = ttl;
+	ip_icmp->ip_p = IPPROTO_ICMP;
+
+	/* set up icmp message header*/
+	icmp = (struct icmp *) (ip_icmp + 1);
+	icmp->icmp_type = ICMP_ECHO;
+	icmp->icmp_code = 0;
+	icmp->icmp_id = (u_int16_t) getpid();
+	icmp->icmp_seq = (u_int16_t) nsent++;
+	memset(icmp->icmp_data, 0xa5, datalen);
+	gettimeofday((struct timeval *) icmp->icmp_data, NULL);
+	icmp->icmp_cksum = 0;
+
+	icmp->icmp_cksum = ip_checksum(icmp, len);
+	ip_icmp->ip_sum = ip_checksum(ip_icmp, icmp_len);
+
+	/*send Head ICMP Packet*/
+
+	n = sendto(send_fd, icmp_packet, icmp_len, 0, res->ai_addr,
+			res->ai_addrlen);
+	if(n == -1){
+		perror("Send error");
+		return EXIT_FAILURE;
+	}
+
+	/*send data train*/
+	int i = 0;
+	for(i = 0; i < num_packets; ++i){
+		n = sendto(send_fd, packet_send, packet_size, 0, res->ai_addr,
+				res->ai_addrlen);
+		if(n == -1){
+			perror("Send error");
+			return EXIT_FAILURE;
+		}
+	}
+
+	/*send tail ICMP Packets w/ timer*/
+	for(i = 0; i <n_tail; ++i){
+		n = sendto(send_fd, icmp_packet, icmp_len, 0, res->ai_addr,
+				res->ai_addrlen);
+		if(n == -1){
+			perror("Send error");
+			return EXIT_FAILURE;
+		}
+		sleep(time_wait);//fix this !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	}
+
+	int ret = 0;
+
+	return ret;
+}
+
+double recv_data()
+{
+
+	int n;
+	size_t datalen = 56; /* data for ICMP msg */
+	size_t len = sizeof(struct icmp) + datalen; /*size of icmp packet*/
+	size_t icmp_len = sizeof(struct ip) + len; /* size of ICMP reply + ip header */
+	struct icmp *icmp; /* ICMP header */
+
+	struct sockaddr_in addr; /* to recieve data with*/
+	socklen_t adrlen = sizeof(addr); /* length of address */
+
+	char packet_rcv[SIZE] = { 0 }; /* buffer to recieve data into */
+
+	int recv_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+
+	if(recv_fd == -1){
+		perror("call to socket() failed");
 		exit(EXIT_FAILURE);
 	}
 
-	// set up low and high entropy data
+	int size = 60 * 1024;
+	setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
 
-	// set up raw socket
+	/*Recieve initial ICMP echo response && Timestamp*/
+	struct ip *ip = (struct ip *) packet_rcv;
+	icmp = (struct icmp *) (ip + 1);
+	int count = 0;
+	double d;
+	for(;;){
 
-	// set up any structs and data needed by send/recieve
+		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
+				(struct sockaddr *) &addr, &adrlen)) < 0){
+			if(errno == EINTR)
+				continue;
+			perror("tracert: recvfrom");
+			continue;
+		}else if(icmp->icmp_type == 8 && count == 0){
+			d = get_time();
+			count++;
 
-	freeaddrinfo(res);
+		}else if(icmp->icmp_type == 8 && count == 1){
+			d = get_time() - d;
+			break;
+		}
+	}
 
-	return ret;
-}
+	/*process and ignore ICMP port unreachable*/
 
-int send_data()
-{
-	int ret = 0;
+	/* recieve and timestamp tail ICMP response*/
 
-	return ret;
-}
+	/*output the difference*/
 
-int recv_data()
-{
-	int ret = 0;
+	/*exit*/
 
-	return ret;
+	return d;
 }
 
 /*
@@ -152,4 +315,10 @@ uint16_t ip_checksum(void* vdata, size_t length)
 
 	// Return the checksum in network byte order.
 	return htons(~acc);
+}
+
+int main(int argc, char *argv[])
+{
+	return comp_det(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]);
+
 }

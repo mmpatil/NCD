@@ -2,10 +2,10 @@ CC=gcc
 #CFLAGS=-DDEBUG
 
 
-all: tracrt
+all: ncd
 
-tracrt: tracert.c
-	$(CC) tracert.c -o tracert $(CFLAGS)
+ncd: ncd.h ncd.c
+	$(CC) ncd.c -o ncd $(CFLAGS)
 
 clean:
 	rm *.o 

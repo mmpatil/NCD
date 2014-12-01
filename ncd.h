@@ -21,11 +21,14 @@
 
 #include <fcntl.h>
 
-/*  consider not using this ....*/
-struct trans_info {
-	char * address;
-	size_t num_packets;
-	size_t time_wait;
+#define SIZE 1500    //maximum ip packet size
+
+struct pseudo_header {
+	u_int32_t source;
+	u_int32_t dest;
+	u_int8_t zero;
+	u_int8_t proto;
+	uint16_t len;
 };
 
 // maybe not this either....
@@ -46,19 +49,21 @@ char* host; /*the host address stored as a string*/
  * @param port the port number or service name
  * @param num_packets the number of packets in each data train
  * @param time_wait the wait between trains
- * @return returns 0 for no compressin detection, 1 for compression, -1 for error
+ * @return returns 0 for no compression detection, 1 for compression, -1 for error
  * */
-int comp_det(char* address, char * port, size_t num_packets, size_t time_wait);
+int comp_det(char* address, char * port, char hl, size_t data_size,
+		size_t num_packets, ushort ttl, size_t time_wait, int n_tail);
 
 /**
- * sends data to the end host with leading and trailing icmp timestamps
+ * sends data train to the end host with leading and trailing icmp timestamps
  */
-int send_data();
+int send_data(char* address, char * port, char hl, size_t data_size,
+		size_t num_packets, ushort ttl, size_t time_wait, int n_tail);
 
 /**
- * recieves timestamps from end host to detect compression
+ * recieves ICMP responses from end host and records times
  */
-int recv_data();
+double recv_data();
 
 /**
  * creates an ICMP packet header
