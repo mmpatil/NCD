@@ -53,7 +53,11 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	size_t icmp_len = sizeof(struct ip) + len; /* size of ICMP reply + ip header */
 	struct icmp *icmp; /* ICMP header */
 
-	int send_fd, icmp_fd, n;
+	/*file descriptors for udp and icmp sockets */
+	int send_fd, icmp_fd;
+
+	/*number of bytes sent*/
+	int n;
 
 	struct addrinfo *res; /* for get addrinfo */
 	struct addrinfo hints = { 0 }; /* for get addrinfor */
@@ -61,7 +65,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	char packet_send[SIZE] = { 0 }; /* buffer to send data with */
 	char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
 
-	char icmp_packet[84];
+	char icmp_packet[84];/*icmp packet buffer*/
 
 	send_fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
 
@@ -103,7 +107,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 
 	int err = getaddrinfo(address, NULL, &hints, &res);
 
-	/*USE BETTER ERROR MESSAGES HERE!!!! taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
+	/*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
 	if(err != 0){
 		if(err == EAI_SYSTEM)
 			fprintf(stderr, "looking up www.example.com: %s\n",
@@ -127,7 +131,6 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	ip->ip_p = IPPROTO_UDP;
 
 	/*create udp packet*/
-	//int offset = sizeof(struct udphdr) + sizeof(struct ip);
 	struct udphdr *udp = (struct udphdr *) (ip + 1);
 	udp->uh_sport = htons(port); /* set source port*/
 	udp->uh_dport = htons(port); /* set destination port */
@@ -148,7 +151,9 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	ps->proto = IPPROTO_UDP;
 	ps->len = htons(udp_len);
 
+	/*copy udp packet into pseudo header buffer to calculate checksum*/
 	memcpy(ps + 1, udp, udp_len);
+
 	/* set udp checksum */
 	udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header));
 	ip->ip_sum = ip_checksum(ip, packet_size);/**/
