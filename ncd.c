@@ -30,7 +30,7 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 	}
 
 	double time = recv_data();
-	printf("Time elapsed was: %f s", time);
+	printf("Time elapsed was: %f sec\n", time);
 
 	return 0;
 }
@@ -57,7 +57,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	char packet_send[SIZE] = { 0 }; /* buffer to send data with */
 	char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
 
-	char icmp_packet[64];
+	char icmp_packet[84];
 
 	send_fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
 
@@ -120,13 +120,11 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	ip->ip_src.s_addr = inet_addr("192.168.1.100");
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 	ip->ip_off |= ntohs(IP_DF);
-	//ip->ip_ttl = atoi(argv[2]);
 	ip->ip_ttl = ttl;
 	ip->ip_p = IPPROTO_UDP;
 
 	/*create udp packet*/
-	int offset = sizeof(struct udphdr) + sizeof(struct ip);
-	//int udp_len = SIZE - sizeof(struct ip);
+	//int offset = sizeof(struct udphdr) + sizeof(struct ip);
 
 	struct udphdr *udp = (struct udphdr *) (ip + 1);
 	udp->uh_sport = htons(port); /* set source port*/
@@ -141,8 +139,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		close(random);
 	}
 
-	struct pseudo_header *ps;
-	ps = (struct pseudo_header *) pseudo;
+	struct pseudo_header *ps = (struct pseudo_header *) pseudo;
 	ps->source = ip->ip_src.s_addr;
 	ps->dest = ip->ip_dst.s_addr;
 	ps->zero = 0;
@@ -150,7 +147,8 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	ps->len = htons(udp_len);
 
 	memcpy(ps + 1, udp, udp_len);
-	udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header)); /* set udp checksum */
+	/* set udp checksum */
+	udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header));
 	ip->ip_sum = ip_checksum(ip, packet_size);/**/
 
 	/*Create ICMP Packets*/
@@ -158,7 +156,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	struct ip *ip_icmp = (struct ip *) icmp_packet;
 	ip_icmp->ip_v = 4;
 	ip_icmp->ip_hl = 5;
-	ip_icmp->ip_len = sizeof(struct ip) + len;
+	ip_icmp->ip_len = htons(icmp_len);
 	ip_icmp->ip_off |= ntohs(IP_DF);
 	ip_icmp->ip_id = htons(1234);
 	ip_icmp->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
@@ -224,10 +222,10 @@ double recv_data()
 	size_t icmp_len = sizeof(struct ip) + len; /* size of ICMP reply + ip header */
 	struct icmp *icmp; /* ICMP header */
 
-	struct sockaddr_in addr; /* to recieve data with*/
+	struct sockaddr_in addr; /* to receive data with*/
 	socklen_t adrlen = sizeof(addr); /* length of address */
 
-	char packet_rcv[SIZE] = { 0 }; /* buffer to recieve data into */
+	char packet_rcv[SIZE] = { 0 }; /* buffer to receive data into */
 
 	int recv_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 
@@ -239,11 +237,12 @@ double recv_data()
 	int size = 60 * 1024;
 	setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
 
-	/*Recieve initial ICMP echo response && Timestamp*/
+	/*Receive initial ICMP echo response && Timestamp*/
 	struct ip *ip = (struct ip *) packet_rcv;
 	icmp = (struct icmp *) (ip + 1);
 	int count = 0;
 	double d;
+	printf("made it here\n");
 	for(;;){
 
 		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
@@ -252,17 +251,20 @@ double recv_data()
 				continue;
 			perror("tracert: recvfrom");
 			continue;
-		}else if(icmp->icmp_type == 8 && count == 0){
-			d = get_time();
-			count= 1;
-			printf("Received first reply\n");
-
-		}else if(icmp->icmp_type == 8 && count == 1){
-			d = get_time() - d;
-			printf("Received last reply\n");
-			break;
-		}
-	}
+		}else if(icmp->icmp_type != 0){
+			continue;
+		}else{
+			if( count == 0){
+				d = get_time();
+				count= 1;
+				printf("Received first reply\n");
+			}else{
+				d = get_time() - d;
+				printf("Received last reply\n");
+				break;
+			}//end if
+		}// end if
+	}// end for
 
 
 	return d;
