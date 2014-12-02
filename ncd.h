@@ -19,7 +19,16 @@
 #include <signal.h>
 #include <fcntl.h>
 
-#define SIZE 1500    //maximum ip packet size
+
+/**
+ *  maximum ip packet size
+ */
+#define SIZE 1500
+
+
+/**
+ * struct for udp pseudo header
+ */
 struct pseudo_header {
 	u_int32_t source;
 	u_int32_t dest;
@@ -70,7 +79,9 @@ int send_data(char* address, char * port, char hl, size_t data_size,
 		size_t num_packets, ushort ttl, size_t time_wait, int n_tail);
 
 /**
- * recieves ICMP responses from end host and records times
+ * Receives ICMP responses from end host and records times
+ * @return time in seconds between head echo response and first processed
+ * tail echo response to a resolution of microseconds (10^-6 sec)
  */
 double recv_data();
 

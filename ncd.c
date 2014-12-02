@@ -33,7 +33,6 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 
 	double time = recv_data();
 	printf("Time elapsed was: %f sec\n", time);
-	//wait(child);
 	kill(child, SIGKILL);
 
 	return 0;
@@ -144,6 +143,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		close(random);
 	}
 
+	/* pseudo header for udp checksum */
 	struct pseudo_header *ps = (struct pseudo_header *) pseudo;
 	ps->source = ip->ip_src.s_addr;
 	ps->dest = ip->ip_dst.s_addr;
@@ -159,7 +159,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	ip->ip_sum = ip_checksum(ip, packet_size);/**/
 
 	/*Create ICMP Packets*/
-	/* create IP header*/
+	/* create IP header for icmp packet */
 	struct ip *ip_icmp = (struct ip *) icmp_packet;
 	ip_icmp->ip_v = 4;
 	ip_icmp->ip_hl = 5;
@@ -267,7 +267,7 @@ double recv_data()
 		exit(EXIT_FAILURE);
 	}
 
-	/*increase size of reveive buffer*/
+	/*increase size of receive buffer*/
 	int size = 60 * 1024;
 	setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
 
@@ -275,7 +275,6 @@ double recv_data()
 	struct ip *ip = (struct ip *) packet_rcv;
 	icmp = (struct icmp *) (ip + 1);
 
-	//printf("made it here\n");
 	for(;;){
 
 		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
