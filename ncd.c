@@ -34,7 +34,7 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 	double time = recv_data();
 	printf("Time elapsed was: %f sec\n", time);
 	//wait(child);
-	//kill(child, SIGKILL);
+	kill(child, SIGKILL);
 
 	return 0;
 }
