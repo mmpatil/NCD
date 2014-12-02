@@ -12,6 +12,7 @@ double get_time(void)
 int comp_det(char* address, char * port, char hl, size_t data_size,
 		size_t num_packets, ushort ttl, size_t time_wait, int n_tail)
 {
+	pid_t child;
 	char c = tolower(hl);
 	if(c != 'h' && c != 'l'){
 		perror(
@@ -24,13 +25,15 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 		exit(EXIT_FAILURE);
 	}
 
-	if(fork() == 0){
+	if((child =fork()) == 0){
 		send_data(address, port, hl, data_size, num_packets, ttl,
 				time_wait, n_tail);
 	}
 
 	double time = recv_data();
 	printf("Time elapsed was: %f sec\n", time);
+	//wait(child);
+	kill(child, SIGKILL);
 
 	return 0;
 }
@@ -204,7 +207,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 			perror("Send error");
 			return EXIT_FAILURE;
 		}
-		sleep(time_wait);	//fix this !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		usleep(time_wait*1000);	//fix this !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	}
 
 	printf("\nfinished sending\n");
@@ -249,10 +252,14 @@ double recv_data()
 				(struct sockaddr *) &addr, &adrlen)) < 0){
 			if(errno == EINTR)
 				continue;
-			perror("tracert: recvfrom");
+			perror("recvfrom failed");
 			continue;
 		}else if(icmp->icmp_type != 0){
 			continue;
+		}else if(icmp->icmp_type == 11){
+			perror("TTL Exceeded");
+			exit(EXIT_FAILURE);
+			break;
 		}else{
 			if( count == 0){
 				d = get_time();

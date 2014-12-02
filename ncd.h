@@ -18,7 +18,7 @@
 #include <netinet/ip_icmp.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-
+#include <signal.h>
 #include <fcntl.h>
 
 #define SIZE 1500    //maximum ip packet size
