@@ -245,6 +245,7 @@ double recv_data()
 	icmp = (struct icmp *) (ip + 1);
 	int count = 0;
 	double d;
+	int ack = 0;
 	printf("made it here\n");
 	for(;;){
 
@@ -254,13 +255,10 @@ double recv_data()
 				continue;
 			perror("recvfrom failed");
 			continue;
-		}else if(icmp->icmp_type != 0){
+		}else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
+			ack++;
 			continue;
-		}else if(icmp->icmp_type == 11){
-			perror("TTL Exceeded");
-			exit(EXIT_FAILURE);
-			break;
-		}else{
+		}else if(icmp->icmp_type == 0){
 			if( count == 0){
 				d = get_time();
 				count= 1;
@@ -273,7 +271,7 @@ double recv_data()
 		}// end if
 	}// end for
 
-
+	printf("\nUDP Packets recieved: %d\n", ack);
 	return d;
 }
 
