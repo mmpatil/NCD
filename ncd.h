@@ -3,14 +3,12 @@
 
 #include <ctype.h>
 #include <sys/types.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-
 #include <sys/socket.h>
 #include <netinet/udp.h>
 #include <netinet/in.h>
@@ -29,9 +27,6 @@ struct pseudo_header {
 	u_int8_t proto;
 	uint16_t len;
 };
-
-// maybe not this either....
-char* host; /*the host address stored as a string*/
 
 /**
  * Determines if compression occurs along the current transmission path to host

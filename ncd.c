@@ -25,15 +25,16 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 		exit(EXIT_FAILURE);
 	}
 
-	if((child =fork()) == 0){
-		send_data(address, port, hl, data_size, num_packets, ttl,
+	if((child = fork()) == 0){
+		return send_data(address, port, hl, data_size, num_packets, ttl,
 				time_wait, n_tail);
-	}
+
+	}//end fork()
 
 	double time = recv_data();
 	printf("Time elapsed was: %f sec\n", time);
 	//wait(child);
-	kill(child, SIGKILL);
+	//kill(child, SIGKILL);
 
 	return 0;
 }
@@ -68,7 +69,6 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);
 	}
-
 
 	/* set up our own ip header */
 	int hdrincl = 1;
@@ -128,7 +128,6 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 
 	/*create udp packet*/
 	//int offset = sizeof(struct udphdr) + sizeof(struct ip);
-
 	struct udphdr *udp = (struct udphdr *) (ip + 1);
 	udp->uh_sport = htons(port); /* set source port*/
 	udp->uh_dport = htons(port); /* set destination port */
@@ -201,35 +200,61 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 
 	/*send tail ICMP Packets w/ timer*/
 	for(i = 0; i < n_tail; ++i){
+		/*not sure if changing the sequence number will help*/
+		icmp->icmp_cksum = 0;
+		icmp->icmp_seq += 1;
+		icmp->icmp_cksum = ip_checksum(icmp, len);
+		ip_icmp->ip_sum = ip_checksum(ip_icmp, icmp_len);
+
 		n = sendto(icmp_fd, icmp_packet, icmp_len, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error");
 			return EXIT_FAILURE;
 		}
-		usleep(time_wait*1000);	//fix this !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		usleep(time_wait * 1000);
 	}
 
-	printf("\nfinished sending\n");
-	int ret = 0;
-
-	return ret;
+	return 0;
 }
 
 double recv_data()
 {
 
+	/*number of bytes received*/
 	int n;
-	size_t datalen = 56; /* data for ICMP msg */
-	size_t len = sizeof(struct icmp) + datalen; /*size of icmp packet*/
-	size_t icmp_len = sizeof(struct ip) + len; /* size of ICMP reply + ip header */
-	struct icmp *icmp; /* ICMP header */
 
-	struct sockaddr_in addr; /* to receive data with*/
-	socklen_t adrlen = sizeof(addr); /* length of address */
+	/* number of echo replies*/
+	int count = 0;
 
-	char packet_rcv[SIZE] = { 0 }; /* buffer to receive data into */
+	/*elapsed time stored as a double*/
+	double d;
 
+	/*number of port unreachable replies processed and ignored*/
+	int ack = 0;
+
+	/* data for ICMP msg */
+	size_t datalen = 56;
+
+	/*size of icmp packet*/
+	size_t len = sizeof(struct icmp) + datalen;
+
+	/* size of ICMP reply + ip header */
+	size_t icmp_len = sizeof(struct ip) + len;
+
+	/* ICMP header */
+	struct icmp *icmp;
+
+	/* to receive data with*/
+	struct sockaddr_in addr;
+
+	/* length of address */
+	socklen_t adrlen = sizeof(addr);
+
+	/* buffer to receive data into */
+	char packet_rcv[SIZE] = { 0 };
+
+	/*Acquire raw socket to listen for ICMP replies*/
 	int recv_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 
 	if(recv_fd == -1){
@@ -237,16 +262,15 @@ double recv_data()
 		exit(EXIT_FAILURE);
 	}
 
+	/*increase size of reveive buffer*/
 	int size = 60 * 1024;
 	setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
 
 	/*Receive initial ICMP echo response && Timestamp*/
 	struct ip *ip = (struct ip *) packet_rcv;
 	icmp = (struct icmp *) (ip + 1);
-	int count = 0;
-	double d;
-	int ack = 0;
-	printf("made it here\n");
+
+	//printf("made it here\n");
 	for(;;){
 
 		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
@@ -259,34 +283,31 @@ double recv_data()
 			ack++;
 			continue;
 		}else if(icmp->icmp_type == 0){
-			if( count == 0){
+			if(count == 0){
 				d = get_time();
-				count= 1;
+				count = 1;
 				printf("Received first reply\n");
 			}else{
 				d = get_time() - d;
 				printf("Received last reply\n");
 				break;
-			}//end if
-		}// end if
-	}// end for
+			}    //end if
+		}else if(icmp->icmp_type == 11){
+			perror("TTL Exceeded, increase");
+			exit(EXIT_FAILURE);
+		}    // end if
+	}    // end for
 
-	printf("\nUDP Packets recieved: %d\n", ack);
+	printf("\nUDP Packets received: %d\n", ack);
 	return d;
 }
-
-/*
- struct icmphdr* make_icmp(char *address, unsigned char code, void * data, ssize_t data_len){
-
- }
- */
 
 uint16_t ip_checksum(void* vdata, size_t length)
 {
 	// Cast the data pointer to one that can be indexed.
 	char* data = (char*) vdata;
 
-	// Initialise the accumulator.
+	// Initialize the accumulator.
 	uint64_t acc = 0xffff;
 
 	// Handle any partial block at the start of the data.
@@ -338,6 +359,6 @@ uint16_t ip_checksum(void* vdata, size_t length)
 int main(int argc, char *argv[])
 {
 	return comp_det(argv[1], argv[2], argv[3][0], atoi(argv[4]),
-			atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]));
-
+			atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
+			atoi(argv[8]));
 }

@@ -105,7 +105,8 @@ struct pseudo_header {
 
 int main(int arc, char *argv[])
 {
-	int port = 33434;
+	//int port = 33434;
+	int port = 9876;
 
 	int my_pipe[2];
 	pipe(my_pipe);
