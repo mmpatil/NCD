@@ -31,11 +31,15 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 
 	}//end fork()
 
-	double time = recv_data();
-	printf("Time elapsed was: %f sec\n", time);
+	double time;
+	int ret = recv_data(&time);
 	kill(child, SIGKILL);
+	if(ret != 0)
+		return EXIT_FAILURE;
 
-	return 0;
+	printf("Time elapsed was: %f ms\n", time*1000);
+
+	return EXIT_SUCCESS;
 }
 
 int send_data(char* address, char * port_name, char hl, size_t data_size,
@@ -220,10 +224,10 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		usleep(time_wait * 1000);
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
-double recv_data()
+int recv_data(double *time)
 {
 
 	/*number of bytes received*/
@@ -231,9 +235,6 @@ double recv_data()
 
 	/* number of echo replies*/
 	int count = 0;
-
-	/*elapsed time stored as a double*/
-	double d;
 
 	/*number of port unreachable replies processed and ignored*/
 	int ack = 0;
@@ -264,7 +265,7 @@ double recv_data()
 
 	if(recv_fd == -1){
 		perror("call to socket() failed");
-		exit(EXIT_FAILURE);
+		return(EXIT_FAILURE);
 	}
 
 	/*increase size of receive buffer*/
@@ -288,22 +289,23 @@ double recv_data()
 			continue;
 		}else if(icmp->icmp_type == 0){
 			if(count == 0){
-				d = get_time();
+				*time = get_time();
 				count = 1;
 				printf("Received first reply\n");
 			}else{
-				d = get_time() - d;
+				*time = get_time() - *time;
 				printf("Received last reply\n");
 				break;
 			}    //end if
 		}else if(icmp->icmp_type == 11){
-			perror("TTL Exceeded, increase");
-			exit(EXIT_FAILURE);
+			errno = ENETUNREACH;
+			perror("TTL Exceeded");
+			return EXIT_FAILURE;
 		}    // end if
 	}    // end for
 
 	printf("\nUDP Packets received: %d\n", ack);
-	return d;
+	return EXIT_SUCCESS;
 }
 
 uint16_t ip_checksum(void* vdata, size_t length)

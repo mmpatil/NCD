@@ -80,10 +80,11 @@ int send_data(char* address, char * port, char hl, size_t data_size,
 
 /**
  * Receives ICMP responses from end host and records times
- * @return time in seconds between head echo response and first processed
- * tail echo response to a resolution of microseconds (10^-6 sec)
+ * @param time returns the time in ms between head echo response and first
+ * processed tail echo response to a resolution of microseconds (10^-6 sec)
+ * @return 0 success, -1 error/failure
  */
-double recv_data();
+int recv_data(double *time);
 
 /**
  * calculates the ip cheksum for some buffer of size length
