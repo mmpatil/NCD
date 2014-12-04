@@ -37,7 +37,7 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 	if(ret != 0)
 		return EXIT_FAILURE;
 
-	printf("Time elapsed was: %f ms\n", time*1000);
+	printf("%c %f sec\n", hl, time);
 
 	return EXIT_SUCCESS;
 }
@@ -291,10 +291,8 @@ int recv_data(double *time)
 			if(count == 0){
 				*time = get_time();
 				count = 1;
-				printf("Received first reply\n");
 			}else{
 				*time = get_time() - *time;
-				printf("Received last reply\n");
 				break;
 			}    //end if
 		}else if(icmp->icmp_type == 11){

@@ -52,7 +52,7 @@ struct pseudo_header {
  * @param port the port number or service name
  * @param num_packets the number of packets in each data train
  * @param time_wait the wait between trains
- * @return 0 success, -1 error/failure
+ * @return 0 success, 1 error/failure
  * */
 int comp_det(char* address, char * port, char hl, size_t data_size,
 		size_t num_packets, ushort ttl, size_t time_wait, int n_tail);
