@@ -29,7 +29,7 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 		return send_data(address, port, hl, data_size, num_packets, ttl,
 				time_wait, n_tail);
 
-	}//end fork()
+	} //end fork()
 
 	double time;
 	int ret = recv_data(&time);
@@ -48,12 +48,23 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	size_t nsent = (size_t) rand();/*get random number for seq #*/
 	int port = atoi(port_name);
 
+	/*size of udp data*/
 	int udp_data_len = data_size;
+
+	/* size of udp packet */
 	int udp_len = udp_data_len + 8;
+
+	/* size of IP packet (IP header +  udp packet size*/
 	int packet_size = udp_len + 20;
-	size_t datalen = 56; /* data for ICMP msg */
-	size_t len = sizeof(struct icmp) + datalen; /*size of icmp packet*/
-	size_t icmp_len = sizeof(struct ip) + len; /* size of ICMP reply + ip header */
+
+	/* size of ICMP Echo message */
+	size_t datalen = 56;
+
+	/*size of icmp packet*/
+	size_t len = sizeof(struct icmp) + datalen;
+
+	/* size of ICMP reply + ip header */
+	size_t icmp_len = sizeof(struct ip) + len;
 	struct icmp *icmp; /* ICMP header */
 
 	/*file descriptors for udp and icmp sockets */
@@ -85,6 +96,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		exit(EXIT_FAILURE);
 	}/**/
 
+	/* acquire socket for icmp messages*/
 	icmp_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 
 	if(icmp_fd == -1){
@@ -92,13 +104,13 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		exit(EXIT_FAILURE);    // consider doing something better here
 	}
 
+	/* set up our own IP header*/
 	int icmp_hdrincl = 1;
 	if(setsockopt(icmp_fd, IPPROTO_IP, IP_HDRINCL, &icmp_hdrincl,
 			sizeof(icmp_hdrincl)) == -1){
 		perror("setsockopt() failed");
 		exit(EXIT_FAILURE);
 	}
-	/**/
 
 	setuid(getuid());/*give up privileges */
 
@@ -113,10 +125,10 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	/*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
 	if(err != 0){
 		if(err == EAI_SYSTEM)
-			fprintf(stderr, "looking up www.example.com: %s\n",
+			fprintf(stderr, "looking up %s: %s\n", address,
 					strerror(errno));
 		else
-			fprintf(stderr, "looking up www.example.com: %s\n",
+			fprintf(stderr, "looking up %s: %s\n", address,
 					gai_strerror(err));
 		exit(EXIT_FAILURE);
 	}
@@ -127,6 +139,8 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	ip->ip_hl = 5;
 	ip->ip_len = htons(packet_size);
 	ip->ip_id = htons(1234);
+
+	/* get a better way to assign my IP address!!!*/
 	ip->ip_src.s_addr = inet_addr("192.168.1.100");
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 	ip->ip_off |= ntohs(IP_DF);
@@ -265,7 +279,7 @@ int recv_data(double *time)
 
 	if(recv_fd == -1){
 		perror("call to socket() failed");
-		return(EXIT_FAILURE);
+		return (EXIT_FAILURE);
 	}
 
 	/*increase size of receive buffer*/
@@ -359,7 +373,6 @@ uint16_t ip_checksum(void* vdata, size_t length)
 	// Return the checksum in network byte order.
 	return htons(~acc);
 }
-
 
 /**
  * Main function
