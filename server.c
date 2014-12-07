@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 	clock_t diff1, diff2; /*transmission times for each data train*/
 
 	int sockfd, tcpfd, udpfd; /*file descriptors for sockets*/
-	char tcp_msg[1024]; /*buffer for tcp comunicatons*/
+	char tcp_msg[1024]; /*buffer for tcp communications*/
 
 	struct timeval tv;
 	tv.tv_sec = 5; /* timeout = 5 seconds*/
