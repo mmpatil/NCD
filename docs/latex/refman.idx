@@ -1,0 +1,9 @@
+\indexentry{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}|hyperpage}{7}
+\indexentry{client.\discretionary {-}{}{}c@{client.\discretionary {-}{}{}c}|hyperpage}{9}
+\indexentry{client.\discretionary {-}{}{}c@{client.\discretionary {-}{}{}c}!main@{main}|hyperpage}{9}
+\indexentry{main@{main}!client.c@{client.\discretionary {-}{}{}c}|hyperpage}{9}
+\indexentry{server.\discretionary {-}{}{}c@{server.\discretionary {-}{}{}c}|hyperpage}{10}
+\indexentry{server.\discretionary {-}{}{}c@{server.\discretionary {-}{}{}c}!main@{main}|hyperpage}{10}
+\indexentry{main@{main}!server.c@{server.\discretionary {-}{}{}c}|hyperpage}{10}
+\indexentry{server.\discretionary {-}{}{}c@{server.\discretionary {-}{}{}c}!procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg@{procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg}|hyperpage}{10}
+\indexentry{procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg@{procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg}!server.c@{server.\discretionary {-}{}{}c}|hyperpage}{10}

@@ -1,0 +1,26 @@
+\begin{theindex}
+
+  \item {client.\discretionary {-}{}{}c}, \hyperpage{9}
+    \subitem {main}, \hyperpage{9}
+
+  \indexspace
+
+  \item {main}
+    \subitem {client.\discretionary {-}{}{}c}, \hyperpage{9}
+    \subitem {server.\discretionary {-}{}{}c}, \hyperpage{10}
+
+  \indexspace
+
+  \item {procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg}
+    \subitem {server.\discretionary {-}{}{}c}, \hyperpage{10}
+  \item {pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}, 
+		\hyperpage{7}
+
+  \indexspace
+
+  \item {server.\discretionary {-}{}{}c}, \hyperpage{10}
+    \subitem {main}, \hyperpage{10}
+    \subitem {procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg}, 
+		\hyperpage{10}
+
+\end{theindex}

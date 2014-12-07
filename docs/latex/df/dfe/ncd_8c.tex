@@ -1,0 +1,184 @@
+\hypertarget{ncd_8c}{\section{ncd.\-c File Reference}
+\label{ncd_8c}\index{ncd.\-c@{ncd.\-c}}
+}
+{\ttfamily \#include \char`\"{}ncd.\-h\char`\"{}}\\*
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+double \hyperlink{ncd_8c_a634b2de1d27b4fd5b22f6fc46b805d9b}{get\-\_\-time} (void)
+\item 
+int \hyperlink{ncd_8c_aa5d407939440fe5743c9e978debe7322}{comp\-\_\-det} (char $\ast$address, char $\ast$port, char hl, size\-\_\-t data\-\_\-size, size\-\_\-t num\-\_\-packets, ushort ttl, size\-\_\-t time\-\_\-wait, int n\-\_\-tail)
+\begin{DoxyCompactList}\small\item\em Determines if compression occurs along the current transmission path to host by sending data to a remote location. \end{DoxyCompactList}\item 
+int \hyperlink{ncd_8c_a9763bfecd49c11e8488a9b8d940c1b71}{send\-\_\-data} (char $\ast$address, char $\ast$port\-\_\-name, char hl, size\-\_\-t data\-\_\-size, size\-\_\-t num\-\_\-packets, ushort ttl, size\-\_\-t time\-\_\-wait, int n\-\_\-tail)
+\begin{DoxyCompactList}\small\item\em sends data train to the end host with leading and trailing icmp timestamps \end{DoxyCompactList}\item 
+int \hyperlink{ncd_8c_a39544cf1c63682d17e9c1d9215f42842}{recv\-\_\-data} (double $\ast$time)
+\begin{DoxyCompactList}\small\item\em Receives I\-C\-M\-P responses from end host and records times. \end{DoxyCompactList}\item 
+uint16\-\_\-t \hyperlink{ncd_8c_a6e25195727f4483c9e7224de02cb55be}{ip\-\_\-checksum} (void $\ast$vdata, size\-\_\-t length)
+\begin{DoxyCompactList}\small\item\em calculates the ip cheksum for some buffer of size length \end{DoxyCompactList}\item 
+int \hyperlink{ncd_8c_a0ddf1224851353fc92bfbff6f499fa97}{main} (int argc, char $\ast$argv\mbox{[}$\,$\mbox{]})
+\begin{DoxyCompactList}\small\item\em Main function only calls comp\-\_\-detection() \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{ncd_8c_aa5d407939440fe5743c9e978debe7322}{\index{ncd.\-c@{ncd.\-c}!comp\-\_\-det@{comp\-\_\-det}}
+\index{comp\-\_\-det@{comp\-\_\-det}!ncd.c@{ncd.\-c}}
+\subsubsection[{comp\-\_\-det}]{\setlength{\rightskip}{0pt plus 5cm}int comp\-\_\-det (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{address, }
+\item[{char $\ast$}]{port, }
+\item[{char}]{hl, }
+\item[{size\-\_\-t}]{data\-\_\-size, }
+\item[{size\-\_\-t}]{num\-\_\-packets, }
+\item[{ushort}]{ttl, }
+\item[{size\-\_\-t}]{time\-\_\-wait, }
+\item[{int}]{n\-\_\-tail}
+\end{DoxyParamCaption}
+)}}\label{ncd_8c_aa5d407939440fe5743c9e978debe7322}
+
+
+Determines if compression occurs along the current transmission path to host by sending data to a remote location. 
+
+two data trains are sent each with leading and trailing I\-C\-M\-P timestamp messages
+
+the first data train will be low entropy data, to encourage compression the second train will have high entropy data, which should not be compressed if the times are significantly different, we have reasonable evidence compression exists along this path.
+
+
+\begin{DoxyParams}{Parameters}
+{\em address} & the address of the end host stored in a char array (cstring) \\
+\hline
+{\em port} & the port number or service name \\
+\hline
+{\em num\-\_\-packets} & the number of packets in each data train \\
+\hline
+{\em time\-\_\-wait} & the wait between trains \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+0 success, 1 error/failure 
+\end{DoxyReturn}
+
+
+Definition at line 12 of file ncd.\-c.
+
+\hypertarget{ncd_8c_a634b2de1d27b4fd5b22f6fc46b805d9b}{\index{ncd.\-c@{ncd.\-c}!get\-\_\-time@{get\-\_\-time}}
+\index{get\-\_\-time@{get\-\_\-time}!ncd.c@{ncd.\-c}}
+\subsubsection[{get\-\_\-time}]{\setlength{\rightskip}{0pt plus 5cm}double get\-\_\-time (
+\begin{DoxyParamCaption}
+\item[{void}]{}
+\end{DoxyParamCaption}
+)}}\label{ncd_8c_a634b2de1d27b4fd5b22f6fc46b805d9b}
+
+
+Definition at line 3 of file ncd.\-c.
+
+\hypertarget{ncd_8c_a6e25195727f4483c9e7224de02cb55be}{\index{ncd.\-c@{ncd.\-c}!ip\-\_\-checksum@{ip\-\_\-checksum}}
+\index{ip\-\_\-checksum@{ip\-\_\-checksum}!ncd.c@{ncd.\-c}}
+\subsubsection[{ip\-\_\-checksum}]{\setlength{\rightskip}{0pt plus 5cm}uint16\-\_\-t ip\-\_\-checksum (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{vdata, }
+\item[{size\-\_\-t}]{length}
+\end{DoxyParamCaption}
+)}}\label{ncd_8c_a6e25195727f4483c9e7224de02cb55be}
+
+
+calculates the ip cheksum for some buffer of size length 
+
+
+\begin{DoxyParams}{Parameters}
+{\em vdata} & a pointer to the buffer to be checksummed \\
+\hline
+{\em length} & the length in bytes of the data to be checksummed \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the I\-P checksum of the buffer 
+\end{DoxyReturn}
+
+
+Definition at line 323 of file ncd.\-c.
+
+\hypertarget{ncd_8c_a0ddf1224851353fc92bfbff6f499fa97}{\index{ncd.\-c@{ncd.\-c}!main@{main}}
+\index{main@{main}!ncd.c@{ncd.\-c}}
+\subsubsection[{main}]{\setlength{\rightskip}{0pt plus 5cm}int main (
+\begin{DoxyParamCaption}
+\item[{int}]{argc, }
+\item[{char $\ast$}]{argv\mbox{[}$\,$\mbox{]}}
+\end{DoxyParamCaption}
+)}}\label{ncd_8c_a0ddf1224851353fc92bfbff6f499fa97}
+
+
+Main function only calls comp\-\_\-detection() 
+
+\mbox{[}1\mbox{]} Destination I\-P address \mbox{[}2\mbox{]} Port Number \mbox{[}3\mbox{]} High or low entropy data 'H' or 'L' \mbox{[}4\mbox{]} Size of udp data packet \mbox{[}5\mbox{]} Number of packets in U\-D\-P Data Train \mbox{[}6\mbox{]} Time to Live \mbox{[}7\mbox{]} Wait time in milliseconds \mbox{[}8\mbox{]} number of tail I\-C\-M\-P messages 
+
+Definition at line 391 of file ncd.\-c.
+
+\hypertarget{ncd_8c_a39544cf1c63682d17e9c1d9215f42842}{\index{ncd.\-c@{ncd.\-c}!recv\-\_\-data@{recv\-\_\-data}}
+\index{recv\-\_\-data@{recv\-\_\-data}!ncd.c@{ncd.\-c}}
+\subsubsection[{recv\-\_\-data}]{\setlength{\rightskip}{0pt plus 5cm}int recv\-\_\-data (
+\begin{DoxyParamCaption}
+\item[{double $\ast$}]{time}
+\end{DoxyParamCaption}
+)}}\label{ncd_8c_a39544cf1c63682d17e9c1d9215f42842}
+
+
+Receives I\-C\-M\-P responses from end host and records times. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em time} & returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10$^\wedge$-\/6 sec) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+0 success, -\/1 error/failure 
+\end{DoxyReturn}
+
+
+Definition at line 244 of file ncd.\-c.
+
+\hypertarget{ncd_8c_a9763bfecd49c11e8488a9b8d940c1b71}{\index{ncd.\-c@{ncd.\-c}!send\-\_\-data@{send\-\_\-data}}
+\index{send\-\_\-data@{send\-\_\-data}!ncd.c@{ncd.\-c}}
+\subsubsection[{send\-\_\-data}]{\setlength{\rightskip}{0pt plus 5cm}int send\-\_\-data (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{address, }
+\item[{char $\ast$}]{port, }
+\item[{char}]{hl, }
+\item[{size\-\_\-t}]{data\-\_\-size, }
+\item[{size\-\_\-t}]{num\-\_\-packets, }
+\item[{ushort}]{ttl, }
+\item[{size\-\_\-t}]{time\-\_\-wait, }
+\item[{int}]{n\-\_\-tail}
+\end{DoxyParamCaption}
+)}}\label{ncd_8c_a9763bfecd49c11e8488a9b8d940c1b71}
+
+
+sends data train to the end host with leading and trailing icmp timestamps 
+
+sets up a connection using raw sockets and sends a head I\-C\-M\-P echo request followed by a U\-D\-P data train. After the data train is sent, a series of I\-C\-M\-P echo responses is sent.
+
+
+\begin{DoxyParams}{Parameters}
+{\em address} & the address of the end host stored in a char array (cstring) \\
+\hline
+{\em port} & the port number or service name \\
+\hline
+{\em hl} & the entropy of the data (either 'H' for high entropy or 'L' for low entropy \\
+\hline
+{\em data\-\_\-size} & the size in bytes of the data to be sent in the udp train \\
+\hline
+{\em num\-\_\-packets} & the number of packets in each data train \\
+\hline
+{\em ttl} & the time to live for each packet (max size 255) \\
+\hline
+{\em time\-\_\-wait} & the wait between I\-C\-M\-P tail messages \\
+\hline
+{\em n\-\_\-tail} & the number of I\-C\-M\-P tail messages to be sent \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+0 success, -\/1 error/failure 
+\end{DoxyReturn}
+
+
+Definition at line 45 of file ncd.\-c.
+
