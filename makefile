@@ -1,10 +1,13 @@
 CC=gcc
 #CFLAGS=-DDEBUG
 
-all: ncd tracert ping_ip ping
+all: ncd tracert ping_ip ping ncd_no_raw
 
 ncd: ncd.h ncd.c
 	$(CC) ncd.c -o ncd $(CFLAGS)
+
+ncd_no_raw: ncd.h ncd_no_raw.c
+	$(CC) ncd_no_raw.c -o ncd_no_raw $(CFLAGS)
 
 ping_ip: ping_ip.c
 	$(CC) ping_ip.c -o ping_ip $(CFLAGS)

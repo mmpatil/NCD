@@ -1,3 +1,14 @@
+/*
+ * ncd_no_raw.c
+ *
+ *  Created on: Dec 7, 2014
+ *      Author: Paul Kirth
+ *
+ *
+ *      exactly the same as ncd, but uses regular udp socket to
+ *      send data to figure out source IP without hard coding, etc
+ */
+
 #include "ncd.h"
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -33,9 +44,7 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 
 	double time;
 	int ret = recv_data(&time);
-#ifndef NCD_NO_KILL
 	kill(child, SIGKILL);
-#endif
 	if(ret != 0)
 		return EXIT_FAILURE;
 
@@ -83,15 +92,17 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 
 	char icmp_packet[84];/*icmp packet buffer*/
 
-	send_fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
+	send_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
+	int s = ttl;
+	//setsockopt(send_fd,IPPROTO_IP, IP_TTL, &s, sizeof(s));
 	if(send_fd == -1){
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);
 	}
 
 	/* set up our own ip header */
-	int hdrincl = 1;
+	/*int hdrincl = 1;
 	if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &hdrincl,
 			sizeof(hdrincl)) == -1){
 		perror("setsockopt() failed");
@@ -121,6 +132,12 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = 0;
 	hints.ai_protocol = IPPROTO_UDP;
+	hints.ai_socktype = SOCK_DGRAM;
+
+	struct sockaddr_in ha = {0};
+	ha.sin_family = AF_INET;
+	ha.sin_port = htons(port);
+	ha.sin_addr.s_addr = inet_addr(address);
 
 	int err = getaddrinfo(address, NULL, &hints, &res);
 
@@ -135,6 +152,8 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		exit(EXIT_FAILURE);
 	}
 
+
+#if 0
 	/* create IP header*/
 	struct ip *ip = (struct ip *) packet_send;
 	ip->ip_v = 4;
@@ -177,7 +196,16 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	/* set udp checksum */
 	udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header));
 	ip->ip_sum = ip_checksum(ip, packet_size);/**/
+#endif
 
+
+	/* fill with random data from /dev/urandom */
+	/*get random data for high entropy datagrams*/
+	if('h' == tolower(hl)){
+		int random = open("/dev/urandom", O_RDONLY);
+		read(random, packet_send, data_size);
+		close(random);
+	}
 	/*Create ICMP Packets*/
 	/* create IP header for icmp packet */
 	struct ip *ip_icmp = (struct ip *) icmp_packet;
@@ -208,17 +236,17 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	n = sendto(icmp_fd, icmp_packet, icmp_len, 0, res->ai_addr,
 			res->ai_addrlen);
 	if(n == -1){
-		perror("Send error");
+		perror("ICMP Send error");
 		return EXIT_FAILURE;
 	}
 
 	/*send data train*/
 	int i = 0;
 	for(i = 0; i < num_packets; ++i){
-		n = sendto(send_fd, packet_send, packet_size, 0, res->ai_addr,
-				res->ai_addrlen);
+		n = sendto(send_fd, packet_send, data_size, 0, (struct sockaddr*)&ha,
+				sizeof(ha));
 		if(n == -1){
-			perror("Send error");
+			perror("UDP Send error");
 			return EXIT_FAILURE;
 		}
 	}
@@ -397,3 +425,4 @@ int main(int argc, char *argv[])
 			atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 			atoi(argv[8]));
 }
+
