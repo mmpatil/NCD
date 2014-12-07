@@ -33,7 +33,9 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 
 	double time;
 	int ret = recv_data(&time);
+#ifndef NOKILL
 	kill(child, SIGKILL);
+#endif
 	if(ret != 0)
 		return EXIT_FAILURE;
 
