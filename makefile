@@ -1,4 +1,4 @@
-C=gcc
+CC=gcc
 #CFLAGS=-DDEBUG
 
 all: ncd tracert ping_ip ping

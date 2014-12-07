@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <fcntl.h>
+#include "icmp.h"
 /**
  * Detects compression by sending a stream of low entropy and high entropy
  * packets, and comparing their transmission time to determine if
