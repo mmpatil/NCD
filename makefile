@@ -1,11 +1,21 @@
-all: server client
+C=gcc
+#CFLAGS=-DDEBUG
 
-server: server.c
-	gcc server.c -o server 
+all: ncd tracert ping_ip ping
 
-client: client.c
-	gcc client.c -o client
+ncd: ncd.h ncd.c
+	$(CC) ncd.c -o ncd $(CFLAGS)
 
+ping_ip: ping_ip.c
+	$(CC) ping_ip.c -o ping_ip $(CFLAGS)
+
+
+ping: ping.c
+	$(CC) ping.c -o ping $(CFLAGS)
+
+
+tracert: tracert.c
+	$(CC) tracert.c -o tracert $(CFLAGS)
 
 clean:
-	rm client server
+	rm ncd tracert ping ping_ip 
