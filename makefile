@@ -1,11 +1,11 @@
-all: server client
+CC=gcc
+#CFLAGS=-DDEBUG
 
-server: server.c
-	gcc server.c -o server 
 
-client: client.c
-	gcc client.c -o client
+all: ncd
 
+ncd: ncd.h ncd.c
+	$(CC) ncd.c -o ncd $(CFLAGS)
 
 clean:
-	rm client server
+	rm *.o 
