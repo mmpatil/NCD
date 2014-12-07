@@ -73,7 +73,7 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
  * @param ttl the time to live for each packet (max size 255)
  * @param time_wait the wait between ICMP tail messages
  * @param n_tail the number of ICMP tail messages to be sent
- * @return 0 success, -1 error/failure
+ * @return 0 success, 1 error/failure
  */
 int send_data(char* address, char * port, char hl, size_t data_size,
 		size_t num_packets, ushort ttl, size_t time_wait, int n_tail);
@@ -82,7 +82,7 @@ int send_data(char* address, char * port, char hl, size_t data_size,
  * Receives ICMP responses from end host and records times
  * @param time returns the time in ms between head echo response and first
  * processed tail echo response to a resolution of microseconds (10^-6 sec)
- * @return 0 success, -1 error/failure
+ * @return 0 success, 1 error/failure
  */
 int recv_data(double *time);
 

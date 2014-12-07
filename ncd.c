@@ -247,7 +247,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		usleep(time_wait * 1000);
 	}
 
-	freeaddrinfo(res);
+	freeaddrinfo(res);/* give back the memory from getaddrinfo()*/
 	return EXIT_SUCCESS;
 }
 
@@ -391,11 +391,11 @@ uint16_t ip_checksum(void* vdata, size_t length)
  * @argv[1] Destination IP address
  * @argv[2] Port Number
  * @argv[3] High or low entropy data 'H' or 'L'
- * @argv[4] Size of udp data packet
+ * @argv[4] Size of udp data
  * @argv[5] Number of packets in UDP Data Train
  * @argv[6] Time to Live
  * @argv[7] Wait time in milliseconds
- * @argv[8] number of tail ICMP messages
+ * @argv[8] Number of tail ICMP messages to send
  *
  */
 int main(int argc, char *argv[])
