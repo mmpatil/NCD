@@ -1,9 +1,104 @@
 \indexentry{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}|hyperpage}{7}
+\indexentry{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}!dest@{dest}|hyperpage}{7}
+\indexentry{dest@{dest}!pseudo_header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}|hyperpage}{7}
+\indexentry{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}!len@{len}|hyperpage}{7}
+\indexentry{len@{len}!pseudo_header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}|hyperpage}{7}
+\indexentry{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}!proto@{proto}|hyperpage}{7}
+\indexentry{proto@{proto}!pseudo_header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}|hyperpage}{7}
+\indexentry{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}!source@{source}|hyperpage}{7}
+\indexentry{source@{source}!pseudo_header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}|hyperpage}{7}
+\indexentry{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}!zero@{zero}|hyperpage}{7}
+\indexentry{zero@{zero}!pseudo_header@{pseudo\discretionary {-}{}{}\_\discretionary {-}{}{}header}|hyperpage}{7}
 \indexentry{client.\discretionary {-}{}{}c@{client.\discretionary {-}{}{}c}|hyperpage}{9}
 \indexentry{client.\discretionary {-}{}{}c@{client.\discretionary {-}{}{}c}!main@{main}|hyperpage}{9}
 \indexentry{main@{main}!client.c@{client.\discretionary {-}{}{}c}|hyperpage}{9}
-\indexentry{server.\discretionary {-}{}{}c@{server.\discretionary {-}{}{}c}|hyperpage}{10}
-\indexentry{server.\discretionary {-}{}{}c@{server.\discretionary {-}{}{}c}!main@{main}|hyperpage}{10}
-\indexentry{main@{main}!server.c@{server.\discretionary {-}{}{}c}|hyperpage}{10}
-\indexentry{server.\discretionary {-}{}{}c@{server.\discretionary {-}{}{}c}!procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg@{procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg}|hyperpage}{10}
-\indexentry{procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg@{procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg}!server.c@{server.\discretionary {-}{}{}c}|hyperpage}{10}
+\indexentry{ncd.\discretionary {-}{}{}c@{ncd.\discretionary {-}{}{}c}|hyperpage}{10}
+\indexentry{ncd.\discretionary {-}{}{}c@{ncd.\discretionary {-}{}{}c}!comp\discretionary {-}{}{}\_\discretionary {-}{}{}det@{comp\discretionary {-}{}{}\_\discretionary {-}{}{}det}|hyperpage}{10}
+\indexentry{comp\discretionary {-}{}{}\_\discretionary {-}{}{}det@{comp\discretionary {-}{}{}\_\discretionary {-}{}{}det}!ncd.c@{ncd.\discretionary {-}{}{}c}|hyperpage}{10}
+\indexentry{ncd.\discretionary {-}{}{}c@{ncd.\discretionary {-}{}{}c}!get\discretionary {-}{}{}\_\discretionary {-}{}{}time@{get\discretionary {-}{}{}\_\discretionary {-}{}{}time}|hyperpage}{10}
+\indexentry{get\discretionary {-}{}{}\_\discretionary {-}{}{}time@{get\discretionary {-}{}{}\_\discretionary {-}{}{}time}!ncd.c@{ncd.\discretionary {-}{}{}c}|hyperpage}{10}
+\indexentry{ncd.\discretionary {-}{}{}c@{ncd.\discretionary {-}{}{}c}!ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}|hyperpage}{10}
+\indexentry{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}!ncd.c@{ncd.\discretionary {-}{}{}c}|hyperpage}{10}
+\indexentry{ncd.\discretionary {-}{}{}c@{ncd.\discretionary {-}{}{}c}!main@{main}|hyperpage}{11}
+\indexentry{main@{main}!ncd.c@{ncd.\discretionary {-}{}{}c}|hyperpage}{11}
+\indexentry{ncd.\discretionary {-}{}{}c@{ncd.\discretionary {-}{}{}c}!recv\discretionary {-}{}{}\_\discretionary {-}{}{}data@{recv\discretionary {-}{}{}\_\discretionary {-}{}{}data}|hyperpage}{11}
+\indexentry{recv\discretionary {-}{}{}\_\discretionary {-}{}{}data@{recv\discretionary {-}{}{}\_\discretionary {-}{}{}data}!ncd.c@{ncd.\discretionary {-}{}{}c}|hyperpage}{11}
+\indexentry{ncd.\discretionary {-}{}{}c@{ncd.\discretionary {-}{}{}c}!send\discretionary {-}{}{}\_\discretionary {-}{}{}data@{send\discretionary {-}{}{}\_\discretionary {-}{}{}data}|hyperpage}{11}
+\indexentry{send\discretionary {-}{}{}\_\discretionary {-}{}{}data@{send\discretionary {-}{}{}\_\discretionary {-}{}{}data}!ncd.c@{ncd.\discretionary {-}{}{}c}|hyperpage}{11}
+\indexentry{ncd.\discretionary {-}{}{}h@{ncd.\discretionary {-}{}{}h}|hyperpage}{12}
+\indexentry{ncd.\discretionary {-}{}{}h@{ncd.\discretionary {-}{}{}h}!S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E@{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E}|hyperpage}{12}
+\indexentry{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E@{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E}!ncd.h@{ncd.\discretionary {-}{}{}h}|hyperpage}{12}
+\indexentry{ncd.\discretionary {-}{}{}h@{ncd.\discretionary {-}{}{}h}!comp\discretionary {-}{}{}\_\discretionary {-}{}{}det@{comp\discretionary {-}{}{}\_\discretionary {-}{}{}det}|hyperpage}{13}
+\indexentry{comp\discretionary {-}{}{}\_\discretionary {-}{}{}det@{comp\discretionary {-}{}{}\_\discretionary {-}{}{}det}!ncd.h@{ncd.\discretionary {-}{}{}h}|hyperpage}{13}
+\indexentry{ncd.\discretionary {-}{}{}h@{ncd.\discretionary {-}{}{}h}!ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}|hyperpage}{13}
+\indexentry{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}!ncd.h@{ncd.\discretionary {-}{}{}h}|hyperpage}{13}
+\indexentry{ncd.\discretionary {-}{}{}h@{ncd.\discretionary {-}{}{}h}!recv\discretionary {-}{}{}\_\discretionary {-}{}{}data@{recv\discretionary {-}{}{}\_\discretionary {-}{}{}data}|hyperpage}{13}
+\indexentry{recv\discretionary {-}{}{}\_\discretionary {-}{}{}data@{recv\discretionary {-}{}{}\_\discretionary {-}{}{}data}!ncd.h@{ncd.\discretionary {-}{}{}h}|hyperpage}{13}
+\indexentry{ncd.\discretionary {-}{}{}h@{ncd.\discretionary {-}{}{}h}!send\discretionary {-}{}{}\_\discretionary {-}{}{}data@{send\discretionary {-}{}{}\_\discretionary {-}{}{}data}|hyperpage}{13}
+\indexentry{send\discretionary {-}{}{}\_\discretionary {-}{}{}data@{send\discretionary {-}{}{}\_\discretionary {-}{}{}data}!ncd.h@{ncd.\discretionary {-}{}{}h}|hyperpage}{13}
+\indexentry{ping.\discretionary {-}{}{}c@{ping.\discretionary {-}{}{}c}|hyperpage}{14}
+\indexentry{ping.\discretionary {-}{}{}c@{ping.\discretionary {-}{}{}c}!S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E@{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E}|hyperpage}{14}
+\indexentry{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E@{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E}!ping.c@{ping.\discretionary {-}{}{}c}|hyperpage}{14}
+\indexentry{ping.\discretionary {-}{}{}c@{ping.\discretionary {-}{}{}c}!debug\discretionary {-}{}{}\_\discretionary {-}{}{}print@{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print}|hyperpage}{15}
+\indexentry{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print@{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print}!ping.c@{ping.\discretionary {-}{}{}c}|hyperpage}{15}
+\indexentry{ping.\discretionary {-}{}{}c@{ping.\discretionary {-}{}{}c}!get\discretionary {-}{}{}\_\discretionary {-}{}{}time@{get\discretionary {-}{}{}\_\discretionary {-}{}{}time}|hyperpage}{15}
+\indexentry{get\discretionary {-}{}{}\_\discretionary {-}{}{}time@{get\discretionary {-}{}{}\_\discretionary {-}{}{}time}!ping.c@{ping.\discretionary {-}{}{}c}|hyperpage}{15}
+\indexentry{ping.\discretionary {-}{}{}c@{ping.\discretionary {-}{}{}c}!ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}|hyperpage}{15}
+\indexentry{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}!ping.c@{ping.\discretionary {-}{}{}c}|hyperpage}{15}
+\indexentry{ping.\discretionary {-}{}{}c@{ping.\discretionary {-}{}{}c}!main@{main}|hyperpage}{15}
+\indexentry{main@{main}!ping.c@{ping.\discretionary {-}{}{}c}|hyperpage}{15}
+\indexentry{ping.\discretionary {-}{}{}c@{ping.\discretionary {-}{}{}c}!sub\discretionary {-}{}{}\_\discretionary {-}{}{}time@{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time}|hyperpage}{15}
+\indexentry{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time@{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time}!ping.c@{ping.\discretionary {-}{}{}c}|hyperpage}{15}
+\indexentry{ping.\discretionary {-}{}{}c@{ping.\discretionary {-}{}{}c}!nsent@{nsent}|hyperpage}{15}
+\indexentry{nsent@{nsent}!ping.c@{ping.\discretionary {-}{}{}c}|hyperpage}{15}
+\indexentry{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}|hyperpage}{15}
+\indexentry{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}!S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E@{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E}|hyperpage}{16}
+\indexentry{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E@{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E}!ping_ip.c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}|hyperpage}{16}
+\indexentry{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}!debug\discretionary {-}{}{}\_\discretionary {-}{}{}print@{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print}|hyperpage}{16}
+\indexentry{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print@{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print}!ping_ip.c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}|hyperpage}{16}
+\indexentry{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}!get\discretionary {-}{}{}\_\discretionary {-}{}{}time@{get\discretionary {-}{}{}\_\discretionary {-}{}{}time}|hyperpage}{16}
+\indexentry{get\discretionary {-}{}{}\_\discretionary {-}{}{}time@{get\discretionary {-}{}{}\_\discretionary {-}{}{}time}!ping_ip.c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}|hyperpage}{16}
+\indexentry{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}!ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}|hyperpage}{16}
+\indexentry{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}!ping_ip.c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}|hyperpage}{16}
+\indexentry{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}!main@{main}|hyperpage}{16}
+\indexentry{main@{main}!ping_ip.c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}|hyperpage}{16}
+\indexentry{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}!sub\discretionary {-}{}{}\_\discretionary {-}{}{}time@{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time}|hyperpage}{16}
+\indexentry{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time@{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time}!ping_ip.c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}|hyperpage}{16}
+\indexentry{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}!nsent@{nsent}|hyperpage}{17}
+\indexentry{nsent@{nsent}!ping_ip.c@{ping\discretionary {-}{}{}\_\discretionary {-}{}{}ip.\discretionary {-}{}{}c}|hyperpage}{17}
+\indexentry{R\discretionary {-}{}{}E\discretionary {-}{}{}A\discretionary {-}{}{}D\discretionary {-}{}{}M\discretionary {-}{}{}E.\discretionary {-}{}{}md@{R\discretionary {-}{}{}E\discretionary {-}{}{}A\discretionary {-}{}{}D\discretionary {-}{}{}M\discretionary {-}{}{}E.\discretionary {-}{}{}md}|hyperpage}{17}
+\indexentry{server.\discretionary {-}{}{}c@{server.\discretionary {-}{}{}c}|hyperpage}{17}
+\indexentry{server.\discretionary {-}{}{}c@{server.\discretionary {-}{}{}c}!main@{main}|hyperpage}{17}
+\indexentry{main@{main}!server.c@{server.\discretionary {-}{}{}c}|hyperpage}{17}
+\indexentry{server.\discretionary {-}{}{}c@{server.\discretionary {-}{}{}c}!procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg@{procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg}|hyperpage}{17}
+\indexentry{procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg@{procs\discretionary {-}{}{}\_\discretionary {-}{}{}msg}!server.c@{server.\discretionary {-}{}{}c}|hyperpage}{17}
+\indexentry{test.\discretionary {-}{}{}c@{test.\discretionary {-}{}{}c}|hyperpage}{19}
+\indexentry{test.\discretionary {-}{}{}c@{test.\discretionary {-}{}{}c}!S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E@{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E}|hyperpage}{19}
+\indexentry{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E@{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E}!test.c@{test.\discretionary {-}{}{}c}|hyperpage}{19}
+\indexentry{test.\discretionary {-}{}{}c@{test.\discretionary {-}{}{}c}!debug\discretionary {-}{}{}\_\discretionary {-}{}{}print@{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print}|hyperpage}{19}
+\indexentry{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print@{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print}!test.c@{test.\discretionary {-}{}{}c}|hyperpage}{19}
+\indexentry{test.\discretionary {-}{}{}c@{test.\discretionary {-}{}{}c}!get\discretionary {-}{}{}\_\discretionary {-}{}{}time@{get\discretionary {-}{}{}\_\discretionary {-}{}{}time}|hyperpage}{19}
+\indexentry{get\discretionary {-}{}{}\_\discretionary {-}{}{}time@{get\discretionary {-}{}{}\_\discretionary {-}{}{}time}!test.c@{test.\discretionary {-}{}{}c}|hyperpage}{19}
+\indexentry{test.\discretionary {-}{}{}c@{test.\discretionary {-}{}{}c}!ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}|hyperpage}{20}
+\indexentry{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}!test.c@{test.\discretionary {-}{}{}c}|hyperpage}{20}
+\indexentry{test.\discretionary {-}{}{}c@{test.\discretionary {-}{}{}c}!main@{main}|hyperpage}{20}
+\indexentry{main@{main}!test.c@{test.\discretionary {-}{}{}c}|hyperpage}{20}
+\indexentry{test.\discretionary {-}{}{}c@{test.\discretionary {-}{}{}c}!sub\discretionary {-}{}{}\_\discretionary {-}{}{}time@{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time}|hyperpage}{20}
+\indexentry{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time@{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time}!test.c@{test.\discretionary {-}{}{}c}|hyperpage}{20}
+\indexentry{test.\discretionary {-}{}{}c@{test.\discretionary {-}{}{}c}!nsent@{nsent}|hyperpage}{20}
+\indexentry{nsent@{nsent}!test.c@{test.\discretionary {-}{}{}c}|hyperpage}{20}
+\indexentry{tracert.\discretionary {-}{}{}c@{tracert.\discretionary {-}{}{}c}|hyperpage}{20}
+\indexentry{tracert.\discretionary {-}{}{}c@{tracert.\discretionary {-}{}{}c}!S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E@{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E}|hyperpage}{21}
+\indexentry{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E@{S\discretionary {-}{}{}I\discretionary {-}{}{}Z\discretionary {-}{}{}E}!tracert.c@{tracert.\discretionary {-}{}{}c}|hyperpage}{21}
+\indexentry{tracert.\discretionary {-}{}{}c@{tracert.\discretionary {-}{}{}c}!debug\discretionary {-}{}{}\_\discretionary {-}{}{}print@{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print}|hyperpage}{21}
+\indexentry{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print@{debug\discretionary {-}{}{}\_\discretionary {-}{}{}print}!tracert.c@{tracert.\discretionary {-}{}{}c}|hyperpage}{21}
+\indexentry{tracert.\discretionary {-}{}{}c@{tracert.\discretionary {-}{}{}c}!get\discretionary {-}{}{}\_\discretionary {-}{}{}time@{get\discretionary {-}{}{}\_\discretionary {-}{}{}time}|hyperpage}{21}
+\indexentry{get\discretionary {-}{}{}\_\discretionary {-}{}{}time@{get\discretionary {-}{}{}\_\discretionary {-}{}{}time}!tracert.c@{tracert.\discretionary {-}{}{}c}|hyperpage}{21}
+\indexentry{tracert.\discretionary {-}{}{}c@{tracert.\discretionary {-}{}{}c}!ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}|hyperpage}{21}
+\indexentry{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum@{ip\discretionary {-}{}{}\_\discretionary {-}{}{}checksum}!tracert.c@{tracert.\discretionary {-}{}{}c}|hyperpage}{21}
+\indexentry{tracert.\discretionary {-}{}{}c@{tracert.\discretionary {-}{}{}c}!main@{main}|hyperpage}{21}
+\indexentry{main@{main}!tracert.c@{tracert.\discretionary {-}{}{}c}|hyperpage}{21}
+\indexentry{tracert.\discretionary {-}{}{}c@{tracert.\discretionary {-}{}{}c}!sub\discretionary {-}{}{}\_\discretionary {-}{}{}time@{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time}|hyperpage}{21}
+\indexentry{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time@{sub\discretionary {-}{}{}\_\discretionary {-}{}{}time}!tracert.c@{tracert.\discretionary {-}{}{}c}|hyperpage}{21}
+\indexentry{tracert.\discretionary {-}{}{}c@{tracert.\discretionary {-}{}{}c}!nsent@{nsent}|hyperpage}{22}
+\indexentry{nsent@{nsent}!tracert.c@{tracert.\discretionary {-}{}{}c}|hyperpage}{22}
