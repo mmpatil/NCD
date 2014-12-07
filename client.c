@@ -2,7 +2,7 @@
  * @author: Paul Kirth
  * @file: client.c
  * Comp 429
- * Project Phase I
+ * Project1 Phase IV
  */
 
 #include <ctype.h>

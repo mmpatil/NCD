@@ -1,5 +1,6 @@
 /*
- * ncd_no_raw.c
+ * @file ncd_no_raw.c
+ * @author Paul Kirth
  *
  *  Created on: Dec 7, 2014
  *      Author: Paul Kirth
@@ -26,8 +27,7 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 	pid_t child;
 	char c = tolower(hl);
 	if(c != 'h' && c != 'l'){
-		perror(
-				"Invalid setting for High or Low entropy data, use 'H', or 'L'");
+		perror("Invalid setting for High or Low entropy data, use 'H', or 'L'");
 		exit(EXIT_FAILURE);
 	}
 

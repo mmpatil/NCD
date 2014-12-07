@@ -2,7 +2,7 @@
  * @author: Paul Kirth
  * @file: server.c
  * Comp 429
- * Project Phase I
+ * Project 1 Phase IV
  */
 
 #include <ctype.h>

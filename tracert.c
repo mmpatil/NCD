@@ -1,7 +1,12 @@
 /*
  *	COMP429 Fall 2014 Project Skeleton
  */
-
+/**
+ * @author: Paul Kirth
+ * @file: tracert.c
+ * Comp 429
+ * Project 2 Phase II
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>

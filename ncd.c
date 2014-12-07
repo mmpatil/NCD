@@ -1,3 +1,10 @@
+/**
+ * @author: Paul Kirth
+ * @file: ncd.c
+ * Comp 429
+ * Project 2 Phase III
+ */
+
 #include "ncd.h"
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
