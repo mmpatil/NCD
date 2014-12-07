@@ -91,7 +91,9 @@ uint16_t ip_checksum(void* vdata, size_t length)
 
 size_t nsent;    //global sequence number for IP
 
+#ifdef DEBUG
 void debug_print(struct icmp *icmp, ssize_t n);
+#endif
 
 #define SIZE 1024
 

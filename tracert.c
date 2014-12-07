@@ -106,11 +106,11 @@ struct pseudo_header {
 int main(int arc, char *argv[])
 {
 	//int port = 33434;
-	int port = 9876;
+	int port = atoi(argv[2]);
 
 	int my_pipe[2];
 	pipe(my_pipe);
-	int udp_data_len = atoi(argv[2]);
+	int udp_data_len = atoi(argv[3]);
 	int udp_len = udp_data_len + 8;
 	int packet_size = udp_len + 20;
 
