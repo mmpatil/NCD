@@ -26,7 +26,7 @@
 clock_t procs_msg(size_t num_msg, int sockfd, struct sockaddr_in client);
 
 /**
- * sets up a server whos clients will send a series of data packages so that
+ * sets up a server whose clients will send a series of data packages so that
  * compression along the transmission path can be detected.
  */
 int main(int argc, char* argv[])
