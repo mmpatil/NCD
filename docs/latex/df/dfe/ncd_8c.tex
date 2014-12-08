@@ -19,6 +19,16 @@ int \hyperlink{ncd_8c_a0ddf1224851353fc92bfbff6f499fa97}{main} (int argc, char $
 \begin{DoxyCompactList}\small\item\em Main function only calls comp\-\_\-detection() \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
+\subsection{Detailed Description}
+\begin{DoxyAuthor}{Author}
+\-: Paul Kirth
+\end{DoxyAuthor}
+Comp 429 Project 2 Phase I\-I\-I 
+
+Definition in file \hyperlink{ncd_8c_source}{ncd.\-c}.
+
+
+
 \subsection{Function Documentation}
 \hypertarget{ncd_8c_aa5d407939440fe5743c9e978debe7322}{\index{ncd.\-c@{ncd.\-c}!comp\-\_\-det@{comp\-\_\-det}}
 \index{comp\-\_\-det@{comp\-\_\-det}!ncd.c@{ncd.\-c}}
@@ -58,7 +68,7 @@ the first data train will be low entropy data, to encourage compression the seco
 \end{DoxyReturn}
 
 
-Definition at line 12 of file ncd.\-c.
+Definition at line 19 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a634b2de1d27b4fd5b22f6fc46b805d9b}{\index{ncd.\-c@{ncd.\-c}!get\-\_\-time@{get\-\_\-time}}
 \index{get\-\_\-time@{get\-\_\-time}!ncd.c@{ncd.\-c}}
@@ -69,7 +79,7 @@ Definition at line 12 of file ncd.\-c.
 )}}\label{ncd_8c_a634b2de1d27b4fd5b22f6fc46b805d9b}
 
 
-Definition at line 3 of file ncd.\-c.
+Definition at line 10 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a6e25195727f4483c9e7224de02cb55be}{\index{ncd.\-c@{ncd.\-c}!ip\-\_\-checksum@{ip\-\_\-checksum}}
 \index{ip\-\_\-checksum@{ip\-\_\-checksum}!ncd.c@{ncd.\-c}}
@@ -95,7 +105,7 @@ the I\-P checksum of the buffer
 \end{DoxyReturn}
 
 
-Definition at line 326 of file ncd.\-c.
+Definition at line 333 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a0ddf1224851353fc92bfbff6f499fa97}{\index{ncd.\-c@{ncd.\-c}!main@{main}}
 \index{main@{main}!ncd.c@{ncd.\-c}}
@@ -109,9 +119,9 @@ Definition at line 326 of file ncd.\-c.
 
 Main function only calls comp\-\_\-detection() 
 
-\mbox{[}1\mbox{]} Destination I\-P address \mbox{[}2\mbox{]} Port Number \mbox{[}3\mbox{]} High or low entropy data 'H' or 'L' \mbox{[}4\mbox{]} Size of udp data packet \mbox{[}5\mbox{]} Number of packets in U\-D\-P Data Train \mbox{[}6\mbox{]} Time to Live \mbox{[}7\mbox{]} Wait time in milliseconds \mbox{[}8\mbox{]} number of tail I\-C\-M\-P messages 
+\mbox{[}1\mbox{]} Destination I\-P address \mbox{[}2\mbox{]} Port Number \mbox{[}3\mbox{]} High or low entropy data 'H' or 'L' \mbox{[}4\mbox{]} Size of udp data \mbox{[}5\mbox{]} Number of packets in U\-D\-P Data Train \mbox{[}6\mbox{]} Time to Live \mbox{[}7\mbox{]} Wait time in milliseconds \mbox{[}8\mbox{]} Number of tail I\-C\-M\-P messages to send 
 
-Definition at line 394 of file ncd.\-c.
+Definition at line 401 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a39544cf1c63682d17e9c1d9215f42842}{\index{ncd.\-c@{ncd.\-c}!recv\-\_\-data@{recv\-\_\-data}}
 \index{recv\-\_\-data@{recv\-\_\-data}!ncd.c@{ncd.\-c}}
@@ -130,11 +140,11 @@ Receives I\-C\-M\-P responses from end host and records times.
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-0 success, -\/1 error/failure 
+0 success, 1 error/failure 
 \end{DoxyReturn}
 
 
-Definition at line 247 of file ncd.\-c.
+Definition at line 254 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a9763bfecd49c11e8488a9b8d940c1b71}{\index{ncd.\-c@{ncd.\-c}!send\-\_\-data@{send\-\_\-data}}
 \index{send\-\_\-data@{send\-\_\-data}!ncd.c@{ncd.\-c}}
@@ -176,9 +186,9 @@ sets up a connection using raw sockets and sends a head I\-C\-M\-P echo request 
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-0 success, -\/1 error/failure 
+0 success, 1 error/failure 
 \end{DoxyReturn}
 
 
-Definition at line 47 of file ncd.\-c.
+Definition at line 54 of file ncd.\-c.
 
