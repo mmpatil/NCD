@@ -1,23 +1,18 @@
 #ifndef _NCD_H_
 #define _NCD_H_
 
-#include <ctype.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <time.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <netinet/udp.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netinet/ip_icmp.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <signal.h>
-#include <fcntl.h>
+#include <stdio.h>		/* for printf */
+#include <stdlib.h>		/* for EXIT_SUCCESS, EXIT_FAILURE, */
+#include <string.h> 		/* for memcpy */
+#include <time.h> 		/* for struct tv */
+#include <errno.h>		/* for errno*/
+#include <sys/socket.h>		/* for socket(), setsockopt(), etc...*/
+#include <netinet/ip.h>		/* for struct ip */
+#include <netinet/ip_icmp.h>	/* for struct icmp */
+#include <netinet/udp.h>	/* for struct udphdr */
+#include <netdb.h>		/* for getaddrinfo() */
+#include <signal.h>		/* for kill() */
+#include <fcntl.h>		/* for O_RDONLY */
 
 
 /**
