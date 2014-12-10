@@ -117,11 +117,11 @@ int main(int argc, char* argv[])
 			/* process data trains and record transmission times */
 			diff1 = procs_msg(num_msg, udpfd, client);
 
-			long int ms1 = diff1 * 1000;// / CLOCKS_PER_SEC;
+			double ms1 = diff1 * 1000;// / CLOCKS_PER_SEC;
 
 			//printf("\nClocks per sec %ld\n", CLOCKS_PER_SEC);
-			printf("Time Elapsed:%ld ms\n", ms1);
-			printf("diff1 = %lu\n", diff1);
+			printf("Time Elapsed:%f ms\n", ms1);
+			printf("diff1 = %f\n", diff1);
 			close(sockfd);
 			close(tcpfd);
 			close(udpfd);
