@@ -26,8 +26,10 @@
 double procs_msg(size_t num_msg, int sockfd, struct sockaddr_in client);
 
 /**
- * sets up a server whose clients will send a series of data packages so that
- * compression along the transmission path can be detected.
+ * sets up a server whose clients will send a series of data packages and
+ * displays the loss rate and the elapsed time.
+ * Connection will time out after 5 sec
+ * .
  */
 int main(int argc, char* argv[])
 {
@@ -79,13 +81,27 @@ int main(int argc, char* argv[])
 	 * to deal with them */
 	while(1){
 
-		//open udp connection
+		/**
+		* The udp connection used to be created inside the
+		* forked process, but that meant that it wasn't created until after
+		* the sender had received our ACK from the tcp call to accept()
+		* Moving this before the call to accept() ensures that when we
+		* fork() we can quickly start accepting the connection. Thus we're
+		* able to remove the 600 ms sleep from client.c by structuring
+		* the server better. Ideally we would send a second TCP message
+		* that our server was ready and leave all the udp connections
+		* inside the forked process, but the specification didn't allow for
+		* that. Perhaps a more elegant solution would have been to use
+		* asynchronous IO, but that limits the number of connections the
+		* server can support.
+		*/
+		/* open udp connection */
 		if((udpfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1){
 			perror("Socket call failed. \n");
 			return EXIT_FAILURE;
 		}
 
-		/*set socket options for timeout.*/
+		/* set socket options for timeout.*/
 		setsockopt(udpfd, SOL_SOCKET, SO_RCVTIMEO, &tv,
 				sizeof(tv));
 
@@ -134,6 +150,7 @@ int main(int argc, char* argv[])
 		}
 		close(udpfd);
 	}
+	/* These will never happen, as the server never stops running*/
 	close(sockfd);
 	close(tcpfd);
 
