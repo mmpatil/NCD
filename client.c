@@ -42,16 +42,10 @@ int main(int argc, char* argv[])
 	size_t num_msg = atoi(argv[2]);
 	strcpy(tcp_msg, argv[2]);
 
-	char low_data[1100] = { 0 }; /* low entropy data*/
-	char high_data[1100]; /* high entropy data*/
-
-	/*get random data for high entropy datagrams*/
-	int random = open("/dev/urandom", O_RDONLY);
-	read(random, high_data, sizeof(high_data));
-	close(random);
+	char str[1100] = "HELLO WORLD!";
 
 	printf("Size of tcp_msg : %zu\nNumber of msgs: %zu\n\n",
-			sizeof(low_data), num_msg);
+			sizeof(str), num_msg);
 	printf("Address %s\n\n", argv[1]);
 
 	/* initialize the server address info*/
@@ -90,7 +84,7 @@ int main(int argc, char* argv[])
 	/* send the message*/
 	size_t n; /* iterator*/
 	for(n = 0; n < num_msg; ++n){
-		if((sendto(sockfd, low_data, sizeof(low_data), 0,
+		if((sendto(sockfd, str, sizeof(str), 0,
 				(struct sockaddr*) &server, sizeof(server)))
 				== -1){
 			perror("Send error");

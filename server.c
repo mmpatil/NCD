@@ -163,6 +163,7 @@ double procs_msg(size_t num_msg, int sockfd, struct sockaddr_in client)
 			break;
 		}
 		printf("-------------------------------------------------\n");
+		printf("Message recieved was: %s\n", msg);
 		printf("Received %zu/%zu Packets\n", (i + 1), num_msg);
 		printf("size of message was %d\n", n);
 		printf("-------------------------------------------------\n");
