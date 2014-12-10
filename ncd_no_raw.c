@@ -22,12 +22,14 @@ double get_time(void)
 }
 
 int comp_det(char* address, char * port, char hl, size_t data_size,
-		size_t num_packets, ushort ttl, size_t time_wait, int n_tail)
+		size_t num_packets, unsigned short ttl, size_t time_wait,
+		int n_tail)
 {
 	pid_t child;
 	char c = tolower(hl);
 	if(c != 'h' && c != 'l'){
-		perror("Invalid setting for High or Low entropy data, use 'H', or 'L'");
+		perror(
+				"Invalid setting for High or Low entropy data, use 'H', or 'L'");
 		exit(EXIT_FAILURE);
 	}
 
@@ -54,7 +56,8 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 }
 
 int send_data(char* address, char * port_name, char hl, size_t data_size,
-		size_t num_packets, ushort ttl, size_t time_wait, int n_tail)
+		size_t num_packets, unsigned short ttl, size_t time_wait,
+		int n_tail)
 {
 	size_t nsent = (size_t) rand();/*get random number for seq #*/
 	int port = atoi(port_name);
@@ -103,11 +106,11 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 
 	/* set up our own ip header */
 	/*int hdrincl = 1;
-	if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &hdrincl,
-			sizeof(hdrincl)) == -1){
-		perror("setsockopt() failed");
-		exit(EXIT_FAILURE);
-	}/**/
+	 if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &hdrincl,
+	 sizeof(hdrincl)) == -1){
+	 perror("setsockopt() failed");
+	 exit(EXIT_FAILURE);
+	 }/**/
 
 	/* acquire socket for icmp messages*/
 	icmp_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
@@ -134,7 +137,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	hints.ai_protocol = IPPROTO_UDP;
 	hints.ai_socktype = SOCK_DGRAM;
 
-	struct sockaddr_in ha = {0};
+	struct sockaddr_in ha = { 0 };
 	ha.sin_family = AF_INET;
 	ha.sin_port = htons(port);
 	ha.sin_addr.s_addr = inet_addr(address);
@@ -151,7 +154,6 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 					gai_strerror(err));
 		exit(EXIT_FAILURE);
 	}
-
 
 #if 0
 	/* create IP header*/
@@ -198,7 +200,6 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	ip->ip_sum = ip_checksum(ip, packet_size);/**/
 #endif
 
-
 	/* fill with random data from /dev/urandom */
 	/*get random data for high entropy datagrams*/
 	if('h' == tolower(hl)){
@@ -243,8 +244,8 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	/*send data train*/
 	int i = 0;
 	for(i = 0; i < num_packets; ++i){
-		n = sendto(send_fd, packet_send, data_size, 0, (struct sockaddr*)&ha,
-				sizeof(ha));
+		n = sendto(send_fd, packet_send, data_size, 0,
+				(struct sockaddr*) &ha, sizeof(ha));
 		if(n == -1){
 			perror("UDP Send error");
 			return EXIT_FAILURE;

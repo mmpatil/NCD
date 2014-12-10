@@ -86,10 +86,7 @@ int main(int argc, char* argv[])
 		}
 
 		/*set socket options for timeout.*/
-		setsockopt(udpfd, SOL_SOCKET, SO_RCVTIMEO, &tv,
-				sizeof(tv));
-
-
+		setsockopt(udpfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
 		/* accept tcp connection*/
 		if((tcpfd = accept(sockfd, (struct sockaddr *) &client, &len))
@@ -108,8 +105,6 @@ int main(int argc, char* argv[])
 				return EXIT_FAILURE;
 			}/**/
 
-
-
 			recv(tcpfd, tcp_msg, sizeof(tcp_msg), 0);
 
 			/*finish preparations before close() to avoid delay
@@ -122,7 +117,7 @@ int main(int argc, char* argv[])
 			/* process data trains and record transmission times */
 			diff1 = procs_msg(num_msg, udpfd, client);
 
-			double ms1 = diff1 * 1000;// / CLOCKS_PER_SEC;
+			double ms1 = diff1 * 1000; // / CLOCKS_PER_SEC;
 
 			//printf("\nClocks per sec %ld\n", CLOCKS_PER_SEC);
 			printf("Time Elapsed: %.2f ms\n", ms1);
@@ -148,8 +143,6 @@ double get_time(void)
 	d = ((double) tv.tv_usec) / 1000000. + (unsigned long) tv.tv_sec;
 	return d;
 }
-
-
 
 double procs_msg(size_t num_msg, int sockfd, struct sockaddr_in client)
 {

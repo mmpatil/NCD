@@ -29,10 +29,10 @@ int main(int argc, char* argv[])
 {
 	if(argc != 3){
 		errno = (argc < 3) ? EINVAL : E2BIG;
-		perror("Incorrect usage: client <destination IP> <Number of Packets>");
+		perror(
+				"Incorrect usage: client <destination IP> <Number of Packets>");
 		return EXIT_FAILURE;
 	}
-
 
 	printf("Starting setup\n");
 	int sockfd; /* socket file descriptor*/
