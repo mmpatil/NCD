@@ -15,7 +15,8 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <fcntl.h>
-#include "icmp.h"
+#include <errno.h>
+
 /**
  * Detects compression by sending a stream of low entropy and high entropy
  * packets, and comparing their transmission time to determine if
@@ -23,13 +24,15 @@
  *
  * @argv[1] Destination IP address
  * @argv[2] Number of data packets to send in each train
- * @argv[3] TIME_WAIT
- *
  */
 int main(int argc, char* argv[])
 {
-	if(argc != 4)
+	if(argc != 3){
+		errno = (argc < 3) ? EINVAL : E2BIG;
+		perror("Incorrect usage: client <destination IP> <Number of Packets>");
 		return EXIT_FAILURE;
+	}
+
 
 	printf("Starting setup\n");
 	int sockfd; /* socket file descriptor*/
@@ -37,7 +40,6 @@ int main(int argc, char* argv[])
 	char tcp_msg[1024]; /* buffer for tcp messages*/
 
 	size_t num_msg = atoi(argv[2]);
-	size_t TIME_WAIT = atoi(argv[3]);
 	strcpy(tcp_msg, argv[2]);
 
 	char low_data[1100] = { 0 }; /* low entropy data*/
@@ -48,8 +50,8 @@ int main(int argc, char* argv[])
 	read(random, high_data, sizeof(high_data));
 	close(random);
 
-	printf("size of tcp_msg : %zu\nnumber of msgs: %zu\nTIME_WAIT %Zu\n\n",
-			sizeof(low_data), num_msg, TIME_WAIT);
+	printf("Size of tcp_msg : %zu\nNumber of msgs: %zu\n\n",
+			sizeof(low_data), num_msg);
 	printf("Address %s\n\n", argv[1]);
 
 	/* initialize the server address info*/
@@ -95,17 +97,8 @@ int main(int argc, char* argv[])
 			return EXIT_FAILURE;
 		}
 	}
-	sleep(TIME_WAIT); /* long wait between data trains ...*/
-	for(n = 0; n < num_msg; ++n){
-		if((sendto(sockfd, high_data, sizeof(high_data), 0,
-				(struct sockaddr*) &server, sizeof(server)))
-				== -1){
-			perror("Send error");
-			return EXIT_FAILURE;
-		}
-	}
 	printf("\nTask Complete ...");
 	close(sockfd);
-	printf("Socket Closed ... Now Closing...\n");
+	printf("Socket Closed ... Now Exiting...\n");
 	return EXIT_SUCCESS;
 }

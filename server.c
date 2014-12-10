@@ -97,14 +97,14 @@ int main(int argc, char* argv[])
 			setsockopt(udpfd, SOL_SOCKET, SO_RCVTIMEO, &tv,
 					sizeof(tv));
 
-			recv(tcpfd, tcp_msg, sizeof(tcp_msg), 0);
-
 			/*bind address*/
 			if((bind(udpfd, (struct sockaddr*) &server,
 					sizeof(server))) == -1){
 				perror("Bind call failed. \n");
 				return EXIT_FAILURE;
 			}
+
+			recv(tcpfd, tcp_msg, sizeof(tcp_msg), 0);
 
 			/*finish preparations before close() to avoid delay
 			 * between receiving*/
@@ -115,15 +115,12 @@ int main(int argc, char* argv[])
 
 			/* process data trains and record transmission times */
 			diff1 = procs_msg(num_msg, udpfd, client);
-			diff2 = procs_msg(num_msg, udpfd, client);
 
 			long int ms1 = diff1 * 1000 / CLOCKS_PER_SEC;
-			long int ms2 = diff2 * 1000 / CLOCKS_PER_SEC;
 
 			printf("\nClocks per sec %ld\n", CLOCKS_PER_SEC);
-			printf("Low Entropy Time:%ld ms\n", ms1);
-			printf("High Entropy Time: %ld ms\n", ms2);
-			printf("diff1 = %lu\ndiff2 = %lu\n", diff1, diff2);
+			printf("Time Elapsed:%ld ms\n", ms1);
+			printf("diff1 = %lu\n", diff1);
 			close(sockfd);
 			close(tcpfd);
 			close(udpfd);
