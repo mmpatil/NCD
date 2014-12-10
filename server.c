@@ -23,7 +23,7 @@
  *
  * @return the time spent gathering packets in the train
  */
-clock_t procs_msg(size_t num_msg, int sockfd, struct sockaddr_in client);
+double procs_msg(size_t num_msg, int sockfd, struct sockaddr_in client);
 
 /**
  * sets up a server whose clients will send a series of data packages so that
