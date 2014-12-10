@@ -79,6 +79,18 @@ int main(int argc, char* argv[])
 	 * to deal with them */
 	while(1){
 
+		//open udp connection
+		if((udpfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1){
+			perror("Socket call failed. \n");
+			return EXIT_FAILURE;
+		}
+
+		/*set socket options for timeout.*/
+		setsockopt(udpfd, SOL_SOCKET, SO_RCVTIMEO, &tv,
+				sizeof(tv));
+
+
+
 		/* accept tcp connection*/
 		if((tcpfd = accept(sockfd, (struct sockaddr *) &client, &len))
 				== -1){
@@ -88,22 +100,15 @@ int main(int argc, char* argv[])
 
 		/*spawn child process to deal with new connection*/
 		if(fork() == 0){
-			//open udp connection
-			if((udpfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1){
-				perror("Socket call failed. \n");
-				return EXIT_FAILURE;
-			}
-
-			/*set socket options for timeout.*/
-			setsockopt(udpfd, SOL_SOCKET, SO_RCVTIMEO, &tv,
-					sizeof(tv));
 
 			/*bind address*/
 			if((bind(udpfd, (struct sockaddr*) &server,
 					sizeof(server))) == -1){
 				perror("Bind call failed. \n");
 				return EXIT_FAILURE;
-			}
+			}/**/
+
+
 
 			recv(tcpfd, tcp_msg, sizeof(tcp_msg), 0);
 
@@ -127,10 +132,10 @@ int main(int argc, char* argv[])
 			close(udpfd);
 			return EXIT_SUCCESS;
 		}
+		close(udpfd);
 	}
 	close(sockfd);
 	close(tcpfd);
-	close(udpfd);
 
 	return EXIT_SUCCESS;
 }
