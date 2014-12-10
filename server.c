@@ -120,8 +120,8 @@ int main(int argc, char* argv[])
 			double ms1 = diff1 * 1000;// / CLOCKS_PER_SEC;
 
 			//printf("\nClocks per sec %ld\n", CLOCKS_PER_SEC);
-			printf("Time Elapsed:%f ms\n", ms1);
-			printf("diff1 = %f\n", diff1);
+			printf("Time Elapsed: %.2f ms\n", ms1);
+			printf("diff1 = %.4f sec\n", diff1);
 			close(sockfd);
 			close(tcpfd);
 			close(udpfd);
