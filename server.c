@@ -32,7 +32,8 @@ clock_t procs_msg(size_t num_msg, int sockfd, struct sockaddr_in client);
 int main(int argc, char* argv[])
 {
 	printf("Starting setup\n");
-	clock_t diff1, diff2; /*transmission times for each data train*/
+	//clock_t diff1, diff2; /*transmission times for each data train*/
+	double diff1;
 
 	int sockfd, tcpfd, udpfd; /*file descriptors for sockets*/
 	char tcp_msg[1024]; /*buffer for tcp communications*/
@@ -116,9 +117,9 @@ int main(int argc, char* argv[])
 			/* process data trains and record transmission times */
 			diff1 = procs_msg(num_msg, udpfd, client);
 
-			long int ms1 = diff1 * 1000 / CLOCKS_PER_SEC;
+			long int ms1 = diff1 * 1000;// / CLOCKS_PER_SEC;
 
-			printf("\nClocks per sec %ld\n", CLOCKS_PER_SEC);
+			//printf("\nClocks per sec %ld\n", CLOCKS_PER_SEC);
 			printf("Time Elapsed:%ld ms\n", ms1);
 			printf("diff1 = %lu\n", diff1);
 			close(sockfd);
@@ -134,14 +135,26 @@ int main(int argc, char* argv[])
 	return EXIT_SUCCESS;
 }
 
-clock_t procs_msg(size_t num_msg, int sockfd, struct sockaddr_in client)
+double get_time(void)
+{
+	struct timeval tv;
+	double d;
+	gettimeofday(&tv, NULL);
+	d = ((double) tv.tv_usec) / 1000000. + (unsigned long) tv.tv_sec;
+	return d;
+}
+
+
+
+double procs_msg(size_t num_msg, int sockfd, struct sockaddr_in client)
 {
 
 	socklen_t len = sizeof(client);
 	size_t i; /*iterator*/
 	int n; /*number of bytes received*/
-	clock_t start, diff; /* start time and time elapsed*/
-	start = clock();
+	//clock_t start, diff; /* start time and time elapsed*/
+	double d = get_time();
+	//start = clock();
 	char msg[1100]; /*message buffer*/
 
 	for(i = 0; i < num_msg; ++i){
@@ -156,6 +169,8 @@ clock_t procs_msg(size_t num_msg, int sockfd, struct sockaddr_in client)
 		printf("size of message was %d\n", n);
 		printf("-------------------------------------------------\n");
 	}
-	diff = clock() - start;
-	return diff;
+	//diff = clock() - start;
+	d = get_time() - d;
+	//return diff;
+	return d;
 }

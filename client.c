@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 	close(sockfd); /*close tcp socket */
 
 	/*sleep to wait for server set up --remove later*/
-	sleep(3);
+	sleep(1);
 	printf("Setup complete\n");
 
 	/*open UDP SOCKET*/
