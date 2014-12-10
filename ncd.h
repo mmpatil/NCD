@@ -13,13 +13,12 @@
 #include <netdb.h>		/* for getaddrinfo() */
 #include <signal.h>		/* for kill() */
 #include <fcntl.h>		/* for O_RDONLY */
-
+#include <unistd.h>
 
 /**
  *  maximum ip packet size
  */
 #define SIZE 1500
-
 
 /**
  * struct for udp pseudo header
@@ -50,7 +49,8 @@ struct pseudo_header {
  * @return 0 success, 1 error/failure
  * */
 int comp_det(char* address, char * port, char hl, size_t data_size,
-		size_t num_packets, ushort ttl, size_t time_wait, int n_tail);
+		size_t num_packets, unsigned short ttl, size_t time_wait,
+		int n_tail);
 
 /**
  * sends data train to the end host with leading and trailing icmp timestamps
@@ -71,7 +71,8 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
  * @return 0 success, 1 error/failure
  */
 int send_data(char* address, char * port, char hl, size_t data_size,
-		size_t num_packets, ushort ttl, size_t time_wait, int n_tail);
+		size_t num_packets, unsigned short ttl, size_t time_wait,
+		int n_tail);
 
 /**
  * Receives ICMP responses from end host and records times

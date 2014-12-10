@@ -17,7 +17,8 @@ double get_time(void)
 }
 
 int comp_det(char* address, char * port, char hl, size_t data_size,
-		size_t num_packets, ushort ttl, size_t time_wait, int n_tail)
+		size_t num_packets, unsigned short ttl, size_t time_wait,
+		int n_tail)
 {
 	pid_t child;
 	char c = tolower(hl);
@@ -52,7 +53,8 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 }
 
 int send_data(char* address, char * port_name, char hl, size_t data_size,
-		size_t num_packets, ushort ttl, size_t time_wait, int n_tail)
+		size_t num_packets, unsigned short ttl, size_t time_wait,
+		int n_tail)
 {
 	size_t nsent = (size_t) rand();/*get random number for seq #*/
 	int port = atoi(port_name);
@@ -121,7 +123,12 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 		exit(EXIT_FAILURE);
 	}
 
-	setuid(getuid());/*give up privileges */
+	int err = setuid(getuid());/*give up privileges */
+
+	if(err < 0){
+		perror("Elevated privliges not released");
+		exit(EXIT_FAILURE);
+	}
 
 	/* set up hints for getaddrinfo() */
 	hints.ai_flags = AI_CANONNAME;
@@ -129,7 +136,7 @@ int send_data(char* address, char * port_name, char hl, size_t data_size,
 	hints.ai_socktype = 0;
 	hints.ai_protocol = IPPROTO_UDP;
 
-	int err = getaddrinfo(address, NULL, &hints, &res);
+	err = getaddrinfo(address, NULL, &hints, &res);
 
 	/*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
 	if(err != 0){
