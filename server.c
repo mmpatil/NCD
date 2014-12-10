@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 	//clock_t diff1, diff2; /*transmission times for each data train*/
 	double diff1;
 
-	int sockfd, tcpfd, udpfd; /*file descriptors for sockets*/
+	int sockfd, tcpfd, udpfd = 0; /*file descriptors for sockets*/
 	char tcp_msg[1024]; /*buffer for tcp communications*/
 
 	struct timeval tv;
@@ -81,30 +81,6 @@ int main(int argc, char* argv[])
 	 * to deal with them */
 	while(1){
 
-		/**
-		* The udp connection used to be created inside the
-		* forked process, but that meant that it wasn't created until after
-		* the sender had received our ACK from the tcp call to accept()
-		* Moving this before the call to accept() ensures that when we
-		* fork() we can quickly start accepting the connection. Thus we're
-		* able to remove the 600 ms sleep from client.c by structuring
-		* the server better. Ideally we would send a second TCP message
-		* that our server was ready and leave all the udp connections
-		* inside the forked process, but the specification didn't allow for
-		* that. Perhaps a more elegant solution would have been to use
-		* asynchronous IO, but that limits the number of connections the
-		* server can support.
-		*/
-		/* open udp connection */
-		if((udpfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1){
-			perror("Socket call failed. \n");
-			return EXIT_FAILURE;
-		}
-
-		/* set socket options for timeout.*/
-		setsockopt(udpfd, SOL_SOCKET, SO_RCVTIMEO, &tv,
-				sizeof(tv));
-
 		/* accept tcp connection*/
 		if((tcpfd = accept(sockfd, (struct sockaddr *) &client, &len))
 				== -1){
@@ -112,8 +88,20 @@ int main(int argc, char* argv[])
 			return EXIT_FAILURE;
 		}
 
+
+
 		/*spawn child process to deal with new connection*/
 		if(fork() == 0){
+
+			/* open udp connection */
+			if((udpfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1){
+				perror("Socket call failed. \n");
+				return EXIT_FAILURE;
+			}
+
+			/* set socket options for timeout.*/
+			setsockopt(udpfd, SOL_SOCKET, SO_RCVTIMEO, &tv,
+					sizeof(tv));
 
 			/*bind address*/
 			if((bind(udpfd, (struct sockaddr*) &server,
@@ -139,14 +127,18 @@ int main(int argc, char* argv[])
 			//printf("\nClocks per sec %ld\n", CLOCKS_PER_SEC);
 			printf("Time Elapsed: %.2f ms\n", ms1);
 			printf("diff1 = %.4f sec\n", diff1);
-			close(sockfd);
-			close(tcpfd);
-			close(udpfd);
+			if(close(tcpfd) == -1){
+				perror("Couldn't close tcp connection");
+				exit(EXIT_FAILURE);
+			}
+
 			return EXIT_SUCCESS;
-		}
-		close(udpfd);
-	}
+		}// end fork()
+
+	}// end while
+
 	/* These will never happen, as the server never stops running*/
+	close(udpfd);
 	close(sockfd);
 	close(tcpfd);
 

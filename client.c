@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <netinet/udp.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <string.h>
@@ -72,7 +73,7 @@ int main(int argc, char* argv[])
 	close(sockfd); /*close tcp socket */
 
 	/*sleep to wait for server set up --remove later*/
-	//usleep(6000);
+	usleep(6000);
 	printf("Setup complete\n");
 
 	/*open UDP SOCKET*/
