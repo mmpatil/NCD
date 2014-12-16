@@ -48,7 +48,7 @@ struct pseudo_header {
  * @param time_wait the wait between trains
  * @return 0 success, 1 error/failure
  * */
-int comp_det(char* address, char * port, char hl, size_t data_size,
+int comp_det(char* address, uint16_t port, char hl, size_t data_size,
 		size_t num_packets, unsigned short ttl, size_t time_wait,
 		int n_tail);
 
@@ -70,7 +70,7 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
  * @param n_tail the number of ICMP tail messages to be sent
  * @return 0 success, 1 error/failure
  */
-int send_data(char* address, char * port, char hl, size_t data_size,
+int send_data(char* address, uint16_t port, char hl, size_t data_size,
 		size_t num_packets, unsigned short ttl, size_t time_wait,
 		int n_tail);
 

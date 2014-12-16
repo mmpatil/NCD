@@ -6,6 +6,14 @@
  */
 
 #include "ncd.h"
+
+/*  Global Variables  */
+int size, num_packets, num_tail, time_wait;
+uint16_t port;
+char entropy;
+char* dst_ip;
+uint8_t ttl;
+
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
 {
@@ -16,7 +24,7 @@ double get_time(void)
 	return d;
 }
 
-int comp_det(char* address, char * port, char hl, size_t data_size,
+int comp_det(char* address, uint16_t port, char hl, size_t data_size,
 		size_t num_packets, unsigned short ttl, size_t time_wait,
 		int n_tail)
 {
@@ -52,12 +60,11 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 	return EXIT_SUCCESS;
 }
 
-int send_data(char* address, char * port_name, char hl, size_t data_size,
+int send_data(char* address, uint16_t port, char hl, size_t data_size,
 		size_t num_packets, unsigned short ttl, size_t time_wait,
 		int n_tail)
 {
 	size_t nsent = (size_t) rand();/*get random number for seq #*/
-	int port = atoi(port_name);
 
 	/*size of udp data*/
 	int udp_data_len = data_size;
@@ -391,6 +398,111 @@ uint16_t ip_checksum(void* vdata, size_t length)
 	return htons(~acc);
 }
 
+int check_args(int argc, char* argv[])
+{
+	dst_ip = NULL;
+
+	if(argc == 2){
+		dst_ip = argv[1];
+		/* probably change default port from traceroute port */
+		port = 33434;
+		entropy = 'l';
+		size = 996;
+		num_packets = 1000;
+		ttl = 255;
+		time_wait = 10;
+		num_tail = 100;
+	}else{
+		register int i;
+		int check;
+		char* cp;
+		char c;
+		for(i = 1; i < argc; ++i){
+			cp = argv[i];
+			c = *cp;
+			if(c == '-'){
+				c = tolower(*(cp + 1));
+				i++;
+				switch(c){
+				case 'p':
+					check = atoi(argv[i]);
+					if(check < (1 << 16) && check > 0)
+						port = check;
+					else{
+						errno = ERANGE;
+						perror("Port range: 0 - 65535");
+						return EXIT_FAILURE;
+					}
+					break;
+				case 'h':
+				case 'l':
+					entropy = c;
+					i--;
+					break;
+				case 's':
+					size = atoi(argv[i]);
+					if(size < 0 || size > 1460){
+						errno = ERANGE;
+						perror(
+								"Valid UDP data size: 1-1460");
+						return EXIT_FAILURE;
+					}
+					break;
+				case 'n':
+					num_packets = atoi(argv[i]);
+					if(num_packets < 1
+							|| num_packets > 10000){
+						errno = ERANGE;
+						perror(
+								"# UDP packets: 1 - 10,000");
+						return EXIT_FAILURE;
+					}
+					break;
+				case 't':
+					check = atoi(argv[i]);
+					if(check < 0 || check > 255){
+						errno = ERANGE;
+						perror("TTL range: 0 - 255");
+						return EXIT_FAILURE;
+					}
+					break;
+				case 'w':
+					time_wait = atoi(argv[i]);
+					if(time_wait < 0){
+						errno = ERANGE;
+						perror(
+								"Time wait must be positive");
+						return EXIT_FAILURE;
+					}
+					break;
+				case 'r':
+					num_tail = atoi(argv[i]);
+					if(num_tail < 1 || num_tail > 1000){
+						errno = ERANGE;
+						perror(
+								"# tail packets: 1 - 1,000");
+						return EXIT_FAILURE;
+					}
+					break;
+				default:
+					errno = ERANGE;
+					perror("Invalid options, check use");
+					return EXIT_FAILURE;
+				}	//end switch
+			}else if(dst_ip == NULL){
+				dst_ip = argv[i];
+			}else{
+				errno = ERANGE;
+				perror("Too many IP Addresses, check use");
+				return EXIT_FAILURE;
+			}	// end if
+
+		}	//end for
+	}	//endif
+
+	return EXIT_SUCCESS;
+}
+
 /**
  * Main function
  * only calls comp_detection()
@@ -407,7 +519,12 @@ uint16_t ip_checksum(void* vdata, size_t length)
  */
 int main(int argc, char *argv[])
 {
-	return comp_det(argv[1], argv[2], argv[3][0], atoi(argv[4]),
-			atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
-			atoi(argv[8]));
+
+	/* Check number of ARGs */
+	check_args(argc, argv);
+
+	/* reject non conforming args, too many args, etc */
+
+	return comp_det(dst_ip, port, entropy, size, num_packets, ttl,
+			time_wait, num_tail);
 }
