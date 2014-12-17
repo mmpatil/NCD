@@ -239,6 +239,7 @@ int send_data(char* address, uint16_t port, char hl, size_t data_size,
 		exit(EXIT_FAILURE);
 	}
 
+	printf("First\n");
 	/* create IP header*/
 	mkipv4(packet_send, packet_size,res, IPPROTO_UDP);
 	mkudphdr(packet_send + sizeof(struct ip), udp_data_len, IPPROTO_UDP);
@@ -287,7 +288,7 @@ int send_data(char* address, uint16_t port, char hl, size_t data_size,
 #endif
 	/*Create ICMP Packets*/
 	/* create IP header for icmp packet */
-	mkipv4(packet_send, icmp_len,res, IPPROTO_ICMP);
+	mkipv4(icmp_packet, icmp_len,res, IPPROTO_ICMP);
 
 #if 0
 	struct ip *ip_icmp = (struct ip *) icmp_packet;
@@ -318,6 +319,7 @@ int send_data(char* address, uint16_t port, char hl, size_t data_size,
 
 	/*send Head ICMP Packet*/
 
+	printf("second\n");
 	n = sendto(icmp_fd, icmp_packet, icmp_len, 0, res->ai_addr,
 			res->ai_addrlen);
 	if(n == -1){
