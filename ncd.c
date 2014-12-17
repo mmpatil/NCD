@@ -60,11 +60,94 @@ int comp_det(char* address, uint16_t port, char hl, size_t data_size,
 	return EXIT_SUCCESS;
 }
 
+
+int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto )
+{
+	/* create IP header*/
+	struct ip *ip = (struct ip *) buff;
+	ip->ip_v = 4;
+	ip->ip_hl = 5;
+	ip->ip_len = htons(size);
+	ip->ip_id = htons(1234);
+
+	/* get a better way to assign my IP address!!!*/
+	ip->ip_src.s_addr = inet_addr("192.168.1.100");
+	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
+	ip->ip_off |= ntohs(IP_DF);
+	ip->ip_ttl = ttl;
+	ip->ip_p = proto;
+
+	return 0;
+}
+
+int mkipv6()
+{
+	return 0;
+}
+
+int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto )
+{
+	struct ip* ip = buff;
+	ip--;
+	int udp_len = udp_data_len +8;
+	char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
+	struct udphdr *udp = (struct udphdr *) buff;//(ip + 1);
+	udp->uh_sport = htons(port); /* set source port*/
+	udp->uh_dport = htons(port); /* set destination port */
+	udp->uh_ulen = htons(udp_len); /* set udp length */
+
+	/* fill with random data from /dev/urandom */
+	/*get random data for high entropy datagrams*/
+	if('h' == tolower(entropy)){
+		int random = open("/dev/urandom", O_RDONLY);
+		read(random, (udp + 1), udp_data_len);
+		close(random);
+	}
+
+	/* pseudo header for udp checksum */
+	struct pseudo_header *ps = (struct pseudo_header *) pseudo;
+	ps->source = ip->ip_src.s_addr;
+	ps->dest = ip->ip_dst.s_addr;
+	ps->zero = 0;
+	ps->proto = proto;
+	ps->len = htons(udp_len);
+
+	/*copy udp packet into pseudo header buffer to calculate checksum*/
+	memcpy(ps + 1, udp, udp_len);
+
+	/* set udp checksum */
+	udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header));
+
+	return 0;
+}
+
+int mkicmpv4(void *buff, size_t datalen)
+{
+	/* set up icmp message header*/
+	struct icmp *icmp = (struct icmp *) buff;
+	icmp->icmp_type = ICMP_ECHO;
+	icmp->icmp_code = 0;
+	icmp->icmp_id = (u_int16_t) getpid();
+	icmp->icmp_seq = (u_int16_t) rand();
+	memset(icmp->icmp_data, 0xa5, datalen);
+	gettimeofday((struct timeval *) icmp->icmp_data, NULL);
+	icmp->icmp_cksum = 0;
+	icmp->icmp_cksum = ip_checksum(icmp, datalen + sizeof(struct icmp));
+	return 0;
+}
+
+int mkicmpv6()
+{
+	return 0;
+}
+
+
+
 int send_data(char* address, uint16_t port, char hl, size_t data_size,
 		size_t num_packets, unsigned short ttl, size_t time_wait,
 		int n_tail)
 {
-	size_t nsent = (size_t) rand();/*get random number for seq #*/
+	//size_t nsent; = (size_t) rand();/*get random number for seq #*/
 
 	/*size of udp data*/
 	int udp_data_len = data_size;
@@ -157,6 +240,9 @@ int send_data(char* address, uint16_t port, char hl, size_t data_size,
 	}
 
 	/* create IP header*/
+	mkipv4(packet_send, packet_size,res, IPPROTO_UDP);
+	mkudphdr(packet_send + sizeof(struct ip), udp_data_len, IPPROTO_UDP);
+#if 0
 	struct ip *ip = (struct ip *) packet_send;
 	ip->ip_v = 4;
 	ip->ip_hl = 5;
@@ -198,9 +284,12 @@ int send_data(char* address, uint16_t port, char hl, size_t data_size,
 	/* set udp checksum */
 	udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header));
 	ip->ip_sum = ip_checksum(ip, packet_size);/**/
-
+#endif
 	/*Create ICMP Packets*/
 	/* create IP header for icmp packet */
+	mkipv4(packet_send, icmp_len,res, IPPROTO_ICMP);
+
+#if 0
 	struct ip *ip_icmp = (struct ip *) icmp_packet;
 	ip_icmp->ip_v = 4;
 	ip_icmp->ip_hl = 5;
@@ -220,9 +309,12 @@ int send_data(char* address, uint16_t port, char hl, size_t data_size,
 	memset(icmp->icmp_data, 0xa5, datalen);
 	gettimeofday((struct timeval *) icmp->icmp_data, NULL);
 	icmp->icmp_cksum = 0;
-
 	icmp->icmp_cksum = ip_checksum(icmp, len);
-	ip_icmp->ip_sum = ip_checksum(ip_icmp, icmp_len);
+#endif
+
+	mkicmpv4(icmp_packet + sizeof(struct ip), datalen);
+
+	//ip_icmp->ip_sum = ip_checksum(icmp_packet, icmp_len);
 
 	/*send Head ICMP Packet*/
 
@@ -244,13 +336,14 @@ int send_data(char* address, uint16_t port, char hl, size_t data_size,
 		}
 	}
 
+	icmp = (struct icmp *) (icmp_packet + sizeof(struct ip));
 	/*send tail ICMP Packets w/ timer*/
 	for(i = 0; i < n_tail; ++i){
 		/*not sure if changing the sequence number will help*/
 		icmp->icmp_cksum = 0;
 		icmp->icmp_seq += 1;
 		icmp->icmp_cksum = ip_checksum(icmp, len);
-		ip_icmp->ip_sum = ip_checksum(ip_icmp, icmp_len);
+
 
 		n = sendto(icmp_fd, icmp_packet, icmp_len, 0, res->ai_addr,
 				res->ai_addrlen);
