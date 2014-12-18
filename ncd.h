@@ -8,12 +8,14 @@
 #include <errno.h>		/* for errno*/
 #include <sys/socket.h>		/* for socket(), setsockopt(), etc...*/
 #include <netinet/ip.h>		/* for struct ip */
+#include <netinet/ip6.h>	/* for struct ip6_hdr */
 #include <netinet/ip_icmp.h>	/* for struct icmp */
 #include <netinet/udp.h>	/* for struct udphdr */
 #include <netdb.h>		/* for getaddrinfo() */
 #include <signal.h>		/* for kill() */
 #include <fcntl.h>		/* for O_RDONLY */
 #include <unistd.h>
+#include <pthread.h>
 
 /**
  *  maximum ip packet size
@@ -29,6 +31,17 @@ struct pseudo_header {
 	u_int8_t zero;
 	u_int8_t proto;
 	uint16_t len;
+};
+
+struct proto
+{
+	int protocol;
+	int dest_addr;
+	int src_addr;
+	int src_port;
+	int dst_port;
+	struct sockaddr_in *addr;
+	int (* fill_packet)(void*, size_t);
 };
 
 /**
@@ -48,9 +61,50 @@ struct pseudo_header {
  * @param time_wait the wait between trains
  * @return 0 success, 1 error/failure
  * */
-int comp_det(char* address, uint16_t port, char hl, size_t data_size,
+int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 		size_t num_packets, unsigned short ttl, size_t time_wait,
 		int n_tail);
+
+
+
+/**
+ *
+ * @param buff
+ * @param size
+ * @param res
+ * @param proto
+ * @return
+ */
+int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
+
+int mkipv6();
+
+
+/**
+ *
+ * @param buff
+ * @param udp_data_len
+ * @param proto
+ * @return
+ */
+int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto);
+
+/**
+ *
+ * @param buff
+ * @param datalen
+ * @return
+ */
+int mkicmpv4(void *buff, size_t datalen);
+
+int mkicmpv6();
+
+/**
+ *
+ * @param buff
+ * @param size
+ */
+void fill_data(void *buff, size_t size);
 
 /**
  * sends data train to the end host with leading and trailing icmp timestamps
@@ -70,9 +124,15 @@ int comp_det(char* address, uint16_t port, char hl, size_t data_size,
  * @param n_tail the number of ICMP tail messages to be sent
  * @return 0 success, 1 error/failure
  */
-int send_data(char* address, uint16_t port, char hl, size_t data_size,
+int send_data(char* address, u_int16_t port, char hl, size_t data_size,
 		size_t num_packets, unsigned short ttl, size_t time_wait,
 		int n_tail);
+
+/**
+ * @return integer value cast to void*. 0 success, 1 error/failure
+ * @param num number of tail icmp messages to send
+ */
+void *send_train(void* num);
 
 /**
  * Receives ICMP responses from end host and records times
@@ -80,7 +140,7 @@ int send_data(char* address, uint16_t port, char hl, size_t data_size,
  * processed tail echo response to a resolution of microseconds (10^-6 sec)
  * @return 0 success, 1 error/failure
  */
-int recv_data(double *time);
+void* recv_data(void *t);
 
 /**
  * calculates the ip cheksum for some buffer of size length

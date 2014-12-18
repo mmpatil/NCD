@@ -1,8 +1,11 @@
 CC=gcc
-#CFLAGS=-DDEBUG
-#CFLAGS=-DNCD_NO_KILL
+CFLAGS=
+#CFLAGS+=-DDEBUG
+#CFLAGS+=-DNCD_NO_KILL
+CFLAGS+=-pthread
 
-all: ncd tracert ping_ip ping ncd_no_raw
+
+all: ncd tracert ping_ip ping #ncd_no_raw
 
 ncd: ncd.h ncd.c
 	$(CC) ncd.c -o ncd $(CFLAGS)
