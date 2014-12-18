@@ -277,6 +277,7 @@ int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 	udp->uh_sport = htons(port); /* set source port*/
 	udp->uh_dport = htons(port); /* set destination port */
 	udp->uh_ulen = htons(udp_len); /* set udp length */
+	udp->check = 0;/* zero out the udp checksum */
 
 	/*printf("ip: %d\n", ip);
 	printf("udp, %d, udp+1: %d\n", udp, udp + 1);
@@ -299,6 +300,7 @@ int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 	memcpy(ps + 1, udp, udp_len);
 
 	/* set udp checksum */
+
 	udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header));
 
 	return 0;
