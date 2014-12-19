@@ -10,6 +10,7 @@
 #include <netinet/ip.h>		/* for struct ip */
 #include <netinet/ip6.h>	/* for struct ip6_hdr */
 #include <netinet/ip_icmp.h>	/* for struct icmp */
+#include <netinet/icmp6.h>	/* for struct icmp */
 #include <netinet/udp.h>	/* for struct udphdr */
 #include <netdb.h>		/* for getaddrinfo() */
 #include <signal.h>		/* for kill() */
@@ -77,8 +78,7 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
  */
 int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 
-int mkipv6();
-
+int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 
 /**
  *
@@ -97,7 +97,7 @@ int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto);
  */
 int mkicmpv4(void *buff, size_t datalen);
 
-int mkicmpv6();
+int mkicmpv6(void *buff, size_t datalen);
 
 /**
  *
@@ -136,7 +136,7 @@ void *send_train(void* num);
 
 /**
  * Receives ICMP responses from end host and records times
- * @param time returns the time in ms between head echo response and first
+ * @param t pointer to a double. returns the time in ms between head echo response and first
  * processed tail echo response to a resolution of microseconds (10^-6 sec)
  * @return 0 success, 1 error/failure
  */
