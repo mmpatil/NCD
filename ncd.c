@@ -184,7 +184,10 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 						rc);
 				exit(-1);
 			}
-			ret = (int) status[i] == NULL ? ret : (int) status[i];
+
+			if( status[i] != NULL)
+				ret = (int) status[i];
+
 			if(ret){
 				return EXIT_FAILURE;
 			}
@@ -239,7 +242,8 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 						rc);
 				exit(-1);
 			}
-			ret = (int) status == 0 ? ret : (int) status[i];
+			if( status[i] != NULL)
+				ret = (int) status[i];
 		}
 		printf("%c %f sec\n", 'H', time);
 		close(recv_fd);
