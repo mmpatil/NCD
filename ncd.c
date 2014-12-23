@@ -16,10 +16,11 @@ u_int8_t ttl;
 
 int icmp_fd, send_fd, recv_fd;
 char packet_send[SIZE] = { 0 };
-char icmp_send[84] = { 0 };
+char icmp_send[128] = { 0 };
 char packet_rcv[SIZE] = { 0 };
 size_t send_len, icmp_ip_len, icmp_len, icmp_data_len, rcv_len;
 struct addrinfo *res;
+void *(*recv_data)(void*);
 
 struct proto proto;
 
@@ -139,6 +140,7 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 		return EXIT_FAILURE;
 	}
 
+	recv_data = res->ai_family == AF_INET ? recv4 : recv6;
 	double time;
 	pthread_t threads[2];
 	int rc;
@@ -147,7 +149,7 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 	void *status[2];
 	if(entropy == 'b' || entropy == 'l'){
 		/* Acquire raw socket to listen for ICMP replies */
-		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
+		recv_fd = socket(res->ai_family, SOCK_RAW, l);
 		if(recv_fd == -1){
 			perror("call to socket() failed");
 			return EXIT_FAILURE;
@@ -183,6 +185,9 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 				exit(-1);
 			}
 			ret = (int) status[i] == NULL ? ret : (int) status[i];
+			if(ret){
+				return EXIT_FAILURE;
+			}
 		}
 
 		printf("%c %f sec\n", 'L', time);
@@ -199,7 +204,7 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 		mkudphdr(udp, data_size, IPPROTO_UDP);
 
 		/* Acquire raw socket to listen for ICMP replies */
-		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
+		recv_fd = socket(res->ai_family, SOCK_RAW, l);
 		if(recv_fd == -1){
 			perror("call to socket() failed");
 			return EXIT_FAILURE;
@@ -268,7 +273,7 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 {
 	struct ip6_hdr *ip = (struct ip6_hdr *) buff;
 	ip->ip6_dst = ((struct sockaddr_in6*) res->ai_addr)->sin6_addr;
-	inet_pton(AF_INET6, "192.168.1.100", &ip->ip6_src);
+	//inet_pton(AF_INET6, "192.168.1.100", &ip->ip6_src);
 	ip->ip6_ctlun.ip6_un1.ip6_un1_flow = 0;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_hlim = ttl;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_nxt = htons(sizeof(struct ip6_hdr));
@@ -346,14 +351,12 @@ int mkicmpv6(void *buff, size_t datalen)
 
 void *send_train(void* num)
 {
-
-	//printf("Tail size: %d\n", num_tail);
 	/*send Head ICMP Packet*/
 	int n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
 			res->ai_addrlen);
 	if(n == -1){
 		perror("Send error ICMP head");
-		pthread_exit((void*) EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	/*send data train*/
@@ -363,7 +366,7 @@ void *send_train(void* num)
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error udp train");
-			pthread_exit((void*) EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -379,7 +382,7 @@ void *send_train(void* num)
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error icmp tail");
-			pthread_exit((void*) EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 		}
 		usleep(time_wait * 1000);
 	}
@@ -535,7 +538,72 @@ int send_data(char* address, u_int16_t port, char hl, size_t data_size,
 	return EXIT_SUCCESS;
 }
 
-void* recv_data(void *t)
+void *recv4(void *t)
+{
+	double* time = (double *) t;
+
+	/*number of bytes received*/
+	int n;
+
+	/* number of echo replies*/
+	int count = 0;
+
+	/*number of port unreachable replies processed and ignored*/
+	int ack = 0;
+
+	/* data for ICMP msg */
+	size_t datalen = 56;
+	/*size of icmp packet*/
+	size_t len = sizeof(struct icmp) + datalen;
+
+	/* size of ICMP reply + ip header */
+	size_t icmp_len = sizeof(struct ip) + len;
+
+	/* ICMP header */
+	struct icmp *icmp;
+
+	/* to receive data with*/
+	struct sockaddr_in addr;
+
+	/* length of address */
+	socklen_t adrlen = sizeof(addr);
+
+	/*Receive initial ICMP echo response && Time-stamp*/
+	struct ip *ip = (struct ip *) packet_rcv;
+	icmp = (struct icmp *) (ip + 1);
+
+	for(;;){
+
+		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
+				(struct sockaddr *) &addr, &adrlen)) < 0){
+			if(errno == EINTR)
+				continue;
+			perror("recvfrom failed");
+			continue;
+		}else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
+			ack++;
+			continue;
+		}else if(icmp->icmp_type == 0){
+			if(count == 0){
+				*time = get_time();
+				count = 1;
+			}else{
+				*time = get_time() - *time;
+				done = 1;
+				break;
+			}    //end if
+		}else if(icmp->icmp_type == 11){
+			errno = ENETUNREACH;
+			perror("TTL Exceeded");
+			pthread_exit((void*) EXIT_FAILURE);
+		}    // end if
+		printf("recieved soemthing\n");
+	}    // end for
+	printf("\nUDP Packets received: %d\n", ack);
+	pthread_exit((void*) EXIT_SUCCESS);
+}
+
+void *recv6(void *t)
 {
 	double* time = (double *) t;
 
@@ -551,103 +619,51 @@ void* recv_data(void *t)
 	/* data for ICMP msg */
 	size_t datalen = 56;
 
-	if(res->ai_family == AF_INET){
+	/*size of icmp packet*/
+	size_t len = sizeof(struct icmp6_hdr) + datalen;
 
-		/*size of icmp packet*/
-		size_t len = sizeof(struct icmp) + datalen;
+	/* size of ICMP reply + ip header */
+	size_t icmp_len = sizeof(struct ip6_hdr) + len;
 
-		/* size of ICMP reply + ip header */
-		size_t icmp_len = sizeof(struct ip) + len;
+	/* ICMP header */
+	struct icmp6_hdr *icmp;
 
-		/* ICMP header */
-		struct icmp *icmp;
+	/* to receive data with*/
+	struct sockaddr_in addr;
 
-		/* to receive data with*/
-		struct sockaddr_in addr;
+	/* length of address */
+	socklen_t adrlen = sizeof(addr);
 
-		/* length of address */
-		socklen_t adrlen = sizeof(addr);
+	/*Receive initial ICMP echo response && Time-stamp*/
+	struct ip6_hdr *ip = (struct ip6_hdr *) packet_rcv;
+	icmp = (struct icmp6_hdr *) (ip + 1);
 
-		/*Receive initial ICMP echo response && Time-stamp*/
-		struct ip *ip = (struct ip *) packet_rcv;
-		icmp = (struct icmp *) (ip + 1);
+	for(;;){
 
-		for(;;){
-
-			if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
-					(struct sockaddr *) &addr, &adrlen))
-					< 0){
-				if(errno == EINTR)
-					continue;
-				perror("recvfrom failed");
+		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
+				(struct sockaddr *) &addr, &adrlen)) < 0){
+			if(errno == EINTR)
 				continue;
-			}else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
-				ack++;
-				continue;
-			}else if(icmp->icmp_type == 0){
-				if(count == 0){
-					*time = get_time();
-					count = 1;
-				}else{
-					*time = get_time() - *time;
-					done = 1;
-					break;
-				}    //end if
-			}else if(icmp->icmp_type == 11){
-				errno = ENETUNREACH;
-				perror("TTL Exceeded");
-				pthread_exit((void*) EXIT_FAILURE);
-			}    // end if
-		}    // end for
-	}else{
-		/*size of icmp packet*/
-		size_t len = sizeof(struct icmp6_hdr) + datalen;
-
-		/* size of ICMP reply + ip header */
-		size_t icmp_len = sizeof(struct ip6_hdr) + len;
-
-		/* ICMP header */
-		struct icmp6_hdr *icmp;
-
-		/* to receive data with*/
-		struct sockaddr_in addr;
-
-		/* length of address */
-		socklen_t adrlen = sizeof(addr);
-
-		/*Receive initial ICMP echo response && Time-stamp*/
-		struct ip6_hdr *ip = (struct ip6_hdr *) packet_rcv;
-		icmp = (struct icmp6_hdr *) (ip + 1);
-
-		for(;;){
-
-			if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
-					(struct sockaddr *) &addr, &adrlen))
-					< 0){
-				if(errno == EINTR)
-					continue;
-				perror("recvfrom failed");
-				continue;
-			}else if(icmp->icmp6_type == 3
-					&& icmp->icmp6_code == 3){
-				ack++;
-				continue;
-			}else if(icmp->icmp6_type == 0){
-				if(count == 0){
-					*time = get_time();
-					count = 1;
-				}else{
-					*time = get_time() - *time;
-					done = 1;
-					break;
-				}    //end if
-			}else if(icmp->icmp6_type == 11){
-				errno = ENETUNREACH;
-				perror("TTL Exceeded");
-				pthread_exit((void*) EXIT_FAILURE);
-			}    // end if
-		}    // end for
-	}
+			perror("recvfrom failed");
+			continue;
+		}else if(icmp->icmp6_type == 3 && icmp->icmp6_code == 3){
+			ack++;
+			continue;
+		}else if(icmp->icmp6_type == 0){
+			if(count == 0){
+				*time = get_time();
+				count = 1;
+			}else{
+				*time = get_time() - *time;
+				done = 1;
+				break;
+			}    //end if
+		}else if(icmp->icmp6_type == 11){
+			errno = ENETUNREACH;
+			perror("TTL Exceeded");
+			pthread_exit((void*) EXIT_FAILURE);
+		}    // end if
+	}    // end for
 	printf("\nUDP Packets received: %d\n", ack);
 	pthread_exit((void*) EXIT_SUCCESS);
 }

@@ -36,13 +36,11 @@ struct pseudo_header {
 
 struct proto
 {
-	int protocol;
-	int dest_addr;
-	int src_addr;
-	int src_port;
-	int dst_port;
-	struct sockaddr_in *addr;
-	int (* fill_packet)(void*, size_t);
+	int udp_prot;
+	int icmp_prot;
+	int icmp_type;
+	void *(*rcv_data)(void*);
+
 };
 
 /**
@@ -140,7 +138,11 @@ void *send_train(void* num);
  * processed tail echo response to a resolution of microseconds (10^-6 sec)
  * @return 0 success, 1 error/failure
  */
-void* recv_data(void *t);
+void *recv4(void *t);
+
+void *recv6(void *t);
+
+
 
 /**
  * calculates the ip cheksum for some buffer of size length
