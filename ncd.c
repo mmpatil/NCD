@@ -149,7 +149,7 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 	void *status[2];
 	if(entropy == 'b' || entropy == 'l'){
 		/* Acquire raw socket to listen for ICMP replies */
-		recv_fd = socket(res->ai_family, SOCK_RAW, l);
+		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
 		if(recv_fd == -1){
 			perror("call to socket() failed");
 			return EXIT_FAILURE;
@@ -261,7 +261,7 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 	ip->ip_id = htons(1234);
 
 	/* get a better way to assign my IP address!!!*/
-	ip->ip_src.s_addr = inet_pton("192.168.1.100");
+	inet_pton(AF_INET, "192.168.1.100",  &ip->ip_src.s_addr);
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 	ip->ip_off |= ntohs(IP_DF);
 	ip->ip_ttl = ttl;
@@ -273,7 +273,7 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 {
 	struct ip6_hdr *ip = (struct ip6_hdr *) buff;
 	ip->ip6_dst = ((struct sockaddr_in6*) res->ai_addr)->sin6_addr;
-	//inet_pton(AF_INET6, "192.168.1.100", &ip->ip6_src);
+	inet_pton(AF_INET6, "192.168.1.100", &ip->ip6_src);
 	ip->ip6_ctlun.ip6_un1.ip6_un1_flow = 0;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_hlim = ttl;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_nxt = htons(sizeof(struct ip6_hdr));
@@ -351,6 +351,8 @@ int mkicmpv6(void *buff, size_t datalen)
 
 void *send_train(void* num)
 {
+
+	//printf("Tail size: %d\n", num_tail);
 	/*send Head ICMP Packet*/
 	int n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
 			res->ai_addrlen);
@@ -386,7 +388,7 @@ void *send_train(void* num)
 		}
 		usleep(time_wait * 1000);
 	}
-	pthread_exit((void*) EXIT_SUCCESS);
+	return (void*) EXIT_SUCCESS;
 }
 
 void fill_data(void *buff, size_t size)
@@ -665,7 +667,7 @@ void *recv6(void *t)
 		}    // end if
 	}    // end for
 	printf("\nUDP Packets received: %d\n", ack);
-	pthread_exit((void*) EXIT_SUCCESS);
+	return (void*) EXIT_SUCCESS;
 }
 
 uint16_t ip_checksum(void* vdata, size_t length)
