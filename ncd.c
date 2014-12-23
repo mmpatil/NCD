@@ -148,6 +148,9 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 	int ret = 0;
 	void *status[2];
 	if(entropy == 'b' || entropy == 'l'){
+
+		done = 0;
+
 		/* Acquire raw socket to listen for ICMP replies */
 		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
 		if(recv_fd == -1){
@@ -265,7 +268,7 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 	ip->ip_id = htons(1234);
 
 	/* get a better way to assign my IP address!!!*/
-	inet_pton(AF_INET, "192.168.1.100",  &ip->ip_src.s_addr);
+	inet_pton(AF_INET, "192.168.1.101",  &ip->ip_src.s_addr);
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 	ip->ip_off |= ntohs(IP_DF);
 	ip->ip_ttl = ttl;
@@ -277,7 +280,7 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 {
 	struct ip6_hdr *ip = (struct ip6_hdr *) buff;
 	ip->ip6_dst = ((struct sockaddr_in6*) res->ai_addr)->sin6_addr;
-	inet_pton(AF_INET6, "192.168.1.100", &ip->ip6_src);
+	inet_pton(AF_INET6, "192.168.1.101", &ip->ip6_src);
 	ip->ip6_ctlun.ip6_un1.ip6_un1_flow = 0;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_hlim = ttl;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_nxt = htons(sizeof(struct ip6_hdr));
