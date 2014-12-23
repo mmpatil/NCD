@@ -1,22 +1,25 @@
 #ifndef _NCD_H_
 #define _NCD_H_
 
-#include <stdio.h>		/* for printf */
-#include <stdlib.h>		/* for EXIT_SUCCESS, EXIT_FAILURE, */
+#include <stdio.h>			/* for printf */
+#include <stdlib.h>			/* for EXIT_SUCCESS, EXIT_FAILURE, */
 #include <string.h> 		/* for memcpy */
-#include <time.h> 		/* for struct tv */
-#include <errno.h>		/* for errno*/
+//#include <time.h> 		/* for struct tv */
+#include <sys/time.h>		/* for gettimeofday() */
+#include <errno.h>			/* for errno*/
 #include <sys/socket.h>		/* for socket(), setsockopt(), etc...*/
 #include <netinet/ip.h>		/* for struct ip */
 #include <netinet/ip6.h>	/* for struct ip6_hdr */
-#include <netinet/ip_icmp.h>	/* for struct icmp */
+#include <netinet/ip_icmp.h>/* for struct icmp */
 #include <netinet/icmp6.h>	/* for struct icmp */
 #include <netinet/udp.h>	/* for struct udphdr */
-#include <netdb.h>		/* for getaddrinfo() */
-#include <signal.h>		/* for kill() */
-#include <fcntl.h>		/* for O_RDONLY */
-#include <unistd.h>
-#include <pthread.h>
+#include <netdb.h>			/* for getaddrinfo() */
+#include <arpa/inet.h>		/* for inet_pton() */
+#include <signal.h>			/* for kill() */
+#include <fcntl.h>			/* for O_RDONLY */
+#include <unistd.h>			/* for _________ */
+#include <ctype.h>		/* for inet_pton() */
+#include <pthread.h>		/* for pthreads */
 
 /**
  *  maximum ip packet size

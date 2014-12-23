@@ -1,4 +1,5 @@
 CC=gcc
+#CC=clang
 CFLAGS=
 #CFLAGS+=-DDEBUG
 #CFLAGS+=-DNCD_NO_KILL

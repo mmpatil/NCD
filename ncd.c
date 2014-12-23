@@ -182,7 +182,7 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 						rc);
 				exit(-1);
 			}
-			ret = (int) status[i] == NULL ? ret : (int) status[i];
+			ret = status[i] == NULL ? ret : (int) status[i];
 		}
 
 		printf("%c %f sec\n", 'L', time);
@@ -256,7 +256,7 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 	ip->ip_id = htons(1234);
 
 	/* get a better way to assign my IP address!!!*/
-	ip->ip_src.s_addr = inet_pton("192.168.1.100");
+	inet_pton(AF_INET, "192.168.1.100",  &ip->ip_src.s_addr);
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 	ip->ip_off |= ntohs(IP_DF);
 	ip->ip_ttl = ttl;
@@ -353,7 +353,7 @@ void *send_train(void* num)
 			res->ai_addrlen);
 	if(n == -1){
 		perror("Send error ICMP head");
-		pthread_exit((void*) EXIT_FAILURE);
+		return (void*) EXIT_FAILURE;
 	}
 
 	/*send data train*/
@@ -363,7 +363,7 @@ void *send_train(void* num)
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error udp train");
-			pthread_exit((void*) EXIT_FAILURE);
+			return (void*) EXIT_FAILURE;
 		}
 	}
 
@@ -379,11 +379,11 @@ void *send_train(void* num)
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error icmp tail");
-			pthread_exit((void*) EXIT_FAILURE);
+			return (void*) EXIT_FAILURE;
 		}
 		usleep(time_wait * 1000);
 	}
-	pthread_exit((void*) EXIT_SUCCESS);
+	return (void*) EXIT_SUCCESS;
 }
 
 void fill_data(void *buff, size_t size)
@@ -596,7 +596,7 @@ void* recv_data(void *t)
 			}else if(icmp->icmp_type == 11){
 				errno = ENETUNREACH;
 				perror("TTL Exceeded");
-				pthread_exit((void*) EXIT_FAILURE);
+				return (void*) EXIT_FAILURE;
 			}    // end if
 		}    // end for
 	}else{
@@ -644,12 +644,12 @@ void* recv_data(void *t)
 			}else if(icmp->icmp6_type == 11){
 				errno = ENETUNREACH;
 				perror("TTL Exceeded");
-				pthread_exit((void*) EXIT_FAILURE);
+				return (void*) EXIT_FAILURE;
 			}    // end if
 		}    // end for
 	}
 	printf("\nUDP Packets received: %d\n", ack);
-	pthread_exit((void*) EXIT_SUCCESS);
+	return (void*) EXIT_SUCCESS;
 }
 
 uint16_t ip_checksum(void* vdata, size_t length)
