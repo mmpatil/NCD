@@ -21,7 +21,7 @@ double get_time(void)
 	return d;
 }
 
-int comp_det(char* address, char * port, char hl, size_t data_size,
+int comp_det(char* address, uint16_t port, char hl, size_t data_size,
 		size_t num_packets, unsigned short ttl, size_t time_wait,
 		int n_tail)
 {
@@ -55,12 +55,11 @@ int comp_det(char* address, char * port, char hl, size_t data_size,
 	return EXIT_SUCCESS;
 }
 
-int send_data(char* address, char * port_name, char hl, size_t data_size,
+int send_data(char* address, uint16_t port, char hl, size_t data_size,
 		size_t num_packets, unsigned short ttl, size_t time_wait,
 		int n_tail)
 {
 	size_t nsent = (size_t) rand();/*get random number for seq #*/
-	int port = atoi(port_name);
 
 	/*size of udp data*/
 	int udp_data_len = data_size;
@@ -422,7 +421,7 @@ uint16_t ip_checksum(void* vdata, size_t length)
  */
 int main(int argc, char *argv[])
 {
-	return comp_det(argv[1], argv[2], argv[3][0], atoi(argv[4]),
+	return comp_det(argv[1], atoi(argv[2]), argv[3][0], atoi(argv[4]),
 			atoi(argv[5]), atoi(argv[6]), atoi(argv[7]),
 			atoi(argv[8]));
 }

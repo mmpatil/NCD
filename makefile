@@ -1,11 +1,21 @@
 CC=gcc
-#CFLAGS=-DDEBUG
-#CFLAGS=-DNCD_NO_KILL
+#CC=clang
+CFLAGS=
+#CFLAGS+=-DDEBUG
+#CFLAGS+=-DNCD_NO_KILL
+CFLAGS+=-pthread
 
-all: ncd tracert ping_ip ping ncd_no_raw
 
-ncd: ncd.h ncd.c
-	$(CC) ncd.c -o ncd $(CFLAGS)
+all: test ncd_main tracert ping_ip ping #ncd_no_raw
+
+test: unit_test.h unit_test.cpp
+	g++ unit_test.cpp  -pthread -L/usr/lib -lgtest -lgtest_main -o test
+	
+ncd_main: ncd.o ncd_main.c
+	$(CC) ncd_main.c ncd.o -o ncd_main $(CFLAGS)
+
+ncd.o: ncd.h ncd.c
+	$(CC) -c ncd.c $(CFLAGS)
 
 ncd_no_raw: ncd.h ncd_no_raw.c
 	$(CC) ncd_no_raw.c -o ncd_no_raw $(CFLAGS)
