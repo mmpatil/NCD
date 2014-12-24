@@ -326,11 +326,12 @@ int mkicmpv6(void *buff, size_t datalen)
 	struct icmp6_hdr *icmphdr = (struct icmp6_hdr *) buff;
 	icmphdr->icmp6_type = ICMP6_ECHO_REQUEST;
 	icmphdr->icmp6_code = 0;
-	icmphdr->icmp6_cksum = 0;
 	icmphdr->icmp6_id= htons (getpid());
 	icmphdr->icmp6_seq= htons (rand());
 	memset(&icmphdr->icmp6_dataun, 0xa5, datalen);
 	gettimeofday((struct timeval *) &icmphdr->icmp6_dataun, NULL);
+	icmphdr->icmp6_cksum = 0;
+	icmphdr->icmp6_cksum = ip_checksum(icmphdr, datalen + sizeof(struct icmp6_hdr));
 	return 0;
 }
 
@@ -445,12 +446,12 @@ void *recv4(void *t)
 		}else if(icmp->icmp_type == 11){
 			errno = ENETUNREACH;
 			perror("TTL Exceeded");
-			pthread_exit((void*) EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 		}    // end if
 
 	}    // end for
 	printf("UDP Packets received: %d\n", ack);
-	pthread_exit((void*) EXIT_SUCCESS);
+	return NULL;
 }
 
 void *recv6(void *t)
@@ -511,11 +512,11 @@ void *recv6(void *t)
 		}else if(icmp->icmp6_type == 11){
 			errno = ENETUNREACH;
 			perror("TTL Exceeded");
-			pthread_exit((void*) EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 		}    // end if
 	}    // end for
 	printf("\nUDP Packets received: %d\n", ack);
-	return (void*) EXIT_SUCCESS;
+	return NULL;
 }
 
 uint16_t ip_checksum(void* vdata, size_t length)
