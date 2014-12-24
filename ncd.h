@@ -3,6 +3,7 @@
 
 #include <stdio.h>		/* for printf */
 #include <stdlib.h>		/* for EXIT_SUCCESS, EXIT_FAILURE, */
+#include <stdio.h>
 #include <string.h> 		/* for memcpy */
 //#include <time.h> 		/* for struct tv */
 #include <sys/time.h>		/* for gettimeofday() */

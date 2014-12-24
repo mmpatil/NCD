@@ -36,14 +36,7 @@ double get_time(void)
 
 int comp_det()
 {
-	/*size of udp data*/
-	int udp_data_len = data_size;
-
-	/* size of udp packet */
-	int udp_len = udp_data_len + sizeof(struct udphdr);
-
-	/* size of IP packet (IP header +  udp packet size*/
-	send_len = udp_len + sizeof(struct ip);
+	send_len = data_size;
 
 	/* size of ICMP Echo message */
 	icmp_data_len = 56;
@@ -64,7 +57,13 @@ int comp_det()
 	hints.ai_flags = AI_CANONNAME;
 	hints.ai_protocol = IPPROTO_UDP;
 
-	int err = getaddrinfo(dst_ip, NULL, &hints, &res);
+
+	/* FIX THIS !!!!!!!!!!!!!!!*/
+	char str[64]={0};
+	snprintf(str, 64, "%d", (int)port);
+
+
+	int err = getaddrinfo(dst_ip, str, &hints, &res);
 
 	/*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
 	if(err != 0){
@@ -77,23 +76,20 @@ int comp_det()
 		exit(EXIT_FAILURE);
 	}
 
-	send_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_UDP);
+	struct sockaddr_in ha = { 0 };
+	ha.sin_family = res->ai_family;
+	ha.sin_port = htons(port);
+	inet_pton(res->ai_family, dst_ip, &ha.sin_addr.s_addr);
+
+	send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
 	if(send_fd == -1){
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);
 	}
 
-	/* set up our own ip header */
-	int hdrincl = 1;
-
-	int r = res->ai_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
-	if(setsockopt(send_fd, r, IP_HDRINCL, &hdrincl, sizeof(hdrincl)) == -1){
-		perror("setsockopt() failed send");
-		exit(EXIT_FAILURE);
-	}/**/
+	int r = (res->ai_family == AF_INET) ? IPPROTO_IP : IPPROTO_IPV6;
 
 	/* acquire socket for icmp messages*/
-
 	int l = res->ai_family == AF_INET ? IPPROTO_ICMP : IPPROTO_ICMPV6;
 	icmp_fd = socket(res->ai_family, SOCK_RAW, l);
 
@@ -117,21 +113,13 @@ int comp_det()
 		return EXIT_FAILURE;
 	}
 
-	struct udphdr *udp;
 	if(res->ai_family == AF_INET){
-		udp = (struct udphdr *) (packet_send + sizeof(struct ip));
-		mkipv4(packet_send, send_len, res, IPPROTO_UDP);
-		mkudphdr(udp, data_size, IPPROTO_UDP);
-		mkipv4(icmp_send, send_len, res, IPPROTO_ICMP);
+		mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
 		mkicmpv4(icmp_send + (sizeof(struct ip)), icmp_len);
 
 	}else if(res->ai_family == AF_INET6){
-		udp = (struct udphdr *) (packet_send + sizeof(struct ip6_hdr));
-		mkipv6(packet_send, send_len, res, IPPROTO_UDP);
-		mkudphdr(udp, data_size, IPPROTO_UDP);
-		mkipv6(icmp_send, send_len, res, IPPROTO_ICMPV6);
+		mkipv6(icmp_send, icmp_len, res, IPPROTO_ICMPV6);
 		mkicmpv6(icmp_send + (sizeof(struct ip6_hdr)), icmp_data_len);
-
 	}else{
 		errno = EPROTONOSUPPORT;
 		perror("Protocol not supported");
@@ -188,7 +176,7 @@ int comp_det()
 			if(status[i] != NULL)
 				return EXIT_FAILURE;
 
-		}//end for
+		}    //end for
 
 		printf("%c %f sec\n", 'L', time);
 		close(recv_fd);
@@ -200,8 +188,7 @@ int comp_det()
 
 		done = 0;
 
-		fill_data((udp + 1), data_size);
-		mkudphdr(udp, data_size, IPPROTO_UDP);
+		fill_data(packet_send, data_size);
 
 		/* Acquire raw socket to listen for ICMP replies */
 		recv_fd = socket(res->ai_family, SOCK_RAW, l);
@@ -275,7 +262,7 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 	ip->ip6_ctlun.ip6_un1.ip6_un1_flow = 0;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_hlim = ttl;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_nxt = htons(sizeof(struct ip6_hdr));
-	ip->ip6_ctlun.ip6_un1.ip6_un1_plen = htons(send_len);
+	ip->ip6_ctlun.ip6_un1.ip6_un1_plen = htons(size);
 
 	return 0;
 }
@@ -358,6 +345,11 @@ void *send_train(void* num)
 		perror("Send error ICMP head");
 		exit(EXIT_FAILURE);
 	}
+
+	printf("send_len: %d\n", send_len);
+	printf("packet_send: %d\n", packet_send);
+
+
 
 	/*send data train*/
 	int i = 0;
