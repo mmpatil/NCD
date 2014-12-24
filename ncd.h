@@ -1,23 +1,23 @@
 #ifndef _NCD_H_
 #define _NCD_H_
 
-#include <stdio.h>			/* for printf */
-#include <stdlib.h>			/* for EXIT_SUCCESS, EXIT_FAILURE, */
+#include <stdio.h>		/* for printf */
+#include <stdlib.h>		/* for EXIT_SUCCESS, EXIT_FAILURE, */
 #include <string.h> 		/* for memcpy */
 //#include <time.h> 		/* for struct tv */
 #include <sys/time.h>		/* for gettimeofday() */
-#include <errno.h>			/* for errno*/
+#include <errno.h>		/* for errno*/
 #include <sys/socket.h>		/* for socket(), setsockopt(), etc...*/
 #include <netinet/ip.h>		/* for struct ip */
 #include <netinet/ip6.h>	/* for struct ip6_hdr */
-#include <netinet/ip_icmp.h>/* for struct icmp */
+#include <netinet/ip_icmp.h>	/* for struct icmp */
 #include <netinet/icmp6.h>	/* for struct icmp */
 #include <netinet/udp.h>	/* for struct udphdr */
-#include <netdb.h>			/* for getaddrinfo() */
+#include <netdb.h>		/* for getaddrinfo() */
 #include <arpa/inet.h>		/* for inet_pton() */
-#include <signal.h>			/* for kill() */
-#include <fcntl.h>			/* for O_RDONLY */
-#include <unistd.h>			/* for _________ */
+#include <signal.h>		/* for kill() */
+#include <fcntl.h>		/* for O_RDONLY */
+#include <unistd.h>		/* for _________ */
 #include <ctype.h>		/* for inet_pton() */
 #include <pthread.h>		/* for pthreads */
 
@@ -37,8 +37,7 @@ struct pseudo_header {
 	uint16_t len;
 };
 
-struct proto
-{
+struct proto {
 	int udp_prot;
 	int icmp_prot;
 	int icmp_type;
@@ -63,11 +62,7 @@ struct proto
  * @param time_wait the wait between trains
  * @return 0 success, 1 error/failure
  * */
-int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
-		size_t num_packets, unsigned short ttl, size_t time_wait,
-		int n_tail);
-
-
+int comp_det();
 
 /**
  *
@@ -108,28 +103,6 @@ int mkicmpv6(void *buff, size_t datalen);
 void fill_data(void *buff, size_t size);
 
 /**
- * sends data train to the end host with leading and trailing icmp timestamps
- *
- * sets up a connection using raw sockets and sends a head ICMP echo request
- * followed by a UDP data train. After the data train is sent, a series of
- * ICMP echo responses is sent.
- *
- * @param address the address of the end host stored in a char array (cstring)
- * @param port the port number or service name
- * @param hl the entropy of the data (either 'H' for high entropy or 'L'
- * for low entropy
- * @param data_size the size in bytes of the data to be sent in the udp train
- * @param num_packets the number of packets in each data train
- * @param ttl the time to live for each packet (max size 255)
- * @param time_wait the wait between ICMP tail messages
- * @param n_tail the number of ICMP tail messages to be sent
- * @return 0 success, 1 error/failure
- */
-int send_data(char* address, u_int16_t port, char hl, size_t data_size,
-		size_t num_packets, unsigned short ttl, size_t time_wait,
-		int n_tail);
-
-/**
  * @return integer value cast to void*. 0 success, 1 error/failure
  * @param num number of tail icmp messages to send
  */
@@ -145,8 +118,6 @@ void *recv4(void *t);
 
 void *recv6(void *t);
 
-
-
 /**
  * calculates the ip cheksum for some buffer of size length
  * @param vdata a pointer to the buffer to be checksummed
@@ -154,5 +125,13 @@ void *recv6(void *t);
  * @return the IP checksum of the buffer
  */
 uint16_t ip_checksum(void* vdata, size_t length);
+
+/**
+ *
+ * @param argc number of command line args
+ * @param argv array of commandline args
+ * @return 0 success, 1 Failure
+ */
+int check_args(int argc, char* argv[]);
 
 #endif

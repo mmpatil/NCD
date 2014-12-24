@@ -8,10 +8,10 @@
 #include "ncd.h"
 
 /*  Global Variables  */
-int size, num_packets, num_tail, time_wait, done = 0;
+int data_size, num_packets, num_tail, tail_wait, done = 0;
 u_int16_t port;
 char entropy;
-char* dst_ip;
+char* dst_ip = NULL;
 u_int8_t ttl;
 
 int icmp_fd, send_fd, recv_fd;
@@ -19,8 +19,8 @@ char packet_send[SIZE] = { 0 };
 char icmp_send[128] = { 0 };
 char packet_rcv[SIZE] = { 0 };
 size_t send_len, icmp_ip_len, icmp_len, icmp_data_len, rcv_len;
-struct addrinfo *res;
-void *(*recv_data)(void*);
+struct addrinfo *res = NULL;
+void *(*recv_data)(void*) = NULL;
 
 struct proto proto;
 
@@ -34,9 +34,7 @@ double get_time(void)
 	return d;
 }
 
-int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
-		size_t num_packets, unsigned short ttl, size_t time_wait,
-		int n_tail)
+int comp_det()
 {
 	/*size of udp data*/
 	int udp_data_len = data_size;
@@ -66,15 +64,15 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 	hints.ai_flags = AI_CANONNAME;
 	hints.ai_protocol = IPPROTO_UDP;
 
-	int err = getaddrinfo(address, NULL, &hints, &res);
+	int err = getaddrinfo(dst_ip, NULL, &hints, &res);
 
 	/*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
 	if(err != 0){
 		if(err == EAI_SYSTEM)
-			fprintf(stderr, "looking up %s: %s\n", address,
+			fprintf(stderr, "looking up %s: %s\n", dst_ip,
 					strerror(errno));
 		else
-			fprintf(stderr, "looking up %s: %s\n", address,
+			fprintf(stderr, "looking up %s: %s\n", dst_ip,
 					gai_strerror(err));
 		exit(EXIT_FAILURE);
 	}
@@ -188,7 +186,7 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 				exit(-1);
 			}
 
-			if( status[i] != NULL)
+			if(status[i] != NULL)
 				ret = (int) status[i];
 
 			if(ret){
@@ -229,7 +227,7 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 		}
 
 		int rc = pthread_create(&threads[1], NULL, send_train,
-				(void *) &n_tail);
+				(void *) &num_tail);
 		if(rc){
 			printf(
 					"ERROR; return code from pthread_create() is %d\n",
@@ -245,7 +243,7 @@ int comp_det(char* address, u_int16_t port, char hl, size_t data_size,
 						rc);
 				exit(-1);
 			}
-			if( status[i] != NULL)
+			if(status[i] != NULL)
 				ret = (int) status[i];
 		}
 		printf("%c %f sec\n", 'H', time);
@@ -268,7 +266,7 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 	ip->ip_id = htons(1234);
 
 	/* get a better way to assign my IP address!!!*/
-	inet_pton(AF_INET, "192.168.1.101",  &ip->ip_src.s_addr);
+	inet_pton(AF_INET, "192.168.1.101", &ip->ip_src.s_addr);
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 	ip->ip_off |= ntohs(IP_DF);
 	ip->ip_ttl = ttl;
@@ -293,6 +291,7 @@ int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 {
 	struct ip* ip = buff;
 	ip--;
+	printf("port: %d\n", port);
 	int udp_len = udp_data_len + sizeof(struct udphdr);
 	char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
 	struct udphdr *udp = (struct udphdr *) buff;
@@ -393,7 +392,7 @@ void *send_train(void* num)
 			perror("Send error icmp tail");
 			exit(EXIT_FAILURE);
 		}
-		usleep(time_wait * 1000);
+		usleep(tail_wait * 1000);
 	}
 	return (void*) EXIT_SUCCESS;
 }
@@ -405,146 +404,6 @@ void fill_data(void *buff, size_t size)
 	int random = open("/dev/urandom", O_RDONLY);
 	read(random, buff, size);
 	close(random);
-}
-
-int send_data(char* address, u_int16_t port, char hl, size_t data_size,
-		size_t num_packets, unsigned short ttl, size_t time_wait,
-		int n_tail)
-{
-	/*size of udp data*/
-	int udp_data_len = data_size;
-
-	/* size of udp packet */
-	int udp_len = udp_data_len + 8;
-
-	/* size of IP packet (IP header +  udp packet size*/
-	int packet_size = udp_len + 20;
-
-	/* size of ICMP Echo message */
-	size_t datalen = 56;
-
-	/*size of icmp packet*/
-	size_t len = sizeof(struct icmp) + datalen;
-
-	/* size of ICMP reply + ip header */
-	size_t icmp_len = sizeof(struct ip) + len;
-	struct icmp *icmp; /* ICMP header */
-
-	/*file descriptors for udp and icmp sockets */
-	int send_fd, icmp_fd;
-
-	/*number of bytes sent*/
-	int n;
-
-	struct addrinfo *res; /* for get addrinfo */
-	struct addrinfo hints = { 0 }; /* for get addrinfo */
-
-	char packet_send[SIZE] = { 0 }; /* buffer to send data with */
-	char icmp_packet[84];/* icmp packet buffer */
-
-	send_fd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
-	if(send_fd == -1){
-		perror("call to socket() failed");
-		exit(EXIT_FAILURE);
-	}
-
-	/* set up our own ip header */
-	int hdrincl = 1;
-	if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &hdrincl,
-			sizeof(hdrincl)) == -1){
-		perror("setsockopt() failed");
-		exit(EXIT_FAILURE);
-	}/**/
-
-	/* acquire socket for icmp messages*/
-	icmp_fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-
-	if(icmp_fd == -1){
-		perror("call to socket() failed");
-		exit(EXIT_FAILURE);    // consider doing something better here
-	}
-
-	/* set up our own IP header*/
-	int icmp_hdrincl = 1;
-	if(setsockopt(icmp_fd, IPPROTO_IP, IP_HDRINCL, &icmp_hdrincl,
-			sizeof(icmp_hdrincl)) == -1){
-		perror("setsockopt() failed");
-		exit(EXIT_FAILURE);
-	}
-
-	int err = setuid(getuid());/*give up privileges */
-
-	if(err < 0){
-		perror("Elevated privliges not released");
-		exit(EXIT_FAILURE);
-	}
-
-	/* set up hints for getaddrinfo() */
-	hints.ai_flags = AI_CANONNAME;
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = 0;
-	hints.ai_protocol = IPPROTO_UDP;
-
-	err = getaddrinfo(address, NULL, &hints, &res);
-
-	/*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
-	if(err != 0){
-		if(err == EAI_SYSTEM)
-			fprintf(stderr, "looking up %s: %s\n", address,
-					strerror(errno));
-		else
-			fprintf(stderr, "looking up %s: %s\n", address,
-					gai_strerror(err));
-		exit(EXIT_FAILURE);
-	}
-
-	/* create IP header*/
-	mkipv4(packet_send, packet_size, res, IPPROTO_UDP);
-	mkudphdr(packet_send + sizeof(struct ip), udp_data_len, IPPROTO_UDP);
-
-	/*Create ICMP Packets*/
-	/* create IP header for icmp packet */
-	mkipv4(icmp_packet, icmp_len, res, IPPROTO_ICMP);
-	mkicmpv4(icmp_packet + sizeof(struct ip), datalen);
-
-	/*send Head ICMP Packet*/
-	n = sendto(icmp_fd, icmp_packet, icmp_len, 0, res->ai_addr,
-			res->ai_addrlen);
-	if(n == -1){
-		perror("Send error");
-		return EXIT_FAILURE;
-	}
-
-	/*send data train*/
-	int i = 0;
-	for(i = 0; i < num_packets; ++i){
-		n = sendto(send_fd, packet_send, packet_size, 0, res->ai_addr,
-				res->ai_addrlen);
-		if(n == -1){
-			perror("Send error");
-			return EXIT_FAILURE;
-		}
-	}
-
-	icmp = (struct icmp *) (icmp_packet + sizeof(struct ip));
-	/*send tail ICMP Packets w/ timer*/
-	for(i = 0; i < n_tail; ++i){
-		/*not sure if changing the sequence number will help*/
-		icmp->icmp_cksum = 0;
-		icmp->icmp_seq += 1;
-		icmp->icmp_cksum = ip_checksum(icmp, len);
-
-		n = sendto(icmp_fd, icmp_packet, icmp_len, 0, res->ai_addr,
-				res->ai_addrlen);
-		if(n == -1){
-			perror("Send error");
-			return EXIT_FAILURE;
-		}
-		usleep(time_wait * 1000);
-	}
-
-	freeaddrinfo(res);/* give back the memory from getaddrinfo()*/
-	return EXIT_SUCCESS;
 }
 
 void *recv4(void *t)
@@ -606,7 +465,7 @@ void *recv4(void *t)
 			perror("TTL Exceeded");
 			pthread_exit((void*) EXIT_FAILURE);
 		}    // end if
-		printf("recieved soemthing\n");
+
 	}    // end for
 	printf("\nUDP Packets received: %d\n", ack);
 	pthread_exit((void*) EXIT_SUCCESS);
@@ -733,18 +592,22 @@ uint16_t ip_checksum(void* vdata, size_t length)
 
 int check_args(int argc, char* argv[])
 {
+	if(argc < 2)
+		return EXIT_FAILURE;
 	dst_ip = NULL;
+
+	/* probably change default port from traceroute port */
+	port = 33434;
+	entropy = 'b';
+	data_size = 996;
+	num_packets = 1000;
+	ttl = 255;
+	tail_wait = 10;
+	num_tail = 20;
 
 	if(argc == 2){
 		dst_ip = argv[1];
-		/* probably change default port from traceroute port */
-		port = 33434;
-		entropy = 'b';
-		size = 996;
-		num_packets = 1000;
-		ttl = 255;
-		time_wait = 10;
-		num_tail = 20;
+
 	}else{
 		register int i;
 		int check;
@@ -773,8 +636,8 @@ int check_args(int argc, char* argv[])
 					i--;
 					break;
 				case 's':
-					size = atoi(argv[i]);
-					if(size < 0 || size > 1460){
+					data_size = atoi(argv[i]);
+					if(data_size < 0 || data_size > 1460){
 						errno = ERANGE;
 						perror(
 								"Valid UDP data size: 1-1460");
@@ -800,8 +663,8 @@ int check_args(int argc, char* argv[])
 					}
 					break;
 				case 'w':
-					time_wait = atoi(argv[i]);
-					if(time_wait < 0){
+					tail_wait = atoi(argv[i]);
+					if(tail_wait < 0){
 						errno = ERANGE;
 						perror(
 								"Time wait must be positive");
@@ -853,7 +716,7 @@ int check_args(int argc, char* argv[])
 int main(int argc, char *argv[])
 {
 	/* Check ARGs */
-	check_args(argc, argv);
-	return comp_det(dst_ip, port, entropy, size, num_packets, ttl,
-			time_wait, num_tail);
+	if(check_args(argc, argv) != EXIT_SUCCESS)
+		return EXIT_FAILURE;
+	return comp_det();
 }

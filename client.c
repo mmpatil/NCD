@@ -45,8 +45,8 @@ int main(int argc, char* argv[])
 
 	char str[1100] = "HELLO WORLD!";
 
-	printf("Size of tcp_msg : %zu\nNumber of msgs: %zu\n\n",
-			sizeof(str), num_msg);
+	printf("Size of tcp_msg : %zu\nNumber of msgs: %zu\n\n", sizeof(str),
+			num_msg);
 	printf("Address %s\n\n", argv[1]);
 
 	/* initialize the server address info*/

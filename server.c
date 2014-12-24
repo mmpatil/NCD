@@ -88,8 +88,6 @@ int main(int argc, char* argv[])
 			return EXIT_FAILURE;
 		}
 
-
-
 		/*spawn child process to deal with new connection*/
 		if(fork() == 0){
 
@@ -133,9 +131,9 @@ int main(int argc, char* argv[])
 			}
 
 			return EXIT_SUCCESS;
-		}// end fork()
+		} // end fork()
 
-	}// end while
+	} // end while
 
 	/* These will never happen, as the server never stops running*/
 	close(udpfd);
