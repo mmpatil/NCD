@@ -25,7 +25,7 @@
 /**
  *  maximum ip packet size
  */
-#define SIZE 1500
+#define SIZE (1500-40-8)
 
 /**
  * struct for udp pseudo header

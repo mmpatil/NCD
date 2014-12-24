@@ -346,10 +346,8 @@ void *send_train(void* num)
 		exit(EXIT_FAILURE);
 	}
 
-	printf("send_len: %d\n", send_len);
-	printf("packet_send: %d\n", packet_send);
-
-
+	//printf("send_len: %d\n", send_len);
+	//printf("packet_send: %d\n", packet_send);
 
 	/*send data train*/
 	int i = 0;
@@ -451,7 +449,7 @@ void *recv4(void *t)
 		}    // end if
 
 	}    // end for
-	printf("\nUDP Packets received: %d\n", ack);
+	printf("UDP Packets received: %d\n", ack);
 	pthread_exit((void*) EXIT_SUCCESS);
 }
 
@@ -621,7 +619,7 @@ int check_args(int argc, char* argv[])
 					break;
 				case 's':
 					data_size = atoi(argv[i]);
-					if(data_size < 0 || data_size > 1460){
+					if(data_size < 1 || data_size > SIZE){
 						errno = ERANGE;
 						perror(
 								"Valid UDP data size: 1-1460");
@@ -638,7 +636,7 @@ int check_args(int argc, char* argv[])
 						return EXIT_FAILURE;
 					}
 					break;
-				case 't':
+				case 't': //ttl
 					check = atoi(argv[i]);
 					if(check < 0 || check > 255){
 						errno = ERANGE;
@@ -646,7 +644,7 @@ int check_args(int argc, char* argv[])
 						return EXIT_FAILURE;
 					}
 					break;
-				case 'w':
+				case 'w': // tail_wait
 					tail_wait = atoi(argv[i]);
 					if(tail_wait < 0){
 						errno = ERANGE;
