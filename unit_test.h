@@ -8,6 +8,10 @@
 #ifndef UNIT_TEST_H_
 #define UNIT_TEST_H_
 
+#include <gtest/gtest.h>
+#include <check.h>
+#include "ncd.h"
+
 int test_get_time();
 
 int test_comp_det();
@@ -30,7 +34,8 @@ int test_recv4();
 
 int test_recv6();
 
-
 int test_ip_checksum();
+
+int test_check_args();
 
 #endif /* UNIT_TEST_H_ */
