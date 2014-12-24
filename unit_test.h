@@ -8,15 +8,15 @@
 #ifndef UNIT_TEST_H_
 #define UNIT_TEST_H_
 
-#include <gtest/gtest.h>
-#include <check.h>
 #include "ncd.h"
+#include <gtest/gtest.h>
+
 
 int test_get_time();
 
 int test_comp_det();
 
-int test_mkipv4();
+//int test_mkipv4();
 
 int test_mkipv6();
 

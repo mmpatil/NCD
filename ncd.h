@@ -45,6 +45,7 @@ struct proto {
 
 };
 
+
 /**
  * Determines if compression occurs along the current transmission path to host
  * by sending data to a remote location.

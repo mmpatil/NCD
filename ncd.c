@@ -143,7 +143,6 @@ int comp_det()
 	pthread_t threads[2];
 	int rc;
 	register int i;
-	int ret = 0;
 	void *status[2];
 	if(entropy == 'b' || entropy == 'l'){
 
@@ -187,12 +186,9 @@ int comp_det()
 			}
 
 			if(status[i] != NULL)
-				ret = (int) status[i];
-
-			if(ret){
 				return EXIT_FAILURE;
-			}
-		}
+
+		}//end for
 
 		printf("%c %f sec\n", 'L', time);
 		close(recv_fd);
@@ -244,14 +240,11 @@ int comp_det()
 				exit(-1);
 			}
 			if(status[i] != NULL)
-				ret = (int) status[i];
+				return EXIT_FAILURE;
 		}
 		printf("%c %f sec\n", 'H', time);
 		close(recv_fd);
 	}
-
-	if(ret != 0)
-		return EXIT_FAILURE;
 
 	return EXIT_SUCCESS;
 }
@@ -263,7 +256,7 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 	ip->ip_v = 4;
 	ip->ip_hl = 5;
 	ip->ip_len = htons(size);
-	ip->ip_id = htons(1234);
+	ip->ip_id = htons(getpid());
 
 	/* get a better way to assign my IP address!!!*/
 	inet_pton(AF_INET, "192.168.1.101", &ip->ip_src.s_addr);
@@ -289,9 +282,8 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 
 int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 {
-	struct ip* ip = buff;
+	struct ip* ip = (struct ip *) buff;
 	ip--;
-	printf("port: %d\n", port);
 	int udp_len = udp_data_len + sizeof(struct udphdr);
 	char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
 	struct udphdr *udp = (struct udphdr *) buff;
@@ -394,7 +386,7 @@ void *send_train(void* num)
 		}
 		usleep(tail_wait * 1000);
 	}
-	return (void*) EXIT_SUCCESS;
+	return NULL;
 }
 
 void fill_data(void *buff, size_t size)
@@ -699,24 +691,3 @@ int check_args(int argc, char* argv[])
 	return EXIT_SUCCESS;
 }
 
-/**
- * Main function
- * only calls comp_detection()
- *
- * @argv[1] Destination IP address
- * @argv[2] Port Number
- * @argv[3] High or low entropy data 'H' or 'L'
- * @argv[4] Size of udp data
- * @argv[5] Number of packets in UDP Data Train
- * @argv[6] Time to Live
- * @argv[7] Wait time in milliseconds
- * @argv[8] Number of tail ICMP messages to send
- *
- */
-int main(int argc, char *argv[])
-{
-	/* Check ARGs */
-	if(check_args(argc, argv) != EXIT_SUCCESS)
-		return EXIT_FAILURE;
-	return comp_det();
-}
