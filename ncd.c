@@ -12,6 +12,7 @@ int data_size, num_packets, num_tail, tail_wait, done = 0;
 u_int16_t port;
 char entropy;
 char* dst_ip = NULL;
+char* file = NULL;
 u_int8_t ttl;
 
 int icmp_fd, send_fd, recv_fd;
@@ -46,21 +47,16 @@ int comp_det()
 
 	/* size of ICMP reply + ip header */
 	icmp_ip_len = sizeof(struct ip) + icmp_len;
-	struct icmp *icmp; /* ICMP header */
-
-	/*number of bytes sent*/
-	int n;
-
-	struct addrinfo hints = { 0 }; /* for get addrinfo */
 
 	/* set up hints for getaddrinfo() */
+	struct addrinfo hints = { 0 }; /* for get addrinfo */
 	hints.ai_flags = AI_CANONNAME;
 	hints.ai_protocol = IPPROTO_UDP;
 
 
 	/* FIX THIS !!!!!!!!!!!!!!!*/
-	char str[64]={0};
-	snprintf(str, 64, "%d", (int)port);
+	char str[32]={0};
+	snprintf(str, 32, "%d", port);
 
 
 	int err = getaddrinfo(dst_ip, str, &hints, &res);
@@ -76,11 +72,7 @@ int comp_det()
 		exit(EXIT_FAILURE);
 	}
 
-	struct sockaddr_in ha = { 0 };
-	ha.sin_family = res->ai_family;
-	ha.sin_port = htons(port);
-	inet_pton(res->ai_family, dst_ip, &ha.sin_addr.s_addr);
-
+	/* setup socket for UDP train */
 	send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
 	if(send_fd == -1){
 		perror("call to socket() failed");
@@ -116,17 +108,18 @@ int comp_det()
 	if(res->ai_family == AF_INET){
 		mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
 		mkicmpv4(icmp_send + (sizeof(struct ip)), icmp_len);
+		recv_data = recv4;
 
 	}else if(res->ai_family == AF_INET6){
 		mkipv6(icmp_send, icmp_len, res, IPPROTO_ICMPV6);
 		mkicmpv6(icmp_send + (sizeof(struct ip6_hdr)), icmp_data_len);
+		recv_data = recv6;
 	}else{
 		errno = EPROTONOSUPPORT;
 		perror("Protocol not supported");
 		return EXIT_FAILURE;
 	}
 
-	recv_data = res->ai_family == AF_INET ? recv4 : recv6;
 	double time;
 	pthread_t threads[2];
 	int rc;
@@ -384,7 +377,7 @@ void fill_data(void *buff, size_t size)
 {
 	/* fill with random data from /dev/urandom */
 	/*get random data for high entropy datagrams*/
-	int random = open("/dev/urandom", O_RDONLY);
+	int random = open(file, O_RDONLY);
 	read(random, buff, size);
 	close(random);
 }
@@ -575,8 +568,11 @@ uint16_t ip_checksum(void* vdata, size_t length)
 
 int check_args(int argc, char* argv[])
 {
-	if(argc < 2)
+	if(argc < 2){
+		errno = EINVAL;
+		perror("Too few arguments, see use");
 		return EXIT_FAILURE;
+	}
 	dst_ip = NULL;
 
 	/* probably change default port from traceroute port */
@@ -587,6 +583,7 @@ int check_args(int argc, char* argv[])
 	ttl = 255;
 	tail_wait = 10;
 	num_tail = 20;
+	file = "/dev/urandom";
 
 	if(argc == 2){
 		dst_ip = argv[1];
@@ -659,9 +656,12 @@ int check_args(int argc, char* argv[])
 					if(num_tail < 1 || num_tail > 1000){
 						errno = ERANGE;
 						perror(
-								"# tail packets: 1 - 1,000");
+								"# Tail Packets: 1 - 1,000");
 						return EXIT_FAILURE;
 					}
+					break;
+				case 'f':
+					file = argv[i];
 					break;
 				default:
 					errno = ERANGE;
