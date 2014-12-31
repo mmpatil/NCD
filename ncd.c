@@ -138,27 +138,21 @@ int comp_det()
 
 		rc = pthread_create(&threads[0], NULL, recv_data, &time);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR; return code from pthread_create() is %d\n",	rc);
 			exit(-1);
 		}
 
 		int rc = pthread_create(&threads[1], NULL, send_train,
 				status[1]);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR; return code from pthread_create() is %d\n",	rc);
 			exit(-1);
 		}
 
 		for(i = 0; i < 2; ++i){
 			rc = pthread_join(threads[i], &status[i]);
 			if(rc){
-				printf(
-						"ERROR; return code from pthread_create() is %d\n",
-						rc);
+				printf("ERROR; return code from pthread_create() is %d\n", rc);
 				exit(-1);
 			}
 
@@ -625,8 +619,7 @@ int check_args(int argc, char* argv[])
 					if(num_packets < 1
 							|| num_packets > 10000){
 						errno = ERANGE;
-						perror(
-								"# UDP packets: 1 - 10,000");
+						perror("# UDP packets: 1 - 10,000");
 						return EXIT_FAILURE;
 					}
 					break;
