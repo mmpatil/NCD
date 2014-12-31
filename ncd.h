@@ -43,14 +43,6 @@ struct pseudo_header {
 	uint16_t len;
 };
 
-struct proto {
-	int udp_port;
-	int icmp_port;
-	int icmp_type;
-	void *(*rcv_data)(void*);
-
-};
-
 
 /**
  * Determines if compression occurs along the current transmission path to host
