@@ -1,8 +1,6 @@
 /**
  * @author: Paul Kirth
  * @file: ncd.c
- * Comp 429
- * Project 2 Phase III
  */
 
 #include "ncd.h"
@@ -22,8 +20,6 @@ char packet_rcv[SIZE] = { 0 };
 size_t send_len, icmp_ip_len, icmp_len, icmp_data_len, rcv_len;
 struct addrinfo *res = NULL;
 void *(*recv_data)(void*) = NULL;
-
-struct proto proto;
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -377,9 +373,9 @@ void fill_data(void *buff, size_t size)
 {
 	/* fill with random data from /dev/urandom */
 	/*get random data for high entropy datagrams*/
-	int random = open(file, O_RDONLY);
-	read(random, buff, size);
-	close(random);
+	int fd = open(file, O_RDONLY);
+	read(fd, buff, size);
+	close(fd);
 }
 
 void *recv4(void *t)

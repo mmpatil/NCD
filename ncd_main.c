@@ -2,7 +2,7 @@
  * ncd_main.c
  *
  *  Created on: Dec 23, 2014
- *      Author: atlas
+ *      Author: Paul Kirth
  */
 
 #include "ncd.h"

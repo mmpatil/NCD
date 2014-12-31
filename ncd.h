@@ -1,3 +1,8 @@
+/**
+ * @author: Paul Kirth
+ * @file: ncd.c
+ */
+
 #ifndef _NCD_H_
 #define _NCD_H_
 
@@ -39,8 +44,8 @@ struct pseudo_header {
 };
 
 struct proto {
-	int udp_prot;
-	int icmp_prot;
+	int udp_port;
+	int icmp_port;
 	int icmp_type;
 	void *(*rcv_data)(void*);
 

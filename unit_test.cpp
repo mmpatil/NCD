@@ -1,3 +1,8 @@
+/**
+ * @author: Paul Kirth
+ * @file: ncd.c
+ */
+
 #include "unit_test.h"
 #include "ncd.c"
 
@@ -41,6 +46,7 @@ TEST(mkipv4_test, mkipv4_works)
 	EXPECT_EQ(ip.ip_ttl, m->ip_ttl);
 	EXPECT_EQ(ip.ip_v, m->ip_v);
 	EXPECT_EQ(ip.ip_p, m->ip_p);
+	freeaddrinfo(res);
 
 }
 
@@ -53,7 +59,7 @@ TEST(mkipv6_test, mkipv6_works)
 	hints.ai_flags = AI_CANONNAME;
 	hints.ai_protocol = IPPROTO_UDP;
 
-	int err = getaddrinfo("192.168.1.100", NULL, &hints, &res);
+	int err = getaddrinfo("192.168.1.101", NULL, &hints, &res);
 	ttl= 50;
 	struct ip6_hdr ip = {0}, *m = NULL;// = (struct ip6_hdr *) buff;
 	ip.ip6_dst = ((struct sockaddr_in6*) res->ai_addr)->sin6_addr;
@@ -126,9 +132,12 @@ TEST(mkicmpv6_test, mkicmpv6_works)
 	EXPECT_EQ(0, ret);
 }
 
-int test_fill_data()
+TEST(fill_data_test, fill_data_works)
 {
-	return 0;
+	
+	
+	
+	
 }
 
 int test_send_train()
