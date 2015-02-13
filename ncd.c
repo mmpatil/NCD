@@ -121,7 +121,7 @@ int comp_det()
 	int rc;
 	register int i;
 	void *status[2];
-	if(entropy == 'b' || entropy == 'l'){
+	if(entropy == 'B' || entropy == 'L'){
 
 		done = 0;
 
@@ -167,7 +167,7 @@ int comp_det()
 
 	sleep(3);    // sloppy replace with better metric
 
-	if(entropy == 'b' || entropy == 'h'){
+	if(entropy == 'B' || entropy == 'H'){
 
 		done = 0;
 
@@ -556,18 +556,24 @@ uint16_t ip_checksum(void* vdata, size_t length)
 	return htons(~acc);
 }
 
+void print_use()
+{
+	printf("NCD IPAddress -p [port number] [-H |-L | -B (entropy)] -s [Payload data size in bytes] -n [number of packets] -t [TTL] -w [tail wait time] -t [number of tail icmp messages] -f [file name to read into Payload]\n");
+}
+
 int check_args(int argc, char* argv[])
 {
 	if(argc < 2){
 		errno = EINVAL;
 		perror("Too few arguments, see use");
+		print_use();
 		return EXIT_FAILURE;
 	}
 	dst_ip = NULL;
 
 	/* probably change default port from traceroute port */
 	port = 33434;
-	entropy = 'b';
+	entropy = 'B';
 	data_size = 996;
 	num_packets = 1000;
 	ttl = 255;
@@ -575,10 +581,10 @@ int check_args(int argc, char* argv[])
 	num_tail = 20;
 	file = "/dev/urandom";
 
-	if(argc == 2){
+	/*if(argc == 2){
 		dst_ip = argv[1];
 
-	}else{
+	}else*/{
 		register int i;
 		int check;
 		char* cp;
@@ -600,8 +606,8 @@ int check_args(int argc, char* argv[])
 						return EXIT_FAILURE;
 					}
 					break;
-				case 'h':
-				case 'l':
+				case 'H':
+				case 'L':
 					entropy = c;
 					i--;
 					break;
@@ -652,6 +658,10 @@ int check_args(int argc, char* argv[])
 				case 'f':
 					file = argv[i];
 					break;
+				case 'u':
+					print_use();
+					return EXIT_SUCCESS;
+					break;
 				default:
 					errno = ERANGE;
 					perror("Invalid options, check use");
@@ -670,4 +680,5 @@ int check_args(int argc, char* argv[])
 
 	return EXIT_SUCCESS;
 }
+
 
