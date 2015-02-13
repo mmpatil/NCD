@@ -11,7 +11,6 @@
 #include "ncd.h"
 #include <gtest/gtest.h>
 
-
 int test_get_time();
 
 int test_comp_det();

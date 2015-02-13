@@ -15,6 +15,7 @@ u_int8_t ttl;
 
 int icmp_fd, send_fd, recv_fd;
 char packet_send[SIZE] = { 0 };
+uint16_t* packet_id = (uint16_t*)packet_send;
 char icmp_send[128] = { 0 };
 char packet_rcv[SIZE] = { 0 };
 size_t send_len, icmp_ip_len, icmp_len, icmp_data_len, rcv_len;
@@ -33,7 +34,7 @@ double get_time(void)
 
 int comp_det()
 {
-	send_len = data_size;
+	send_len = data_size +sizeof(uint16_t);
 
 	/* size of ICMP Echo message */
 	icmp_data_len = 56;
@@ -49,11 +50,9 @@ int comp_det()
 	hints.ai_flags = AI_CANONNAME;
 	hints.ai_protocol = IPPROTO_UDP;
 
-
 	/* FIX THIS !!!!!!!!!!!!!!!*/
-	char str[32]={0};
+	char str[32] = { 0 };
 	snprintf(str, 32, "%d", port);
-
 
 	int err = getaddrinfo(dst_ip, str, &hints, &res);
 
@@ -138,21 +137,27 @@ int comp_det()
 
 		rc = pthread_create(&threads[0], NULL, recv_data, &time);
 		if(rc){
-			printf("ERROR; return code from pthread_create() is %d\n",	rc);
+			printf(
+					"ERROR; return code from pthread_create() is %d\n",
+					rc);
 			exit(-1);
 		}
 
 		int rc = pthread_create(&threads[1], NULL, send_train,
 				status[1]);
 		if(rc){
-			printf("ERROR; return code from pthread_create() is %d\n",	rc);
+			printf(
+					"ERROR; return code from pthread_create() is %d\n",
+					rc);
 			exit(-1);
 		}
 
 		for(i = 0; i < 2; ++i){
 			rc = pthread_join(threads[i], &status[i]);
 			if(rc){
-				printf("ERROR; return code from pthread_create() is %d\n", rc);
+				printf(
+						"ERROR; return code from pthread_create() is %d\n",
+						rc);
 				exit(-1);
 			}
 
@@ -170,6 +175,7 @@ int comp_det()
 	if(entropy == 'B' || entropy == 'H'){
 
 		done = 0;
+
 
 		fill_data(packet_send, data_size);
 
@@ -262,10 +268,6 @@ int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 	udp->uh_ulen = htons(udp_len); /* set udp length */
 	udp->uh_sum = 0;/* zero out the udp checksum */
 
-	/*printf("ip: %d\n", ip);
-	 printf("udp, %d, udp+1: %d\n", udp, udp + 1);
-	 fill_data(udp + 1, udp_data_len);/**/
-
 	/* pseudo header for udp checksum */
 	struct pseudo_header *ps = (struct pseudo_header *) pseudo;
 	ps->source = ip->ip_src.s_addr;
@@ -273,11 +275,6 @@ int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 	ps->zero = 0;
 	ps->proto = proto;
 	ps->len = htons(udp_len);
-
-	/*printf("udp_data: %d, udp_len: %d, ps: %d, ps_len %d\n", udp_data_len,
-	 udp_len, sizeof(struct pseudo_header),
-	 udp_len + sizeof(struct pseudo_header));
-	 printf("ps: %d, ps+1: %d\n", ps, ps+1);/**/
 
 	/*copy udp packet into pseudo header buffer to calculate checksum*/
 	memcpy(ps + 1, udp, udp_len);
@@ -314,14 +311,13 @@ int mkicmpv6(void *buff, size_t datalen)
 	memset(&icmphdr->icmp6_dataun, 0xa5, datalen);
 	gettimeofday((struct timeval *) &icmphdr->icmp6_dataun, NULL);
 	icmphdr->icmp6_cksum = 0;
-	icmphdr->icmp6_cksum = ip_checksum(icmphdr, datalen + sizeof(struct icmp6_hdr));
+	icmphdr->icmp6_cksum = ip_checksum(icmphdr,
+			datalen + sizeof(struct icmp6_hdr));
 	return 0;
 }
 
 void *send_train(void* num)
 {
-
-	//printf("Tail size: %d\n", num_tail);
 	/*send Head ICMP Packet*/
 	int n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
 			res->ai_addrlen);
@@ -329,13 +325,12 @@ void *send_train(void* num)
 		perror("Send error ICMP head");
 		exit(EXIT_FAILURE);
 	}
-
-	//printf("send_len: %d\n", send_len);
-	//printf("packet_send: %d\n", packet_send);
+	*packet_id = 0;
 
 	/*send data train*/
 	int i = 0;
 	for(i = 0; i < num_packets; ++i){
+		(*packet_id)++;
 		n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
@@ -366,7 +361,7 @@ void *send_train(void* num)
 void fill_data(void *buff, size_t size)
 {
 	/* fill with random data from /dev/urandom */
-	/*get random data for high entropy datagrams*/
+	/* get random data for high entropy datagrams */
 	int fd = open(file, O_RDONLY);
 	read(fd, buff, size);
 	close(fd);
@@ -387,6 +382,7 @@ void *recv4(void *t)
 
 	/* data for ICMP msg */
 	size_t datalen = 56;
+
 	/*size of icmp packet*/
 	size_t len = sizeof(struct icmp) + datalen;
 
@@ -558,7 +554,8 @@ uint16_t ip_checksum(void* vdata, size_t length)
 
 void print_use()
 {
-	printf("NCD IPAddress -p [port number] [-H |-L | -B (entropy)] -s [Payload data size in bytes] -n [number of packets] -t [TTL] -w [tail wait time] -t [number of tail icmp messages] -f [file name to read into Payload]\n");
+	printf(
+			"NCD IPAddress -p [port number] [-H |-L | -B (entropy)] -s [Payload data size in bytes] -n [number of packets] -t [TTL] -w [tail wait time] -t [number of tail icmp messages] -f [file name to read into Payload]\n");
 }
 
 int check_args(int argc, char* argv[])
@@ -581,104 +578,93 @@ int check_args(int argc, char* argv[])
 	num_tail = 20;
 	file = "/dev/urandom";
 
-	/*if(argc == 2){
-		dst_ip = argv[1];
-
-	}else*/{
-		register int i;
-		int check;
-		char* cp;
-		char c;
-		for(i = 1; i < argc; ++i){
-			cp = argv[i];
-			c = *cp;
-			if(c == '-'){
-				c = tolower(*(cp + 1));
-				i++;
-				switch(c){
-				case 'p':
-					check = atoi(argv[i]);
-					if(check < (1 << 16) && check > 0)
-						port = check;
-					else{
-						errno = ERANGE;
-						perror("Port range: 0 - 65535");
-						return EXIT_FAILURE;
-					}
-					break;
-				case 'H':
-				case 'L':
-					entropy = c;
-					i--;
-					break;
-				case 's':
-					data_size = atoi(argv[i]);
-					if(data_size < 1 || data_size > SIZE){
-						errno = ERANGE;
-						perror(
-								"Valid UDP data size: 1-1460");
-						return EXIT_FAILURE;
-					}
-					break;
-				case 'n':
-					num_packets = atoi(argv[i]);
-					if(num_packets < 1
-							|| num_packets > 10000){
-						errno = ERANGE;
-						perror("# UDP packets: 1 - 10,000");
-						return EXIT_FAILURE;
-					}
-					break;
-				case 't': //ttl
-					check = atoi(argv[i]);
-					if(check < 0 || check > 255){
-						errno = ERANGE;
-						perror("TTL range: 0 - 255");
-						return EXIT_FAILURE;
-					}
-					break;
-				case 'w': // tail_wait
-					tail_wait = atoi(argv[i]);
-					if(tail_wait < 0){
-						errno = ERANGE;
-						perror(
-								"Time wait must be positive");
-						return EXIT_FAILURE;
-					}
-					break;
-				case 'r':
-					num_tail = atoi(argv[i]);
-					if(num_tail < 1 || num_tail > 1000){
-						errno = ERANGE;
-						perror(
-								"# Tail Packets: 1 - 1,000");
-						return EXIT_FAILURE;
-					}
-					break;
-				case 'f':
-					file = argv[i];
-					break;
-				case 'u':
-					print_use();
-					return EXIT_SUCCESS;
-					break;
-				default:
+	register int i;
+	int check;
+	char* cp;
+	char c;
+	for(i = 1; i < argc; ++i){
+		cp = argv[i];
+		c = *cp;
+		if(c == '-'){
+			c = *(cp + 1);
+			i++;
+			switch(c){
+			case 'p':
+				check = atoi(argv[i]);
+				if(check < (1 << 16) && check > 0)
+					port = check;
+				else{
 					errno = ERANGE;
-					perror("Invalid options, check use");
+					perror("Port range: 0 - 65535");
 					return EXIT_FAILURE;
-				}	//end switch
-			}else if(dst_ip == NULL){
-				dst_ip = argv[i];
-			}else{
-				errno = ERANGE;
-				perror("Too many IP Addresses, check use");
+				}
+				break;
+			case 'H':
+			case 'L':
+				entropy = c;
+				i--;
+				break;
+			case 's':
+				data_size = atoi(argv[i]);
+				if(data_size < 1 || data_size > SIZE){
+					errno = ERANGE;
+					perror("Valid UDP data size: 1-1460");
+					return EXIT_FAILURE;
+				}
+				break;
+			case 'n':
+				num_packets = atoi(argv[i]);
+				if(num_packets < 1 || num_packets > 10000){
+					errno = ERANGE;
+					perror("# UDP packets: 1 - 10,000");
+					return EXIT_FAILURE;
+				}
+				break;
+			case 't':    //ttl
+				check = atoi(argv[i]);
+				if(check < 0 || check > 255){
+					errno = ERANGE;
+					perror("TTL range: 0 - 255");
+					return EXIT_FAILURE;
+				}
+				break;
+			case 'w':    // tail_wait
+				tail_wait = atoi(argv[i]);
+				if(tail_wait < 0){
+					errno = ERANGE;
+					perror("Time wait must be positive");
+					return EXIT_FAILURE;
+				}
+				break;
+			case 'r':
+				num_tail = atoi(argv[i]);
+				if(num_tail < 1 || num_tail > 1000){
+					errno = ERANGE;
+					perror("# Tail Packets: 1 - 1,000");
+					return EXIT_FAILURE;
+				}
+				break;
+			case 'f':
+				file = argv[i];
+				break;
+			case 'h':
+				print_use();
 				return EXIT_FAILURE;
-			}	// end if
-
-		}	//end for
-	}	//endif
-
+				break;
+			default:
+				errno = ERANGE;
+				perror("Invalid options, check use");
+				return EXIT_FAILURE;
+			}	//end switch
+		}else if(dst_ip == NULL){
+			dst_ip = argv[i];
+		}else{
+			errno = ERANGE;
+			perror("Too many IP Addresses, check use");
+			print_use();
+			return EXIT_FAILURE;
+		}	// end if
+	}	//end for
 	return EXIT_SUCCESS;
 }
-
 

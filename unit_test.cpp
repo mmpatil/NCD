@@ -28,7 +28,7 @@ TEST(mkipv4_test, mkipv4_works)
 	int err = getaddrinfo("192.168.1.100", NULL, &hints, &res);
 
 	ttl = 50;
-	struct ip ip = {0}, *m = NULL;
+	struct ip ip = { 0 }, *m = NULL;
 	inet_pton(AF_INET, "192.168.1.100", &ip.ip_dst);
 	ip.ip_hl = 5;
 	ip.ip_id = htons(getpid());
@@ -37,7 +37,7 @@ TEST(mkipv4_test, mkipv4_works)
 	ip.ip_v = 4;
 	ip.ip_p = IPPROTO_UDP;
 
-	char* buff[1024] = {0};
+	char* buff[1024] = { 0 };
 	m = (struct ip *) buff;
 	mkipv4(buff, 1024, res, IPPROTO_UDP);
 	EXPECT_EQ(ip.ip_dst.s_addr, m->ip_dst.s_addr);
@@ -60,8 +60,8 @@ TEST(mkipv6_test, mkipv6_works)
 	hints.ai_protocol = IPPROTO_UDP;
 
 	int err = getaddrinfo("192.168.1.101", NULL, &hints, &res);
-	ttl= 50;
-	struct ip6_hdr ip = {0}, *m = NULL;// = (struct ip6_hdr *) buff;
+	ttl = 50;
+	struct ip6_hdr ip = { 0 }, *m = NULL;    // = (struct ip6_hdr *) buff;
 	ip.ip6_dst = ((struct sockaddr_in6*) res->ai_addr)->sin6_addr;
 	inet_pton(AF_INET6, "192.168.1.101", &ip.ip6_src);
 	ip.ip6_ctlun.ip6_un1.ip6_un1_flow = 0;
@@ -69,17 +69,23 @@ TEST(mkipv6_test, mkipv6_works)
 	ip.ip6_ctlun.ip6_un1.ip6_un1_nxt = htons(sizeof(struct ip6_hdr));
 	ip.ip6_ctlun.ip6_un1.ip6_un1_plen = htons(1024);
 
-	char* buff[1024] = {0};
-	m = (struct ip6_hdr *)buff;
+	char* buff[1024] = { 0 };
+	m = (struct ip6_hdr *) buff;
 	mkipv6(buff, 1024, res, IPPROTO_UDP);
-	EXPECT_EQ(ip.ip6_ctlun.ip6_un1.ip6_un1_flow, m->ip6_ctlun.ip6_un1.ip6_un1_flow);
-	EXPECT_EQ(ip.ip6_ctlun.ip6_un1.ip6_un1_hlim, m->ip6_ctlun.ip6_un1.ip6_un1_hlim);
-	EXPECT_EQ(ip.ip6_ctlun.ip6_un1.ip6_un1_plen, m->ip6_ctlun.ip6_un1.ip6_un1_plen);
-	EXPECT_EQ(ip.ip6_ctlun.ip6_un1.ip6_un1_nxt, m->ip6_ctlun.ip6_un1.ip6_un1_nxt);
+	EXPECT_EQ(ip.ip6_ctlun.ip6_un1.ip6_un1_flow,
+			m->ip6_ctlun.ip6_un1.ip6_un1_flow);
+	EXPECT_EQ(ip.ip6_ctlun.ip6_un1.ip6_un1_hlim,
+			m->ip6_ctlun.ip6_un1.ip6_un1_hlim);
+	EXPECT_EQ(ip.ip6_ctlun.ip6_un1.ip6_un1_plen,
+			m->ip6_ctlun.ip6_un1.ip6_un1_plen);
+	EXPECT_EQ(ip.ip6_ctlun.ip6_un1.ip6_un1_nxt,
+			m->ip6_ctlun.ip6_un1.ip6_un1_nxt);
 
 	for(int i = 0; i < 4; ++i){
-		EXPECT_EQ(ip.ip6_dst.__in6_u.__u6_addr32[i], m->ip6_dst.__in6_u.__u6_addr32[i]);
-		EXPECT_EQ(ip.ip6_src.__in6_u.__u6_addr32[i], m->ip6_src.__in6_u.__u6_addr32[i]);
+		EXPECT_EQ(ip.ip6_dst.__in6_u.__u6_addr32[i],
+				m->ip6_dst.__in6_u.__u6_addr32[i]);
+		EXPECT_EQ(ip.ip6_src.__in6_u.__u6_addr32[i],
+				m->ip6_src.__in6_u.__u6_addr32[i]);
 	}
 }
 
@@ -90,16 +96,16 @@ int test_mkudphdr()
 
 TEST(mkicmpv4_test, mkicmpv4_works)
 {
-	char buff[128] = {0}, str[128]={0};
+	char buff[128] = { 0 }, str[128] = { 0 };
 	int datalen = 56;
-	struct icmp *icmp = (struct icmp *) buff, *m = (struct icmp *)str;
+	struct icmp *icmp = (struct icmp *) buff, *m = (struct icmp *) str;
 	icmp->icmp_type = ICMP_ECHO;
 	icmp->icmp_code = 0;
 	icmp->icmp_id = (u_int16_t) getpid();
 
 	int ret = mkicmpv4(str, datalen);
 	memcpy(icmp->icmp_data, m->icmp_data, datalen);
-	icmp->icmp_seq = m->icmp_seq;// so they can match (its random!)
+	icmp->icmp_seq = m->icmp_seq;    // so they can match (its random!)
 	icmp->icmp_cksum = 0;
 	icmp->icmp_cksum = ip_checksum(icmp, datalen + sizeof(struct icmp));
 
@@ -112,18 +118,20 @@ TEST(mkicmpv4_test, mkicmpv4_works)
 
 TEST(mkicmpv6_test, mkicmpv6_works)
 {
-	char buff[128] = {0}, str[128]={0};
+	char buff[128] = { 0 }, str[128] = { 0 };
 	int datalen = 56;
-	struct icmp6_hdr *icmp = (struct icmp6_hdr *) buff, *m = (struct icmp6_hdr *)str;
+	struct icmp6_hdr *icmp = (struct icmp6_hdr *) buff, *m =
+			(struct icmp6_hdr *) str;
 	icmp->icmp6_type = ICMP6_ECHO_REQUEST;
 	icmp->icmp6_code = 0;
-	icmp->icmp6_id = htons((u_int16_t) getpid());
+	icmp->icmp6_id= htons((u_int16_t) getpid());
 
 	int ret = mkicmpv6(str, datalen);
 	memcpy(&icmp->icmp6_dataun, &m->icmp6_dataun, datalen);
-	icmp->icmp6_seq = m->icmp6_seq;// so they can match (its random!)
+	icmp->icmp6_seq= m->icmp6_seq;    // so they can match (its random!)
 	icmp->icmp6_cksum = 0;
-	icmp->icmp6_cksum = ip_checksum(icmp, datalen + sizeof(struct icmp6_hdr));
+	icmp->icmp6_cksum = ip_checksum(icmp,
+			datalen + sizeof(struct icmp6_hdr));
 
 	EXPECT_EQ(icmp->icmp6_cksum, m->icmp6_cksum);
 	EXPECT_EQ(icmp->icmp6_code, m->icmp6_code);
@@ -134,10 +142,7 @@ TEST(mkicmpv6_test, mkicmpv6_works)
 
 TEST(fill_data_test, fill_data_works)
 {
-	
-	
-	
-	
+
 }
 
 int test_send_train()
@@ -160,9 +165,9 @@ int test_ip_checksum()
 	return 0;
 }
 
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+int main(int argc, char **argv)
+{
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 }
 

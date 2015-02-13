@@ -30,7 +30,7 @@
 /**
  *  maximum ip packet size
  */
-#define SIZE (1500-40-8)
+#define SIZE (1500-40-8-2)
 
 /**
  * struct for udp pseudo header
@@ -42,7 +42,6 @@ struct pseudo_header {
 	u_int8_t proto;
 	uint16_t len;
 };
-
 
 /**
  * Determines if compression occurs along the current transmission path to host
