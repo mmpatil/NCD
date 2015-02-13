@@ -1,3 +1,8 @@
+/**
+ * @author: Paul Kirth
+ * @file: ncd.c
+ */
+
 #ifndef _NCD_H_
 #define _NCD_H_
 
@@ -38,14 +43,6 @@ struct pseudo_header {
 	uint16_t len;
 };
 
-struct proto {
-	int udp_prot;
-	int icmp_prot;
-	int icmp_type;
-	void *(*rcv_data)(void*);
-
-};
-
 
 /**
  * Determines if compression occurs along the current transmission path to host
@@ -67,7 +64,7 @@ struct proto {
 int comp_det();
 
 /**
- *
+ * formats an ipv4 header beginning at buff of length size
  * @param buff
  * @param size
  * @param res
@@ -79,7 +76,7 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 
 /**
- *
+ * formats an udp header beginning at buff with a payload of length udp_data_len
  * @param buff
  * @param udp_data_len
  * @param proto
@@ -88,7 +85,7 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto);
 
 /**
- *
+ * formats an ICMP packet beginning at buff with a payload of length datalen
  * @param buff
  * @param datalen
  * @return
@@ -98,13 +95,14 @@ int mkicmpv4(void *buff, size_t datalen);
 int mkicmpv6(void *buff, size_t datalen);
 
 /**
- *
+ * fills the data portion of a packet with the size data from a file char* file
  * @param buff
  * @param size
  */
 void fill_data(void *buff, size_t size);
 
 /**
+ * sends the udp data train with leading and trailing ICMP messages
  * @return integer value cast to void*. 0 success, 1 error/failure
  * @param num number of tail icmp messages to send
  */
@@ -129,7 +127,7 @@ void *recv6(void *t);
 uint16_t ip_checksum(void* vdata, size_t length);
 
 /**
- *
+ * Checks arguments given on command line and stores values in global variables
  * @param argc number of command line args
  * @param argv array of commandline args
  * @return 0 success, 1 Failure

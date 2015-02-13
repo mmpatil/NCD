@@ -1,8 +1,6 @@
 /**
  * @author: Paul Kirth
  * @file: ncd.c
- * Comp 429
- * Project 2 Phase III
  */
 
 #include "ncd.h"
@@ -22,8 +20,6 @@ char packet_rcv[SIZE] = { 0 };
 size_t send_len, icmp_ip_len, icmp_len, icmp_data_len, rcv_len;
 struct addrinfo *res = NULL;
 void *(*recv_data)(void*) = NULL;
-
-struct proto proto;
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -125,7 +121,7 @@ int comp_det()
 	int rc;
 	register int i;
 	void *status[2];
-	if(entropy == 'b' || entropy == 'l'){
+	if(entropy == 'B' || entropy == 'L'){
 
 		done = 0;
 
@@ -142,27 +138,21 @@ int comp_det()
 
 		rc = pthread_create(&threads[0], NULL, recv_data, &time);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR; return code from pthread_create() is %d\n",	rc);
 			exit(-1);
 		}
 
 		int rc = pthread_create(&threads[1], NULL, send_train,
 				status[1]);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR; return code from pthread_create() is %d\n",	rc);
 			exit(-1);
 		}
 
 		for(i = 0; i < 2; ++i){
 			rc = pthread_join(threads[i], &status[i]);
 			if(rc){
-				printf(
-						"ERROR; return code from pthread_create() is %d\n",
-						rc);
+				printf("ERROR; return code from pthread_create() is %d\n", rc);
 				exit(-1);
 			}
 
@@ -177,7 +167,7 @@ int comp_det()
 
 	sleep(3);    // sloppy replace with better metric
 
-	if(entropy == 'b' || entropy == 'h'){
+	if(entropy == 'B' || entropy == 'H'){
 
 		done = 0;
 
@@ -377,9 +367,9 @@ void fill_data(void *buff, size_t size)
 {
 	/* fill with random data from /dev/urandom */
 	/*get random data for high entropy datagrams*/
-	int random = open(file, O_RDONLY);
-	read(random, buff, size);
-	close(random);
+	int fd = open(file, O_RDONLY);
+	read(fd, buff, size);
+	close(fd);
 }
 
 void *recv4(void *t)
@@ -566,18 +556,24 @@ uint16_t ip_checksum(void* vdata, size_t length)
 	return htons(~acc);
 }
 
+void print_use()
+{
+	printf("NCD IPAddress -p [port number] [-H |-L | -B (entropy)] -s [Payload data size in bytes] -n [number of packets] -t [TTL] -w [tail wait time] -t [number of tail icmp messages] -f [file name to read into Payload]\n");
+}
+
 int check_args(int argc, char* argv[])
 {
 	if(argc < 2){
 		errno = EINVAL;
 		perror("Too few arguments, see use");
+		print_use();
 		return EXIT_FAILURE;
 	}
 	dst_ip = NULL;
 
 	/* probably change default port from traceroute port */
 	port = 33434;
-	entropy = 'b';
+	entropy = 'B';
 	data_size = 996;
 	num_packets = 1000;
 	ttl = 255;
@@ -585,10 +581,10 @@ int check_args(int argc, char* argv[])
 	num_tail = 20;
 	file = "/dev/urandom";
 
-	if(argc == 2){
+	/*if(argc == 2){
 		dst_ip = argv[1];
 
-	}else{
+	}else*/{
 		register int i;
 		int check;
 		char* cp;
@@ -610,8 +606,8 @@ int check_args(int argc, char* argv[])
 						return EXIT_FAILURE;
 					}
 					break;
-				case 'h':
-				case 'l':
+				case 'H':
+				case 'L':
 					entropy = c;
 					i--;
 					break;
@@ -629,8 +625,7 @@ int check_args(int argc, char* argv[])
 					if(num_packets < 1
 							|| num_packets > 10000){
 						errno = ERANGE;
-						perror(
-								"# UDP packets: 1 - 10,000");
+						perror("# UDP packets: 1 - 10,000");
 						return EXIT_FAILURE;
 					}
 					break;
@@ -663,6 +658,10 @@ int check_args(int argc, char* argv[])
 				case 'f':
 					file = argv[i];
 					break;
+				case 'u':
+					print_use();
+					return EXIT_SUCCESS;
+					break;
 				default:
 					errno = ERANGE;
 					perror("Invalid options, check use");
@@ -681,4 +680,5 @@ int check_args(int argc, char* argv[])
 
 	return EXIT_SUCCESS;
 }
+
 
