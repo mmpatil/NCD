@@ -595,12 +595,12 @@ int check_args(int argc, char* argv[])
 	/* probably change default port from traceroute port */
 	port = 33434;
 	entropy = 'B'; // default to 2 data trains
-	data_size = 996;
-	num_packets = 1000;
-	ttl = 255;
-	tail_wait = 10;
-	num_tail = 20;
-	file = "/dev/urandom";
+	data_size = 996;	//so we send 1 KB packets
+	num_packets = 1000;	// send 1000 packets in udp data train
+	ttl = 255;		// max ttl
+	tail_wait = 10;		// wait 10 ms between ICMP tail messages
+	num_tail = 20;		// send 20 ICMP tail messages
+	file = "/dev/urandom";	// default to random data for compression detection
 
 	register int i;
 	int check;
