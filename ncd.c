@@ -76,6 +76,8 @@ int comp_det()
 
 	int r = (res->ai_family == AF_INET) ? IPPROTO_IP : IPPROTO_IPV6;
 
+	setsockopt(send_fd, r, IP_TTL, &ttl, sizeof(ttl));
+
 	/* acquire socket for icmp messages*/
 	int l = res->ai_family == AF_INET ? IPPROTO_ICMP : IPPROTO_ICMPV6;
 	icmp_fd = socket(res->ai_family, SOCK_RAW, l);
@@ -235,7 +237,7 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 	ip->ip_id = htons(getpid());
 
 	/* get a better way to assign my IP address!!!*/
-	inet_pton(AF_INET, "192.168.1.101", &ip->ip_src.s_addr);
+	//inet_pton(AF_INET, "192.168.1.101", &ip->ip_src.s_addr);
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 	ip->ip_off |= ntohs(IP_DF);
 	ip->ip_ttl = ttl;
@@ -247,7 +249,7 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 {
 	struct ip6_hdr *ip = (struct ip6_hdr *) buff;
 	ip->ip6_dst = ((struct sockaddr_in6*) res->ai_addr)->sin6_addr;
-	inet_pton(AF_INET6, "192.168.1.101", &ip->ip6_src);
+	//inet_pton(AF_INET6, "192.168.1.101", &ip->ip6_src);
 	ip->ip6_ctlun.ip6_un1.ip6_un1_flow = 0;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_hlim = ttl;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_nxt = htons(sizeof(struct ip6_hdr));
@@ -627,6 +629,8 @@ int check_args(int argc, char* argv[])
 					perror("TTL range: 0 - 255");
 					return EXIT_FAILURE;
 				}
+				else
+					ttl = check;
 				break;
 			case 'w':    // tail_wait
 				tail_wait = atoi(argv[i]);
