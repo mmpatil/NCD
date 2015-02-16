@@ -102,6 +102,8 @@ int comp_det()
 		return EXIT_FAILURE;
 	}
 
+
+	//make ICMP packets
 	if(res->ai_family == AF_INET){
 		mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
 		mkicmpv4(icmp_send + (sizeof(struct ip)), icmp_len);
@@ -124,7 +126,7 @@ int comp_det()
 	void *status[2];
 	if(entropy == 'B' || entropy == 'L'){
 
-		done = 0;
+		done = 0;//boolean false
 
 		/* Acquire raw socket to listen for ICMP replies */
 		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
@@ -176,7 +178,7 @@ int comp_det()
 
 	if(entropy == 'B' || entropy == 'H'){
 
-		done = 0;
+		done = 0;//boolean false
 
 
 		fill_data(packet_send, data_size);
@@ -365,7 +367,17 @@ void fill_data(void *buff, size_t size)
 	/* fill with random data from /dev/urandom */
 	/* get random data for high entropy datagrams */
 	int fd = open(file, O_RDONLY);
-	read(fd, buff, size);
+	if(fd < 0)
+	{
+		perror("Error opening file:");
+		return;
+	}
+	int err = read(fd, buff, size);
+	if(err < 0)
+	{
+		perror("Error reading file:");
+		return;
+	}
 	close(fd);
 }
 
@@ -572,7 +584,7 @@ int check_args(int argc, char* argv[])
 
 	/* probably change default port from traceroute port */
 	port = 33434;
-	entropy = 'B';
+	entropy = 'B'; // default to 2 data trains
 	data_size = 996;
 	num_packets = 1000;
 	ttl = 255;
