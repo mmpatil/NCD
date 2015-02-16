@@ -236,7 +236,7 @@ int comp_det()
 		printf("%c %f sec\n", 'H', time);
 		close(recv_fd);
 	}
-
+	freeaddrinfo(res);
 	return EXIT_SUCCESS;
 }
 
