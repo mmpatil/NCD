@@ -1,0 +1,77 @@
+.TH ncd 1 "February 16, 2005" "version 1.0" 
+
+.SH NAME
+ncd - Detect network compression along a route to a host
+
+.SH SYNOPSIS
+.B ncd 
+[\fIOPTION\fR...] \fIHOST\fR
+
+.SH DESCRIPTION
+.B ncd
+detects compression and other middleboxes that perform more duties than simple routing by sending two trains of UDP packets and measuring the time difference between them. The first train contains packets that can be quickly processed by the middle box, while the second is designed to take much longer. The goal is to yeild a measurable time difference between the first packet train and the second.
+
+For network compression we send an initial train with empty UDP packets, followed by a train whose packets contain random data which should - in genreral - take much longer to compress than a packet containing all 0's.  
+
+This behavior can be extended to check for any sort of middlebox processing by tailoring the second packet train to be difficult to process for the targeted behavior. I.E. to detect deep packet inspection make the UDP packets difficlut to inspect and force the inspector to travel far down its descision tree to identify it.
+.TP
+\fB-p\fR \fIPORT\fR
+use destination \fIPORT\fR port (default: 33434)
+.TP
+\fB-H\fR  
+set the entropy to high (only second train)
+.TP
+\fB-L\fR
+set the entropy to low (only first train)
+.TP
+\fB-B\fR 
+set the entropy to both (send both trains, default)
+.TP
+\fB-s\fR \fISIZE\fR
+set the size of the UDP payload to SIZE
+.TP
+\fB-n\fR \fINUM\fR
+set the number of packets in the UDP data train to NUM
+.TP
+\fB-t\fR \fITTL\fR
+set the Time To Live for all outgoing packets to TTL
+.TP
+.B -w \fITAIL_WAIT\fR
+set the time between tail ICMP messages to TAIL_WAIT in milliseconds
+.TP
+\fB-r\fR \fINUM_TAIL\fR
+set the number of tail ICMP messages to NUM_TAIL
+.TP
+.B -f \fIFILE\fR
+will read SIZE bytes from FILE to fill the UDP payloadad in the second train
+(default = /dev/urandom)
+.TP
+.B -h
+display help and usage
+
+.SH AUTHOR
+Written by PAul Kirth
+
+.SH COPYRIGHT
+The MIT License (MIT)
+
+Copyright (c) 2015 Paul Kirth
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
