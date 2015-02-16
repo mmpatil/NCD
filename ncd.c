@@ -6,21 +6,31 @@
 #include "ncd.h"
 
 /*  Global Variables  */
-int data_size, num_packets, num_tail, tail_wait, done = 0;
-u_int16_t port;
-char entropy;
-char* dst_ip = NULL;
-char* file = NULL;
-u_int8_t ttl;
+int data_size; 			// size of udp data payload
+int num_packets;		// number of packets in udp data train
+int num_tail;			// number of tail icmp messages sent tail_wait apart
+int tail_wait;			// time between ICMP tail messages
+int done = 0;			// boolean
+u_int16_t port; 		// port number
+char entropy; 			// the entropy of the data High, Low, Both
+char* dst_ip = NULL; 		// destination ip address
+char* file = NULL; 		//name of file to read from /dev/urandom by default
+u_int8_t ttl;			// time to live
 
-int icmp_fd, send_fd, recv_fd;
-char packet_send[SIZE] = { 0 };
-uint16_t* packet_id = (uint16_t*)packet_send;
-char icmp_send[128] = { 0 };
-char packet_rcv[SIZE] = { 0 };
-size_t send_len, icmp_ip_len, icmp_len, icmp_data_len, rcv_len;
-struct addrinfo *res = NULL;
-void *(*recv_data)(void*) = NULL;
+int icmp_fd; 			//icmp socket file descriptor
+int send_fd; 			//udp socket file descriptor
+int recv_fd; 			//reply receiving socket file descriptor
+char packet_send[SIZE] = { 0 };	// buffer for sending data
+uint16_t* packet_id = (uint16_t*)packet_send;	//sequence/ID number of udp msg
+char icmp_send[128] = { 0 };			// buffer for ICMP messages
+char packet_rcv[SIZE] = { 0 };			// buffer for receiving replies
+size_t send_len;		// length of data to be sent
+size_t icmp_ip_len;		// length of IP icmp packet including payload
+size_t icmp_len;		// length of ICMP packet
+size_t icmp_data_len;		// length of ICMP data
+size_t rcv_len;			// length of data to be received
+struct addrinfo *res = NULL;	// addrinfo struct for getaddrinfo()
+void *(*recv_data)(void*) = NULL;	// function pointer so we can select properly for IPV4 or IPV6
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -369,14 +379,14 @@ void fill_data(void *buff, size_t size)
 	int fd = open(file, O_RDONLY);
 	if(fd < 0)
 	{
-		perror("Error opening file:");
-		return;
+		perror("Error opening file");
+		exit(-1);
 	}
 	int err = read(fd, buff, size);
 	if(err < 0)
 	{
-		perror("Error reading file:");
-		return;
+		perror("Error reading file");
+		exit(-1);
 	}
 	close(fd);
 }
@@ -662,6 +672,13 @@ int check_args(int argc, char* argv[])
 				break;
 			case 'f':
 				file = argv[i];
+				int fd = open(file, O_RDONLY);
+				if(fd < 0)
+				{
+					fprintf(stderr, "Error opening file: \"%s\" : %s\n", file, strerror(errno));
+					return EXIT_FAILURE;
+				}
+				close(fd);
 				break;
 			case 'h':
 				print_use();
