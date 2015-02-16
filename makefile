@@ -3,7 +3,7 @@ CC=gcc
 CFLAGS=
 #CFLAGS+=-DDEBUG
 #CFLAGS+=-DNCD_NO_KILL
-CFLAGS+=-pthread
+CFLAGS+=-pthread -lm
 
 
 all: test ncd_main 
@@ -14,7 +14,7 @@ test: unit_test.h unit_test.cpp
 ncd_main: ncd.o ncd_main.c
 	$(CC) ncd_main.c ncd.o -o ncd_main $(CFLAGS)
 
-ncd.o: ncd.h ncd.c
+ncd.o: ncd.h ncd.c bitset.h
 	$(CC) -c ncd.c $(CFLAGS)
 
 clean:

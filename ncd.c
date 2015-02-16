@@ -4,6 +4,7 @@
  */
 
 #include "ncd.h"
+#include "bitset.h"
 
 /*  Global Variables  */
 int data_size; 			// size of udp data payload
@@ -426,6 +427,7 @@ void *recv4(void *t)
 	struct ip *ip = (struct ip *) packet_rcv;
 	icmp = (struct icmp *) (ip + 1);
 
+	uint32_t* bitset = make_bs_32(num_packets);
 	for(;;){
 
 		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
@@ -436,6 +438,10 @@ void *recv4(void *t)
 			continue;
 		}else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
 			ack++;
+			struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data) + sizeof(struct ip));
+			uint16_t id = *(uint16_t *)(udp+1);
+			//printf("Packet #%d\n", id);
+			set_bs_32(bitset, id, num_packets);
 			continue;
 		}else if(icmp->icmp_type == 0){
 			if(count == 0){
@@ -453,7 +459,25 @@ void *recv4(void *t)
 		}    // end if
 
 	}    // end for
-	printf("UDP Packets received: %d\n", ack);
+	printf("UDP Packets received: %d/%d\n", ack, num_packets);
+	printf("Missing Packets: ");
+	register int i = 0;
+	for(i = 0; i < num_packets; ++i)
+	{
+		if(get_bs_32(bitset, i, num_packets) == 0)
+		{
+			int start = i;
+			while(i < num_packets && get_bs_32(bitset, i, num_packets) == 0)
+				i++;
+			int end = i;
+			if(start - end ==0)
+				printf("%d, ",start+1);
+			else
+				printf("%d-%d, ",start+1, end);
+		}
+	}
+	printf("\b\b \n");
+	free(bitset);
 	return NULL;
 }
 
@@ -700,4 +724,8 @@ int check_args(int argc, char* argv[])
 	}	//end for
 	return EXIT_SUCCESS;
 }
+
+
+
+
 
