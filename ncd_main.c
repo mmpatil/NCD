@@ -9,7 +9,7 @@
 
 /**
  * Main function
- * only calls comp_detection()
+ * checks commandline args with check_args, then calls comp_detection()
  *
  * @argv[1] Destination IP address
  * @argv[2] Port Number
