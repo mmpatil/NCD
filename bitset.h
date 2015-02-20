@@ -22,7 +22,7 @@ int get_bs_32(uint32_t *buff, int index, size_t size)
 /**
  * creates a bitset of num_items using 32 bit integers
  * @param num_items the number of items in the bitset
- * @return a pointer to the beggining of the bitset
+ * @return a pointer to the beginning of the bitset
  */
 uint32_t* make_bs_32(int num_items)
 {

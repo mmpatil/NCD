@@ -29,6 +29,11 @@
 
 /**
  *  maximum ip packet size
+ *  1500 bytes Ethernet max size
+ *  40 IPv6 header max size
+ *  8 UDP header
+ *  2 16-bit packet ID
+ *
  */
 #define SIZE (1500-40-8-2)
 
