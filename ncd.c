@@ -9,20 +9,20 @@
 /*  Global Variables  */
 int data_size; 			// size of udp data payload
 int num_packets;		// number of packets in udp data train
-int num_tail;			// number of tail icmp messages sent tail_wait apart
+int num_tail;		// number of tail icmp messages sent tail_wait apart
 int tail_wait;			// time between ICMP tail messages
 int done = 0;			// boolean
 u_int16_t port; 		// port number
 char entropy; 			// the entropy of the data High, Low, Both
 char* dst_ip = NULL; 		// destination ip address
-char* file = NULL; 		//name of file to read from /dev/urandom by default
+char* file = NULL; 	//name of file to read from /dev/urandom by default
 u_int8_t ttl;			// time to live
 
 int icmp_fd; 			//icmp socket file descriptor
 int send_fd; 			//udp socket file descriptor
 int recv_fd; 			//reply receiving socket file descriptor
-char packet_send[SIZE] = { 0 };	// buffer for sending data
-uint16_t* packet_id = (uint16_t*)packet_send;	//sequence/ID number of udp msg
+char packet_send[SIZE] = { 0 };    // buffer for sending data
+uint16_t* packet_id = (uint16_t*) packet_send;    //sequence/ID number of udp msg
 char icmp_send[128] = { 0 };			// buffer for ICMP messages
 char packet_rcv[SIZE] = { 0 };			// buffer for receiving replies
 size_t send_len;		// length of data to be sent
@@ -31,7 +31,7 @@ size_t icmp_len;		// length of ICMP packet
 size_t icmp_data_len;		// length of ICMP data
 size_t rcv_len;			// length of data to be received
 struct addrinfo *res = NULL;	// addrinfo struct for getaddrinfo()
-void *(*recv_data)(void*) = NULL;	// function pointer so we can select properly for IPV4 or IPV6
+void *(*recv_data)(void*) = NULL;// function pointer so we can select properly for IPV4 or IPV6
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -45,7 +45,7 @@ double get_time(void)
 
 int comp_det()
 {
-	send_len = data_size +sizeof(uint16_t);
+	send_len = data_size + sizeof(uint16_t);
 
 	/* size of ICMP Echo message */
 	icmp_data_len = 56;
@@ -113,7 +113,6 @@ int comp_det()
 		return EXIT_FAILURE;
 	}
 
-
 	//make ICMP packets
 	if(res->ai_family == AF_INET){
 		mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
@@ -137,7 +136,7 @@ int comp_det()
 	void *status[2];
 	if(entropy == 'B' || entropy == 'L'){
 
-		done = 0;//boolean false
+		done = 0;    //boolean false
 
 		/* Acquire raw socket to listen for ICMP replies */
 		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
@@ -189,8 +188,7 @@ int comp_det()
 
 	if(entropy == 'B' || entropy == 'H'){
 
-		done = 0;//boolean false
-
+		done = 0;    //boolean false
 
 		fill_data(packet_send, data_size);
 
@@ -378,14 +376,12 @@ void fill_data(void *buff, size_t size)
 	/* fill with random data from /dev/urandom */
 	/* get random data for high entropy datagrams */
 	int fd = open(file, O_RDONLY);
-	if(fd < 0)
-	{
+	if(fd < 0){
 		perror("Error opening file");
 		exit(-1);
 	}
 	int err = read(fd, buff, size);
-	if(err < 0)
-	{
+	if(err < 0){
 		perror("Error reading file");
 		exit(-1);
 	}
@@ -438,8 +434,10 @@ void *recv4(void *t)
 			continue;
 		}else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
 			ack++;
-			struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data) + sizeof(struct ip));
-			uint16_t id = *(uint16_t *)(udp+1);
+			struct udphdr* udp =
+					(struct udphdr*) (&(icmp->icmp_data)
+							+ sizeof(struct ip));
+			uint16_t id = *(uint16_t *) (udp + 1);
 			//printf("Packet #%d\n", id);
 			set_bs_32(bitset, id, num_packets);
 			continue;
@@ -462,18 +460,18 @@ void *recv4(void *t)
 	printf("UDP Packets received: %d/%d\n", ack, num_packets);
 	printf("Missing Packets: ");
 	register int i = 0;
-	for(i = 0; i < num_packets; ++i)
-	{
-		if(get_bs_32(bitset, i, num_packets) == 0)
-		{
+	for(i = 0; i < num_packets; ++i){
+		if(get_bs_32(bitset, i, num_packets) == 0){
 			int start = i;
-			while(i < num_packets && get_bs_32(bitset, i, num_packets) == 0)
+			while(i < num_packets
+					&& get_bs_32(bitset, i, num_packets)
+							== 0)
 				i++;
 			int end = i;
-			if(start - end ==0)
-				printf("%d, ",start+1);
+			if(start - end == 0)
+				printf("%d, ", start + 1);
 			else
-				printf("%d-%d, ",start+1, end);
+				printf("%d-%d, ", start + 1, end);
 		}
 	}
 	printf("\b\b \n");
@@ -618,13 +616,13 @@ int check_args(int argc, char* argv[])
 
 	/* probably change default port from traceroute port */
 	port = 33434;
-	entropy = 'B'; // default to 2 data trains
+	entropy = 'B';    // default to 2 data trains
 	data_size = 996;	//so we send 1 KB packets
 	num_packets = 1000;	// send 1000 packets in udp data train
 	ttl = 255;		// max ttl
 	tail_wait = 10;		// wait 10 ms between ICMP tail messages
 	num_tail = 20;		// send 20 ICMP tail messages
-	file = "/dev/urandom";	// default to random data for compression detection
+	file = "/dev/urandom";    // default to random data for compression detection
 
 	register int i;
 	int check;
@@ -674,8 +672,7 @@ int check_args(int argc, char* argv[])
 					errno = ERANGE;
 					perror("TTL range: 0 - 255");
 					return EXIT_FAILURE;
-				}
-				else
+				}else
 					ttl = check;
 				break;
 			case 'w':    // tail_wait
@@ -697,9 +694,10 @@ int check_args(int argc, char* argv[])
 			case 'f':
 				file = argv[i];
 				int fd = open(file, O_RDONLY);
-				if(fd < 0)
-				{
-					fprintf(stderr, "Error opening file: \"%s\" : %s\n", file, strerror(errno));
+				if(fd < 0){
+					fprintf(stderr,
+							"Error opening file: \"%s\" : %s\n",
+							file, strerror(errno));
 					return EXIT_FAILURE;
 				}
 				close(fd);
@@ -724,8 +722,4 @@ int check_args(int argc, char* argv[])
 	}	//end for
 	return EXIT_SUCCESS;
 }
-
-
-
-
 
