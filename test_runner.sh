@@ -5,7 +5,5 @@
 
 # use- test_runner.sh command filename
 
-./test_header.sh $2 $1
-
-$1 >> $2
+./test_header.sh $1; $1
 
