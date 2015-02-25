@@ -4,7 +4,8 @@
 
 NOW=date
 echo "DATE: $($NOW)"
-echo "Running command $@"
-echo "Test run from home machine, behind Time Warner NAT
+echo "COMMAND: $@"
+echo "TEST INFO:
+Test run from home machine, behind Time Warner NAT
 Some more relevant data
 The end ...."
