@@ -33,6 +33,8 @@ size_t rcv_len;			// length of data to be received
 struct addrinfo *res = NULL;	// addrinfo struct for getaddrinfo()
 void *(*recv_data)(void*) = NULL;// function pointer so we can select properly for IPV4 or IPV6
 
+int tcp =1;//bool for whether to use tcp or udp(1 == true, 0 == false)
+
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
 {
@@ -78,8 +80,18 @@ int comp_det()
 		exit(EXIT_FAILURE);
 	}
 
+
+
+
 	/* setup socket for UDP train */
-	send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
+	/*send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
+	if(send_fd == -1){
+		perror("call to socket() failed");
+		exit(EXIT_FAILURE);
+	}*/
+
+	/* Setup TCP Socket to bypass filters*/
+	send_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
 	if(send_fd == -1){
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);
@@ -87,6 +99,7 @@ int comp_det()
 
 	int r = (res->ai_family == AF_INET) ? IPPROTO_IP : IPPROTO_IPV6;
 
+	//set TTL
 	setsockopt(send_fd, r, IP_TTL, &ttl, sizeof(ttl));
 
 	/* acquire socket for icmp messages*/
@@ -117,6 +130,7 @@ int comp_det()
 	if(res->ai_family == AF_INET){
 		mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
 		mkicmpv4(icmp_send + (sizeof(struct ip)), icmp_len);
+		mktcphdr(packet_send, send_len, IPPROTO_TCP);
 		recv_data = recv4;
 
 	}else if(res->ai_family == AF_INET6){
@@ -272,6 +286,37 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 	return 0;
 }
 
+int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
+{
+	struct ip* ip = (struct ip *) buff;
+	ip--;
+	int len = data_len + sizeof(struct udphdr);
+	char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
+	struct tcphdr *tcp = (struct tcphdr *) buff;
+	tcp->source = htons(port);
+	tcp->dest = htons(port);
+	tcp->seq = htonl(1);
+	tcp->ack = 0;
+	tcp->doff = 5;
+	tcp->window = 1<<15 -1;
+	tcp->syn = 1;
+
+	/* pseudo header for udp checksum */
+	struct pseudo_header *ps = (struct pseudo_header *) pseudo;
+	ps->source = ip->ip_src.s_addr;
+	ps->dest = ip->ip_dst.s_addr;
+	ps->zero = 0;
+	ps->proto = proto;
+	ps->len = htons(len);
+
+	/*copy udp packet into pseudo header buffer to calculate checksum*/
+	memcpy(ps + 1, tcp, len);
+
+	/* set tcp checksum */
+	tcp->check = ip_checksum(ps, len + sizeof(struct pseudo_header));
+	return 0;
+}
+
 int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 {
 	struct ip* ip = (struct ip *) buff;
@@ -334,6 +379,21 @@ int mkicmpv6(void *buff, size_t datalen)
 
 void *send_train(void* num)
 {
+	if(tcp ==1){
+		int n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
+				res->ai_addrlen);
+		if(n == -1){
+			perror("Send error tcp syn");
+			exit(EXIT_FAILURE);
+		}
+		sleep(1);// figure out how to get ack for handshake
+
+		struct tcphdr* tcp = (struct tcphdr*)packet_send;
+		tcp->syn = 0;
+		tcp->ack=1;
+		tcp->seq++;
+	}
+
 	/*send Head ICMP Packet*/
 	int n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
 			res->ai_addrlen);

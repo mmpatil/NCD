@@ -18,6 +18,7 @@
 #include <netinet/ip6.h>	/* for struct ip6_hdr */
 #include <netinet/ip_icmp.h>	/* for struct icmp */
 #include <netinet/icmp6.h>	/* for struct icmp */
+#include <netinet/tcp.h>	/* for struct tcphdr */
 #include <netinet/udp.h>	/* for struct udphdr */
 #include <netdb.h>		/* for getaddrinfo() */
 #include <arpa/inet.h>		/* for inet_pton() */
@@ -93,7 +94,7 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
  * @return
  */
 int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto);
-
+int mktcphdr(void* buff, size_t data_len, u_int8_t proto);
 /**
  * formats an ICMP packet beginning at buff with a payload of length datalen
  * @param buff
