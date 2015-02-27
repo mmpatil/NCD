@@ -3,7 +3,7 @@ CC=gcc
 CFLAGS=
 #CFLAGS+=-DDEBUG
 #CFLAGS+=-DNCD_NO_KILL
-CFLAGS+=-pthread -lm
+CFLAGS+=-pthread -lm -O2
 
 
 all: test ncd_main 

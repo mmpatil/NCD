@@ -7,7 +7,7 @@
  * @param size	the number of items in the bitset
  * @return the value of the indexth bit in the bitset (o or 1)
  */
-int get_bs_32(uint32_t *buff, int index, size_t size)
+inline int get_bs_32(uint32_t *buff, int index, size_t size)
 {
 	if(index > size - 1)
 		return -1;
@@ -24,7 +24,7 @@ int get_bs_32(uint32_t *buff, int index, size_t size)
  * @param num_items the number of items in the bitset
  * @return a pointer to the beginning of the bitset
  */
-uint32_t* make_bs_32(int num_items)
+inline uint32_t* make_bs_32(int num_items)
 {
 	int len = (int) ceil(num_items / 32.0);
 	return (uint32_t *) calloc(len, sizeof(uint32_t));
@@ -37,7 +37,7 @@ uint32_t* make_bs_32(int num_items)
  * @param size the size of the bitset
  * @return 0 for success, -1 for failure/error
  */
-int clear_bs_32(uint32_t* buff, int index, size_t size)
+inline int clear_bs_32(uint32_t* buff, int index, size_t size)
 {
 	if(index > size - 1)
 		return -1;
@@ -56,14 +56,15 @@ int clear_bs_32(uint32_t* buff, int index, size_t size)
  * @param size the size of the bitset
  * @return 0 for success, -1 for failure/error
  */
-int set_bs_32(uint32_t* buff, int index, size_t size)
+inline int set_bs_32(uint32_t* buff, int index, size_t size)
 {
-	if(index > size - 1)
+	index--;
+	if(index > size)
 		return -1;
 	int offset = index / 32;
 	uint32_t* ptr = (uint32_t*) buff;
 	ptr += offset;
-	uint32_t mask = 1 << ((index % 32) - 1);
+	uint32_t mask = 1 << ((index % 32));
 	*ptr |= mask;
 	return 0;
 }

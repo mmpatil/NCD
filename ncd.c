@@ -422,8 +422,10 @@ void *recv4(void *t)
 	/*Receive initial ICMP echo response && Time-stamp*/
 	struct ip *ip = (struct ip *) packet_rcv;
 	icmp = (struct icmp *) (ip + 1);
+	struct udphdr* udp = (struct udphdr*) (&(icmp->icmp_data)+ sizeof(struct ip));
 
 	uint32_t* bitset = make_bs_32(num_packets);
+	uint16_t id;
 	for(;;){
 
 		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
@@ -434,10 +436,7 @@ void *recv4(void *t)
 			continue;
 		}else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
 			ack++;
-			struct udphdr* udp =
-					(struct udphdr*) (&(icmp->icmp_data)
-							+ sizeof(struct ip));
-			uint16_t id = *(uint16_t *) (udp + 1);
+			id = *(uint16_t *) (udp + 1);
 			//printf("Packet #%d\n", id);
 			set_bs_32(bitset, id, num_packets);
 			continue;
@@ -458,7 +457,7 @@ void *recv4(void *t)
 
 	}    // end for
 	printf("UDP Packets received: %d/%d\n", ack, num_packets);
-	printf("Missing Packets: ");
+	printf("Missing Packets:  ");
 	register int i = 0;
 	for(i = 0; i < num_packets; ++i){
 		if(get_bs_32(bitset, i, num_packets) == 0){
@@ -475,6 +474,8 @@ void *recv4(void *t)
 		}
 	}
 	printf("\b\b \n");
+	printf("Echo reply from IP: %s\n", inet_ntoa(ip->ip_src));
+
 	free(bitset);
 	return NULL;
 }
@@ -692,6 +693,7 @@ int check_args(int argc, char* argv[])
 				}
 				break;
 			case 'f':
+			{
 				file = argv[i];
 				int fd = open(file, O_RDONLY);
 				if(fd < 0){
@@ -702,6 +704,7 @@ int check_args(int argc, char* argv[])
 				}
 				close(fd);
 				break;
+			}
 			case 'h':
 				print_use();
 				return EXIT_FAILURE;
