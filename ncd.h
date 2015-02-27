@@ -27,6 +27,12 @@
 #include <ctype.h>		/* for inet_pton() */
 #include <pthread.h>		/* for pthreads */
 
+
+/**
+ * Favor the BSD style struct udphdr for uh_sport, etc....
+ */
+#define __FAVOR_BSD
+
 /**
  *  maximum ip packet size
  *  1500 bytes Ethernet max size

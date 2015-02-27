@@ -146,9 +146,12 @@ int comp_det()
 		}
 
 		/*increase size of receive buffer*/
-		int size = 60 * 1024;
+		int size = 1500 * num_packets;
+		int buffsize;
+		socklen_t bufflen = sizeof(buffsize);
 		setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
-
+		getsockopt(recv_fd,SOL_SOCKET,SO_RCVBUF,(void*)&buffsize, &bufflen);
+		printf("Receive Buffer size: %d\n",buffsize);
 		rc = pthread_create(&threads[0], NULL, recv_data, &time);
 		if(rc){
 			printf(
@@ -425,7 +428,7 @@ void *recv4(void *t)
 	struct udphdr* udp = (struct udphdr*) (&(icmp->icmp_data)+ sizeof(struct ip));
 
 	uint32_t* bitset = make_bs_32(num_packets);
-	uint16_t id;
+	uint16_t *id = (uint16_t *) (udp + 1);;
 	for(;;){
 
 		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
@@ -436,9 +439,9 @@ void *recv4(void *t)
 			continue;
 		}else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
 			ack++;
-			id = *(uint16_t *) (udp + 1);
+			//id = *(uint16_t *) (udp + 1);
 			//printf("Packet #%d\n", id);
-			set_bs_32(bitset, id, num_packets);
+			set_bs_32(bitset, *id, num_packets);
 			continue;
 		}else if(icmp->icmp_type == 0){
 			if(count == 0){

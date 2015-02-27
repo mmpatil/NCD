@@ -61,10 +61,12 @@ inline int set_bs_32(uint32_t* buff, int index, size_t size)
 	index--;
 	if(index > size)
 		return -1;
-	int offset = index / 32;
+
 	uint32_t* ptr = (uint32_t*) buff;
-	ptr += offset;
+	//int offset = index /32;
+	ptr += (index >> 5);
 	uint32_t mask = 1 << ((index % 32));
-	*ptr |= mask;
+	//uint32_t mask = 1 << (index & 31);
+	(*ptr) |= mask;
 	return 0;
 }
