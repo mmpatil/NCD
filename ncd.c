@@ -33,7 +33,7 @@ size_t rcv_len;			// length of data to be received
 struct addrinfo *res = NULL;	// addrinfo struct for getaddrinfo()
 void *(*recv_data)(void*) = NULL;// function pointer so we can select properly for IPV4 or IPV6
 
-int tcp =1;//bool for whether to use tcp or udp(1 == true, 0 == false)
+int tcp_bool =1;//bool for whether to use tcp or udp(1 == true, 0 == false)
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -379,7 +379,12 @@ int mkicmpv6(void *buff, size_t datalen)
 
 void *send_train(void* num)
 {
-	if(tcp ==1){
+	if(tcp_bool ==1){
+		struct tcphdr* tcp = (struct tcphdr*)packet_send;
+		tcp->syn = 1;
+		tcp->ack = 0;
+		tcp->seq = 0;
+		printf("Send syn packet\n");
 		int n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
@@ -388,7 +393,7 @@ void *send_train(void* num)
 		}
 		sleep(1);// figure out how to get ack for handshake
 
-		struct tcphdr* tcp = (struct tcphdr*)packet_send;
+		tcp = (struct tcphdr*)packet_send;
 		tcp->syn = 0;
 		tcp->ack=1;
 		tcp->seq++;
@@ -415,6 +420,25 @@ void *send_train(void* num)
 		}
 	}
 
+	if(tcp_bool ==1){
+		struct tcphdr* tcp = (struct tcphdr*)packet_send;
+		tcp->fin = 1;
+		tcp->ack = 1;
+		tcp->seq = 2;
+		printf("Send syn packet\n");
+		int n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
+				res->ai_addrlen);
+		if(n == -1){
+			perror("Send error tcp syn");
+			exit(EXIT_FAILURE);
+		}
+		tcp = (struct tcphdr*)packet_send;
+		tcp->fin=0;
+		tcp->syn = 1;
+		tcp->ack=0;
+		tcp->seq = 0;
+	}
+
 	struct icmp *icmp = (struct icmp *) (icmp_send + sizeof(struct ip));
 	/*send tail ICMP Packets w/ timer*/
 	for(i = 0; i < num_tail && done == 0; ++i){
@@ -431,6 +455,9 @@ void *send_train(void* num)
 		}
 		usleep(tail_wait * 1000);
 	}
+
+
+
 	return NULL;
 }
 
