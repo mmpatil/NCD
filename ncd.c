@@ -207,7 +207,8 @@ int comp_det()
 
 		done = 0;    //boolean false
 
-		fill_data(packet_send, data_size);
+		int offset = tcp_bool == 1 ? sizeof(struct tcphdr) : 0;
+		fill_data(packet_send+ offset, data_size);
 
 		/* Acquire raw socket to listen for ICMP replies */
 		recv_fd = socket(res->ai_family, SOCK_RAW, l);
@@ -383,7 +384,6 @@ void *send_train(void* num)
 		struct tcphdr* tcp = (struct tcphdr*)packet_send;
 		tcp->syn = 1;
 		tcp->ack = 0;
-		tcp->seq = 0;
 		printf("Send syn packet\n");
 		int n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
 				res->ai_addrlen);
@@ -392,8 +392,6 @@ void *send_train(void* num)
 			exit(EXIT_FAILURE);
 		}
 		sleep(1);// figure out how to get ack for handshake
-
-		tcp = (struct tcphdr*)packet_send;
 		tcp->syn = 0;
 		tcp->ack=1;
 		tcp->seq++;
@@ -422,10 +420,10 @@ void *send_train(void* num)
 
 	if(tcp_bool ==1){
 		struct tcphdr* tcp = (struct tcphdr*)packet_send;
-		tcp->fin = 1;
+		/*tcp->fin = 1;
 		tcp->ack = 1;
-		tcp->seq = 2;
-		printf("Send syn packet\n");
+		tcp->seq = htonl(2);
+		printf("Send FIN packet\n");
 		int n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
@@ -433,10 +431,10 @@ void *send_train(void* num)
 			exit(EXIT_FAILURE);
 		}
 		tcp = (struct tcphdr*)packet_send;
-		tcp->fin=0;
+		tcp->fin=0;*/
 		tcp->syn = 1;
 		tcp->ack=0;
-		tcp->seq = 0;
+		tcp->seq++;
 	}
 
 	struct icmp *icmp = (struct icmp *) (icmp_send + sizeof(struct ip));
