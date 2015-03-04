@@ -33,6 +33,7 @@ size_t rcv_len;			// length of data to be received
 struct addrinfo *res = NULL;	// addrinfo struct for getaddrinfo()
 void *(*recv_data)(void*) = NULL;// function pointer so we can select properly for IPV4 or IPV6
 
+unsigned long seq = 0;
 int tcp_bool =1;//bool for whether to use tcp or udp(1 == true, 0 == false)
 
 /*  Just returns current time as double, with most possible precision...  */
@@ -61,7 +62,11 @@ int comp_det()
 	/* set up hints for getaddrinfo() */
 	struct addrinfo hints = { 0 }; /* for get addrinfo */
 	hints.ai_flags = AI_CANONNAME;
-	hints.ai_protocol = IPPROTO_UDP;
+	if(tcp_bool ==1)
+		hints.ai_protocol = IPPROTO_TCP;
+	else
+		hints.ai_protocol = IPPROTO_UDP;
+
 
 	/* FIX THIS !!!!!!!!!!!!!!!*/
 	char str[32] = { 0 };
@@ -296,7 +301,7 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 	struct tcphdr *tcp = (struct tcphdr *) buff;
 	tcp->source = htons(port);
 	tcp->dest = htons(port);
-	tcp->seq = htonl(1);
+	tcp->seq = htonl(seq);
 	tcp->ack = 0;
 	tcp->doff = 5;
 	tcp->window = 1<<15 -1;
@@ -380,8 +385,9 @@ int mkicmpv6(void *buff, size_t datalen)
 
 void *send_train(void* num)
 {
+	char buff[1500] = {0};
+	struct tcphdr* tcp = (struct tcphdr*)packet_send;
 	if(tcp_bool ==1){
-		struct tcphdr* tcp = (struct tcphdr*)packet_send;
 		tcp->syn = 1;
 		tcp->ack = 0;
 		printf("Send syn packet\n");
@@ -391,10 +397,14 @@ void *send_train(void* num)
 			perror("Send error tcp syn");
 			exit(EXIT_FAILURE);
 		}
+
+		//listen(send_fd,1);
+		//accept()
 		sleep(1);// figure out how to get ack for handshake
 		tcp->syn = 0;
 		tcp->ack=1;
-		tcp->seq++;
+		tcp->seq= htonl(++seq);
+
 	}
 
 	/*send Head ICMP Packet*/
@@ -404,12 +414,15 @@ void *send_train(void* num)
 		perror("Send error ICMP head");
 		exit(EXIT_FAILURE);
 	}
+	if(tcp_bool == 1)
+		packet_id = (void*)packet_send +sizeof(struct tcphdr);
 	*packet_id = 0;
 
 	/*send data train*/
 	int i = 0;
 	for(i = 0; i < num_packets; ++i){
 		(*packet_id)++;
+		//tcp->seq = htonl(++seq);
 		n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
@@ -419,10 +432,9 @@ void *send_train(void* num)
 	}
 
 	if(tcp_bool ==1){
-		struct tcphdr* tcp = (struct tcphdr*)packet_send;
-		/*tcp->fin = 1;
+		tcp->fin = 1;
 		tcp->ack = 1;
-		tcp->seq = htonl(2);
+		tcp->seq = htonl(++seq);
 		printf("Send FIN packet\n");
 		int n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
 				res->ai_addrlen);
@@ -430,11 +442,18 @@ void *send_train(void* num)
 			perror("Send error tcp syn");
 			exit(EXIT_FAILURE);
 		}
-		tcp = (struct tcphdr*)packet_send;
-		tcp->fin=0;*/
+
+		tcp->fin=0;
+		n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
+				res->ai_addrlen);
+		if(n == -1){
+			perror("Send error tcp syn");
+			exit(EXIT_FAILURE);
+		}
+
 		tcp->syn = 1;
 		tcp->ack=0;
-		tcp->seq++;
+		tcp->seq = htonl(++seq);
 	}
 
 	struct icmp *icmp = (struct icmp *) (icmp_send + sizeof(struct ip));
