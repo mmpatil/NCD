@@ -342,17 +342,19 @@ void *send_train(void* num)
 		exit(EXIT_FAILURE);
 	}
 	*packet_id = 0;
-
+	struct udphdr *udp = (struct udphdr *)(send_fd + sizeof(struct ip));
+	int n = port;
 	/*send data train*/
 	int i = 0;
 	for(i = 0; i < num_packets; ++i){
-		(*packet_id)++;
 		n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error udp train");
 			exit(EXIT_FAILURE);
 		}
+		(*packet_id)++;
+		//udp->uh_dport = htons(++n); // maybe we should increment port directly rather than reuse port numbers????
 	}
 
 	struct icmp *icmp = (struct icmp *) (icmp_send + sizeof(struct ip));
