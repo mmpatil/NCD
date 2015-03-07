@@ -13,11 +13,7 @@
 #include <sys/time.h>		/* for gettimeofday() */
 #include <errno.h>		/* for errno*/
 #include <sys/socket.h>		/* for socket(), setsockopt(), etc...*/
-#include <netinet/ip.h>		/* for struct ip */
-#include <netinet/ip6.h>	/* for struct ip6_hdr */
-#include <netinet/ip_icmp.h>	/* for struct icmp */
-#include <netinet/icmp6.h>	/* for struct icmp */
-#include <netinet/udp.h>	/* for struct udphdr */
+
 #include <netdb.h>		/* for getaddrinfo() */
 #include <arpa/inet.h>		/* for inet_pton() */
 #include <signal.h>		/* for kill() */
@@ -27,9 +23,30 @@
 #include <pthread.h>		/* for pthreads */
 
 /**
- * Favor the BSD style struct udphdr for uh_sport, etc....
+ * Favor the BSD style UDP & IP headers
  */
+#ifndef __USE_BSD
+#define __USE_BSD
+#endif
+#ifndef __FAVOR_BSD
 #define __FAVOR_BSD
+#endif
+
+#include <netinet/ip.h>		/* for struct ip */
+#include <netinet/ip6.h>	/* for struct ip6_hdr */
+#include <netinet/ip_icmp.h>	/* for struct icmp */
+#include <netinet/icmp6.h>	/* for struct icmp */
+#include <netinet/udp.h>	/* for struct udphdr */
+
+#ifndef __FAVOR_BSD
+struct
+    {
+      u_int16_t uh_sport;		/* source port */
+      u_int16_t uh_dport;		/* destination port */
+      u_int16_t uh_ulen;		/* udp length */
+      u_int16_t uh_sum;			/* udp checksum */
+    };
+#endif
 
 /**
  *  maximum ip packet size
