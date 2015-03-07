@@ -7,31 +7,36 @@
 #include "bitset.h"
 
 /*  Global Variables  */
-int data_size; 			// size of udp data payload
-int num_packets;		// number of packets in udp data train
-int num_tail;		// number of tail icmp messages sent tail_wait apart
-int tail_wait;			// time between ICMP tail messages
-int done = 0;			// boolean
-u_int16_t port; 		// port number
-char entropy; 			// the entropy of the data High, Low, Both
+
+/* input arguments */
+int data_size = 996;        	// size of udp data payload -- set to 996 by default
+int num_packets = 1000;       	// number of packets in udp data train -- set to 1000 by default
+int num_tail = 20;        	// number of tail icmp messages sent tail_wait apart -- set to 20 by default
+int tail_wait = 10;        	// time between ICMP tail messages -- set to 10 by default
+u_int16_t port = 33434; 	// port number -- set to 33434 by default
 char* dst_ip = NULL; 		// destination ip address
-char* file = NULL; 	//name of file to read from /dev/urandom by default
-u_int8_t ttl;			// time to live
+char* file = "/dev/urandom";    //name of file to read from -- set to /dev/urandom by default
+u_int8_t ttl = 255;		// time to live -- set to 255 by default
+int lflag = 1;    		// default option for low entropy -- set to on
+int hflag = 1;   		// default option for high entropy -- set to on
+int fflag = 0;        		// file flag <------- do we need this or is this redundant?
+
+int done = 0;        		// boolean for sending packets -- set to false by default
 
 int icmp_fd; 			//icmp socket file descriptor
 int send_fd; 			//udp socket file descriptor
 int recv_fd; 			//reply receiving socket file descriptor
-char packet_send[SIZE] = { 0 };    // buffer for sending data
-uint16_t* packet_id = (uint16_t*) packet_send;    //sequence/ID number of udp msg
-char icmp_send[128] = { 0 };			// buffer for ICMP messages
-char packet_rcv[SIZE] = { 0 };			// buffer for receiving replies
+char packet_send[SIZE] = { 0 };        // buffer for sending data
+uint16_t* packet_id = (uint16_t*) packet_send;        //sequence/ID number of udp msg
+char icmp_send[128] = { 0 };        // buffer for ICMP messages
+char packet_rcv[SIZE] = { 0 };        // buffer for receiving replies
 size_t send_len;		// length of data to be sent
 size_t icmp_ip_len;		// length of IP icmp packet including payload
 size_t icmp_len;		// length of ICMP packet
 size_t icmp_data_len;		// length of ICMP data
 size_t rcv_len;			// length of data to be received
-struct addrinfo *res = NULL;	// addrinfo struct for getaddrinfo()
-void *(*recv_data)(void*) = NULL;// function pointer so we can select properly for IPV4 or IPV6
+struct addrinfo *res = NULL;        // addrinfo struct for getaddrinfo()
+void *(*recv_data)(void*) = NULL;        // function pointer so we can select properly for IPV4 or IPV6
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -95,7 +100,7 @@ int comp_det()
 
 	if(icmp_fd == -1){
 		perror("call to socket() failed");
-		exit(EXIT_FAILURE);    // consider doing something better here
+		exit(EXIT_FAILURE);        // consider doing something better here
 	}
 
 	/* set up our own IP header*/
@@ -134,9 +139,8 @@ int comp_det()
 	int rc;
 	register int i;
 	void *status[2];
-	if(entropy == 'B' || entropy == 'L'){
-
-		done = 0;    //boolean false
+	if(lflag == 1){
+		done = 0;        //boolean false
 
 		/* Acquire raw socket to listen for ICMP replies */
 		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
@@ -150,30 +154,27 @@ int comp_det()
 		int buffsize;
 		socklen_t bufflen = sizeof(buffsize);
 		setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
-		getsockopt(recv_fd,SOL_SOCKET,SO_RCVBUF,(void*)&buffsize, &bufflen);
-		printf("Receive Buffer size: %d\n",buffsize);
+		getsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, (void*) &buffsize,
+				&bufflen);
+		printf("Receive Buffer size: %d\n", buffsize);
 		rc = pthread_create(&threads[0], NULL, recv_data, &time);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR CODE from pthread_create() is %d\n", rc);
 			exit(-1);
 		}
 
 		int rc = pthread_create(&threads[1], NULL, send_train,
 				status[1]);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR CODE from pthread_create() is %d\n", rc);
 			exit(-1);
 		}
 
 		for(i = 0; i < 2; ++i){
 			rc = pthread_join(threads[i], &status[i]);
 			if(rc){
-				printf(
-						"ERROR; return code from pthread_create() is %d\n",
+				printf("ERROR CODE from pthread_create()"
+						" is %d\n",
 						rc);
 				exit(-1);
 			}
@@ -181,17 +182,17 @@ int comp_det()
 			if(status[i] != NULL)
 				return EXIT_FAILURE;
 
-		}    //end for
+		}        //end for
 
 		printf("%c %f sec\n", 'L', time);
 		close(recv_fd);
 	}
 
-	sleep(3);    // sloppy replace with better metric
+	sleep(3);        // sloppy replace with better metric
 
-	if(entropy == 'B' || entropy == 'H'){
+	if(hflag == 1){
 
-		done = 0;    //boolean false
+		done = 0;        //boolean false
 
 		fill_data(packet_send, data_size);
 
@@ -208,26 +209,22 @@ int comp_det()
 
 		rc = pthread_create(&threads[0], NULL, recv_data, &time);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR CODE from pthread_create() is %d\n", rc);
 			exit(-1);
 		}
 
 		int rc = pthread_create(&threads[1], NULL, send_train,
 				(void *) &num_tail);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR CODE from pthread_create() is %d\n", rc);
 			exit(-1);
 		}
 
 		for(i = 0; i < 2; ++i){
 			rc = pthread_join(threads[i], &status[i]);
 			if(rc){
-				printf(
-						"ERROR; return code from pthread_create() is %d\n",
+				printf("ERROR CODE from"
+						" pthread_create() is %d\n",
 						rc);
 				exit(-1);
 			}
@@ -341,9 +338,10 @@ void *send_train(void* num)
 		perror("Send error ICMP head");
 		exit(EXIT_FAILURE);
 	}
+
 	*packet_id = 0;
-	struct udphdr *udp = (struct udphdr *)(send_fd + sizeof(struct ip));
-	int x = port;
+	struct udphdr *udp = (struct udphdr *) (packet_send + sizeof(struct ip));
+	uint16_t x = port;
 	/*send data train*/
 	int i = 0;
 	for(i = 0; i < num_packets; ++i){
@@ -354,7 +352,7 @@ void *send_train(void* num)
 			exit(EXIT_FAILURE);
 		}
 		(*packet_id)++;
-		udp->uh_dport = htons(++x); // maybe we should increment port directly rather than reuse port numbers????
+		udp->uh_dport = htons(++x);    // maybe we should increment port directly rather than reuse port numbers????
 	}
 
 	struct icmp *icmp = (struct icmp *) (icmp_send + sizeof(struct ip));
@@ -427,10 +425,12 @@ void *recv4(void *t)
 	/*Receive initial ICMP echo response && Time-stamp*/
 	struct ip *ip = (struct ip *) packet_rcv;
 	icmp = (struct icmp *) (ip + 1);
-	struct udphdr* udp = (struct udphdr*) (&(icmp->icmp_data)+ sizeof(struct ip));
+	struct udphdr* udp = (struct udphdr*) (&(icmp->icmp_data)
+			+ sizeof(struct ip));
 
 	uint32_t* bitset = make_bs_32(num_packets);
-	uint16_t *id = (uint16_t *) (udp + 1);;
+	uint16_t *id = (uint16_t *) (udp + 1);
+	;
 	for(;;){
 
 		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
@@ -453,14 +453,14 @@ void *recv4(void *t)
 				*time = get_time() - *time;
 				done = 1;
 				break;
-			}    //end if
+			}        //end if
 		}else if(icmp->icmp_type == 11){
 			errno = ENETUNREACH;
 			perror("TTL Exceeded");
 			exit(EXIT_FAILURE);
-		}    // end if
+		}        // end if
 
-	}    // end for
+	}        // end for
 	printf("UDP Packets received: %d/%d\n", ack, num_packets);
 	printf("Missing Packets:  ");
 	register int i = 0;
@@ -539,13 +539,13 @@ void *recv6(void *t)
 				*time = get_time() - *time;
 				done = 1;
 				break;
-			}    //end if
+			}        //end if
 		}else if(icmp->icmp6_type == 11){
 			errno = ENETUNREACH;
 			perror("TTL Exceeded");
 			exit(EXIT_FAILURE);
-		}    // end if
-	}    // end for
+		}        // end if
+	}        // end for
 	printf("\nUDP Packets received: %d\n", ack);
 	return NULL;
 }
@@ -604,10 +604,11 @@ uint16_t ip_checksum(void* vdata, size_t length)
 	return htons(~acc);
 }
 
-void print_use()
+void print_use(char* program_name)
 {
-	printf(
-			"NCD IPAddress -p [port number] [-H |-L | -B (entropy)] -s [Payload data size in bytes] -n [number of packets] -t [TTL] -w [tail wait time] -t [number of tail icmp messages] -f [file name to read into Payload]\n");
+	printf("%s IPAddress [-p PORT] [-H | -L] [-s DATA_SIZE] "
+			"[-n NUM_PACKETS] [-t TTL] [-w TAIL_INTERVAL] "
+			"[-t NUM_TAIL] [-f FILENAME_PAYLOAD]\n", program_name);
 }
 
 int check_args(int argc, char* argv[])
@@ -615,119 +616,105 @@ int check_args(int argc, char* argv[])
 	if(argc < 2){
 		errno = EINVAL;
 		perror("Too few arguments, see use");
-		print_use();
+		print_use(argv[0]);
 		return EXIT_FAILURE;
 	}
-	dst_ip = NULL;
 
-	/* probably change default port from traceroute port */
-	port = 33434;
-	entropy = 'B';    // default to 2 data trains
-	data_size = 996;	//so we send 1 KB packets
-	num_packets = 1000;	// send 1000 packets in udp data train
-	ttl = 255;		// max ttl
-	tail_wait = 10;		// wait 10 ms between ICMP tail messages
-	num_tail = 20;		// send 20 ICMP tail messages
-	file = "/dev/urandom";    // default to random data for compression detection
-
-	register int i;
 	int check;
-	char* cp;
-	char c;
-	for(i = 1; i < argc; ++i){
-		cp = argv[i];
-		c = *cp;
-		if(c == '-'){
-			c = *(cp + 1);
-			i++;
-			switch(c){
-			case 'p':
-				check = atoi(argv[i]);
-				if(check < (1 << 16) && check > 0)
-					port = check;
-				else{
-					errno = ERANGE;
-					perror("Port range: 0 - 65535");
-					return EXIT_FAILURE;
-				}
-				break;
-			case 'H':
-			case 'L':
-				entropy = c;
-				i--;
-				break;
-			case 's':
-				data_size = atoi(argv[i]);
-				if(data_size < 1 || data_size > SIZE){
-					errno = ERANGE;
-					perror("Valid UDP data size: 1-1460");
-					return EXIT_FAILURE;
-				}
-				break;
-			case 'n':
-				num_packets = atoi(argv[i]);
-				if(num_packets < 1 || num_packets > 10000){
-					errno = ERANGE;
-					perror("# UDP packets: 1 - 10,000");
-					return EXIT_FAILURE;
-				}
-				break;
-			case 't':    //ttl
-				check = atoi(argv[i]);
-				if(check < 0 || check > 255){
-					errno = ERANGE;
-					perror("TTL range: 0 - 255");
-					return EXIT_FAILURE;
-				}else
-					ttl = check;
-				break;
-			case 'w':    // tail_wait
-				tail_wait = atoi(argv[i]);
-				if(tail_wait < 0){
-					errno = ERANGE;
-					perror("Time wait must be positive");
-					return EXIT_FAILURE;
-				}
-				break;
-			case 'r':
-				num_tail = atoi(argv[i]);
-				if(num_tail < 1 || num_tail > 1000){
-					errno = ERANGE;
-					perror("# Tail Packets: 1 - 1,000");
-					return EXIT_FAILURE;
-				}
-				break;
-			case 'f':
-			{
-				file = argv[i];
-				int fd = open(file, O_RDONLY);
-				if(fd < 0){
-					fprintf(stderr,
-							"Error opening file: \"%s\" : %s\n",
-							file, strerror(errno));
-					return EXIT_FAILURE;
-				}
-				close(fd);
-				break;
-			}
-			case 'h':
-				print_use();
-				return EXIT_FAILURE;
-				break;
-			default:
+	int c = 0;
+	int err = 0;        // error flag for options
+	while((c = getopt(argc, argv, "HLp:f:s:n:t:w:r:")) != -1){
+		switch(c){
+		case 'H':
+			lflag = 0;
+			break;
+		case 'L':
+			hflag = 0;
+			break;
+		case 'p':
+			check = atoi(optarg);
+			if(check < (1 << 16) & check > 0){
+				port = check;
+			}else{
 				errno = ERANGE;
-				perror("Invalid options, check use");
+				perror("Port range: 1 - 65535");
 				return EXIT_FAILURE;
-			}	//end switch
-		}else if(dst_ip == NULL){
-			dst_ip = argv[i];
-		}else{
-			errno = ERANGE;
-			perror("Too many IP Addresses, check use");
-			print_use();
+			}
+			break;
+		case 's':
+			data_size = atoi(optarg);
+			if(data_size < 1 || data_size > SIZE){
+				errno = ERANGE;
+				perror("Valid UDP data size: 1-1460");
+				return EXIT_FAILURE;
+			}
+			break;
+		case 'n':
+			num_packets = atoi(optarg);
+			if(num_packets < 1 || num_packets > 10000){
+				errno = ERANGE;
+				perror("# of packets: 0 - 10000");
+				return EXIT_FAILURE;
+			}
+			break;
+		case 't':
+			check = atoi(optarg);
+			if(check < 0 || check > 255){
+				errno = ERANGE;
+				perror("TTL range: 0 - 255");
+				return EXIT_FAILURE;
+			}else
+				ttl = check;
+			break;
+		case 'w':
+			tail_wait = atoi(optarg);
+			if(tail_wait < 0){
+				errno = ERANGE;
+				perror("Time wait must be positive");
+				return EXIT_FAILURE;
+			}
+			break;
+		case 'r':
+			num_tail = atoi(optarg);
+			if(num_tail < 1 || num_tail > 1000){
+				errno = ERANGE;
+				perror("# Tail Packets: 1 - 1,000");
+				return EXIT_FAILURE;
+			}
+			break;
+		case 'f':
+			fflag = 1;
+			file = optarg;
+			int fd = open(file, O_RDONLY);
+			if(fd < 0){
+				fprintf(stderr,"Error opening file: "
+						"\"%s\" : %s\n",
+						file, strerror(errno));
+				return EXIT_FAILURE;
+			}
+			close(fd);
+			break;
+		case '?':
+			err = 1;        // hmm we don't even use this ...
+			printf("Arguments errors ...\n");
 			return EXIT_FAILURE;
-		}	// end if
-	}	//end for
+			break;
+		case 'h':
+			print_use(argv[0]);
+			return EXIT_FAILURE;
+			break;
+		default:
+			errno = ERANGE;
+			perror("Invalid options, check use");
+			return EXIT_FAILURE;
+		}        // end switch
+	}        //end while
+	/* these are the arguments after the command-line options */
+	for(; optind < argc; optind++){
+		dst_ip = argv[optind];
+		//printf("argument: \"%s\"\n", dst_ip);
+	}
+
 	return EXIT_SUCCESS;
 }
 
