@@ -9,19 +9,19 @@
 /*  Global Variables  */
 
 /* input arguments */
-int data_size = 996;        // size of udp data payload -- set to 996 by default
-int num_packets = 1000;        // number of packets in udp data train -- set to 1000 by default
-int num_tail = 20;        // number of tail icmp messages sent tail_wait apart -- set to 20 by default
-int tail_wait = 10;        // time between ICMP tail messages -- set to 10 by default
+int data_size = 996;        	// size of udp data payload -- set to 996 by default
+int num_packets = 1000;       	// number of packets in udp data train -- set to 1000 by default
+int num_tail = 20;        	// number of tail icmp messages sent tail_wait apart -- set to 20 by default
+int tail_wait = 10;        	// time between ICMP tail messages -- set to 10 by default
 u_int16_t port = 33434; 	// port number -- set to 33434 by default
-char* dst_ip = NULL; 			// destination ip address
-char* file = "/dev/urandom";        //name of file to read from -- set to /dev/urandom by default
-u_int8_t ttl = 255;			// time to live -- set to 255 by default
+char* dst_ip = NULL; 		// destination ip address
+char* file = "/dev/urandom";    //name of file to read from -- set to /dev/urandom by default
+u_int8_t ttl = 255;		// time to live -- set to 255 by default
 int lflag = 1;    		// default option for low entropy -- set to on
-int hflag = 1;   		 // default option for high entropy -- set to on
-int fflag = 0;        // file flag <------- do we need this or is this redundant?
+int hflag = 1;   		// default option for high entropy -- set to on
+int fflag = 0;        		// file flag <------- do we need this or is this redundant?
 
-int done = 0;        // boolean for sending packets -- set to false by default
+int done = 0;        		// boolean for sending packets -- set to false by default
 
 int icmp_fd; 			//icmp socket file descriptor
 int send_fd; 			//udp socket file descriptor
