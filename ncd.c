@@ -733,8 +733,6 @@ int check_args(int argc, char* argv[])
 		//printf("argument: \"%s\"\n", dst_ip);
 	}
 
-#endif
-
 	return EXIT_SUCCESS;
 }
 
