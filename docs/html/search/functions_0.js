@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['comp_5fdet',['comp_det',['../df/dfe/ncd_8c.html#aa5d407939440fe5743c9e978debe7322',1,'comp_det(char *address, char *port, char hl, size_t data_size, size_t num_packets, ushort ttl, size_t time_wait, int n_tail):&#160;ncd.c'],['../dc/d68/ncd_8h.html#aa5d407939440fe5743c9e978debe7322',1,'comp_det(char *address, char *port, char hl, size_t data_size, size_t num_packets, ushort ttl, size_t time_wait, int n_tail):&#160;ncd.c'],['../d3/d2c/ncd__no__raw_8c.html#aa5d407939440fe5743c9e978debe7322',1,'comp_det(char *address, char *port, char hl, size_t data_size, size_t num_packets, ushort ttl, size_t time_wait, int n_tail):&#160;ncd_no_raw.c']]]
+  ['check_5fargs',['check_args',['../df/dfe/ncd_8c.html#a91ffa5784a46ec2b471bf3ba8c1aa870',1,'check_args(int argc, char *argv[]):&#160;ncd.c'],['../dc/d68/ncd_8h.html#a91ffa5784a46ec2b471bf3ba8c1aa870',1,'check_args(int argc, char *argv[]):&#160;ncd.c']]],
+  ['clear_5fbs_5f32',['clear_bs_32',['../d1/d69/bitset_8h.html#af4d8ec3f610c85e7b7e8413bc3ed5d28',1,'bitset.h']]],
+  ['comp_5fdet',['comp_det',['../df/dfe/ncd_8c.html#a7da9feca0e536478b6a79b0e4974a8d6',1,'comp_det():&#160;ncd.c'],['../dc/d68/ncd_8h.html#a7da9feca0e536478b6a79b0e4974a8d6',1,'comp_det():&#160;ncd.c']]]
 ];

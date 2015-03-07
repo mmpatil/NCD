@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['procs_5fmsg',['procs_msg',['../d1/d20/server_8c.html#ae329ec11b3cff7db879bafa54b3b6607',1,'server.c']]]
+  ['print_5fuse',['print_use',['../df/dfe/ncd_8c.html#a6bb04c1388ab75a69d14f9858953463c',1,'ncd.c']]]
 ];

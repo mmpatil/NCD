@@ -64,71 +64,67 @@ struct pseudo_header {
  * Determines if compression occurs along the current transmission path to host
  * by sending data to a remote location.
  *
- * two data trains are sent each with leading and trailing ICMP timestamp messages
+ * Two data trains are sent each with leading and trailing ICMP timestamp messages.
  *
- * the first data train will be low entropy data, to encourage compression
- * the second train will have high entropy data, which should not be compressed
- * if the times are significantly different, we have reasonable evidence
+ * The first data train will be low entropy data, to encourage compression, while
+ * the second train will have high entropy data, which should not be compressed well.
+ * If the times are significantly different, we have reasonable evidence
  * compression exists along this path.
  *
- * @param address the address of the end host stored in a char array (cstring)
- * @param port the port number or service name
- * @param num_packets the number of packets in each data train
- * @param time_wait the wait between trains
  * @return 0 success, 1 error/failure
  * */
 int comp_det();
 
 /**
- * formats an ipv4 header beginning at buff of length size
- * @param buff
- * @param size
- * @param res
- * @param proto
- * @return
+ * Formats an ipv4 header beginning at buff of length size
+ * @param buff Address of the starting location for the IP packet
+ * @param size The length of the IP packet
+ * @param res A pointer to a struct addrinfo -- from getaddrinfo()
+ * @param proto The 8-bit protocol
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 
 int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 
 /**
- * formats an udp header beginning at buff with a payload of length udp_data_len
- * @param buff
- * @param udp_data_len
- * @param proto
- * @return
+ * Formats a UDP header beginning at buff with a payload of length udp_data_len
+ * @param buff Address of the starting location for the UDP packet
+ * @param udp_data_len The length of the UDP payload
+ * @param proto The 8-bit protocol
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto);
 
 /**
- * formats an ICMP packet beginning at buff with a payload of length datalen
- * @param buff
- * @param datalen
- * @return
+ * Formats an ICMP packet beginning at buff with a payload of length datalen
+ * @param buff Address of the starting location for the ICMP packet
+ * @param datalen The length of the ICMP payload
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int mkicmpv4(void *buff, size_t datalen);
 
 int mkicmpv6(void *buff, size_t datalen);
 
 /**
- * fills the data portion of a packet with the size data from a file char* file
- * @param buff
- * @param size
+ * Fills the data portion of a packet with the size data from a file (char* file)
+ * @param buff Address of the starting location for the data
+ * @param size The length of the data region
  */
 void fill_data(void *buff, size_t size);
 
 /**
- * sends the udp data train with leading and trailing ICMP messages
- * @return integer value cast to void*. 0 success, 1 error/failure
- * @param num number of tail icmp messages to send
+ * Sends the UDP data train with leading and trailing ICMP messages
+ * @return An Integer value cast to void*. 0 success, 1 error/failure
+ * @param num The number of tail ICMP messages to send
  */
 void *send_train(void* num);
 
 /**
  * Receives ICMP responses from end host and records times
- * @param t pointer to a double. returns the time in ms between head echo response and first
+ * @param t Pointer to a double. Returns the time in ms between head echo response and first
  * processed tail echo response to a resolution of microseconds (10^-6 sec)
- * @return 0 success, 1 error/failure
+ * @return 0 success, 1 error/failure -- pthreads
  */
 void *recv4(void *t);
 

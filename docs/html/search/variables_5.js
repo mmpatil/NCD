@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['zero',['zero',['../d8/d24/structpseudo__header.html#a2a93c892eaf942dfb5c28a69c88f0ad7',1,'pseudo_header']]]
+  ['num_5fpackets',['num_packets',['../df/dfe/ncd_8c.html#a437716dca9e6cf8866668b853ab8f61b',1,'ncd.c']]],
+  ['num_5ftail',['num_tail',['../df/dfe/ncd_8c.html#a038f351872dc589c5fa05257e4d8ba69',1,'ncd.c']]]
 ];

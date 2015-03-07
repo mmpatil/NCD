@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['size',['SIZE',['../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640',1,'SIZE():&#160;ncd.h'],['../d9/d54/ping_8c.html#a70ed59adcb4159ac551058053e649640',1,'SIZE():&#160;ping.c'],['../d7/d51/ping__ip_8c.html#a70ed59adcb4159ac551058053e649640',1,'SIZE():&#160;ping_ip.c'],['../d8/db9/test_8c.html#a70ed59adcb4159ac551058053e649640',1,'SIZE():&#160;test.c'],['../d7/d31/tracert_8c.html#a70ed59adcb4159ac551058053e649640',1,'SIZE():&#160;tracert.c']]]
+  ['_5f_5ffavor_5fbsd',['__FAVOR_BSD',['../dc/d68/ncd_8h.html#a0e25ec3d9c374c5e6dceeb9341baf766',1,'ncd.h']]],
+  ['_5f_5fuse_5fbsd',['__USE_BSD',['../dc/d68/ncd_8h.html#a564ea801faec77e3835f72bc584e3969',1,'ncd.h']]]
 ];

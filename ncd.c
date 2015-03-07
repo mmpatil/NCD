@@ -430,26 +430,31 @@ void *recv4(void *t)
 	socklen_t adrlen = sizeof(addr);
 
 	/*Receive initial ICMP echo response && Time-stamp*/
-	struct ip *ip = (struct ip *) packet_rcv;
-	icmp = (struct icmp *) (ip + 1);
+	struct ip *ip_rcv = (struct ip *) packet_rcv;
+
+	icmp = (struct icmp *) (ip_rcv + 1);
 	struct udphdr* udp = (struct udphdr*) (&(icmp->icmp_data)
 			+ sizeof(struct ip));
 
 	uint32_t* bitset = make_bs_32(num_packets);
 	uint16_t *id = (uint16_t *) (udp + 1);
+	struct in_addr dest;
+	inet_aton(dst_ip, &dest);
 
 	for(;;){
-
 		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
 				(struct sockaddr *) &addr, &adrlen)) < 0){
 			if(errno == EINTR)
 				continue;
 			perror("recvfrom failed");
 			continue;
+		}else if(ip_rcv->ip_src.s_addr != dest.s_addr){
+			printf("Echo sent to IP: %s\n", dst_ip);
+			printf("Echo reply from IP: %s\n", inet_ntoa(ip_rcv->ip_src));
+			continue;
 		}else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
 			ack++;
-			//id = *(uint16_t *) (udp + 1);
-			//printf("Packet #%d\n", id);
+			printf("Received packet#: %d\n", *id);
 			set_bs_32(bitset, *id, num_packets);
 			continue;
 		}else if(icmp->icmp_type == 0){
@@ -470,23 +475,21 @@ void *recv4(void *t)
 	}        // end for
 	printf("UDP Packets received: %d/%d\n", ack, num_packets);
 	printf("Missing Packets:  ");
-	register int i = 0;
+	register int i;
 	for(i = 0; i < num_packets; ++i){
 		if(get_bs_32(bitset, i, num_packets) == 0){
 			int start = i;
-			while(i < num_packets
-					&& get_bs_32(bitset, i, num_packets)
-							== 0)
+			while(i < num_packets && (get_bs_32(bitset, i+1, num_packets)== 0))
 				i++;
 			int end = i;
-			if(start - end == 0)
+			if((start - end) == 0)
 				printf("%d, ", start + 1);
 			else
-				printf("%d-%d, ", start + 1, end);
+				printf("%d-%d, ", start + 1, end+1);
 		}
 	}
 	printf("\b\b \n");
-	printf("Echo reply from IP: %s\n", inet_ntoa(ip->ip_src));
+	printf("Echo reply from IP: %s\n", inet_ntoa(ip_rcv->ip_src));
 
 	free(bitset);
 	return NULL;
