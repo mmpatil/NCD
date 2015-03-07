@@ -636,106 +636,7 @@ int check_args(int argc, char* argv[])
 	tail_wait = 10;		// wait 10 ms between ICMP tail messages
 	num_tail = 20;		// send 20 ICMP tail messages
 	file = "/dev/urandom";    // default to random data for compression detection
-#if 0
-			register int i;
-			int check;
-			char* cp;
-			char c;
-			for(i = 1; i < argc; ++i){
-				cp = argv[i];
-				c = *cp;
-				if(c == '-'){
-					c = *(cp + 1);
-					i++;
-					switch(c){
-						case 'p':
-						check = atoi(argv[i]);
-						if(check < (1 << 16) && check > 0)
-						port = check;
-						else{
-							errno = ERANGE;
-							perror("Port range: 0 - 65535");
-							return EXIT_FAILURE;
-						}
-						break;
-						case 'H':
-						case 'L':
-						entropy = c;
-						i--;
-						break;
-						case 's':
-						data_size = atoi(argv[i]);
-						if(data_size < 1 || data_size > SIZE){
-							errno = ERANGE;
-							perror("Valid UDP data size: 1-1460");
-							return EXIT_FAILURE;
-						}
-						break;
-						case 'n':
-						num_packets = atoi(argv[i]);
-						if(num_packets < 1 || num_packets > 10000){
-							errno = ERANGE;
-							perror("# UDP packets: 1 - 10,000");
-							return EXIT_FAILURE;
-						}
-						break;
-						case 't':    //ttl
-						check = atoi(argv[i]);
-						if(check < 0 || check > 255){
-							errno = ERANGE;
-							perror("TTL range: 0 - 255");
-							return EXIT_FAILURE;
-						} else
-						ttl = check;
-						break;
-						case 'w':    // tail_wait
-						tail_wait = atoi(argv[i]);
-						if(tail_wait < 0){
-							errno = ERANGE;
-							perror("Time wait must be positive");
-							return EXIT_FAILURE;
-						}
-						break;
-						case 'r':
-						num_tail = atoi(argv[i]);
-						if(num_tail < 1 || num_tail > 1000){
-							errno = ERANGE;
-							perror("# Tail Packets: 1 - 1,000");
-							return EXIT_FAILURE;
-						}
-						break;
-						case 'f':
-						{
-							file = argv[i];
-							int fd = open(file, O_RDONLY);
-							if(fd < 0){
-								fprintf(stderr,
-										"Error opening file: \"%s\" : %s\n",
-										file, strerror(errno));
-								return EXIT_FAILURE;
-							}
-							close(fd);
-							break;
-						}
-						case 'h':
-						print_use();
-						return EXIT_FAILURE;
-						break;
-						default:
-						errno = ERANGE;
-						perror("Invalid options, check use");
-						return EXIT_FAILURE;
-					}	//end switch
-				} else if(dst_ip == NULL){
-					dst_ip = argv[i];
-				} else{
-					errno = ERANGE;
-					perror("Too many IP Addresses, check use");
-					print_use();
-					return EXIT_FAILURE;
-				}	// end if
-			}	//end for
-#else
+
 	int check;
 	int c = 0;
 	int err = 0;    // error flag for options
@@ -812,7 +713,7 @@ int check_args(int argc, char* argv[])
 			close(fd);
 			break;
 		case '?':
-			err = 1;
+			err = 1; // hmm we don't even use this ...
 			printf("Arguments errors ...\n");
 			return EXIT_FAILURE;
 			break;
