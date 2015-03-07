@@ -340,8 +340,8 @@ void *send_train(void* num)
 	}
 
 	*packet_id = 0;
-	struct udphdr *udp = (struct udphdr *) (send_fd + sizeof(struct ip));
-	int x = port;
+	struct udphdr *udp = (struct udphdr *) (packet_send + sizeof(struct ip));
+	uint16_t x = port;
 	/*send data train*/
 	int i = 0;
 	for(i = 0; i < num_packets; ++i){
@@ -352,7 +352,7 @@ void *send_train(void* num)
 			exit(EXIT_FAILURE);
 		}
 		(*packet_id)++;
-		//udp->uh_dport = htons(++x);    // maybe we should increment port directly rather than reuse port numbers????
+		udp->uh_dport = htons(++x);    // maybe we should increment port directly rather than reuse port numbers????
 	}
 
 	struct icmp *icmp = (struct icmp *) (icmp_send + sizeof(struct ip));
@@ -683,7 +683,6 @@ int check_args(int argc, char* argv[])
 			}
 			break;
 		case 'f':
-
 			fflag = 1;
 			file = optarg;
 			int fd = open(file, O_RDONLY);
