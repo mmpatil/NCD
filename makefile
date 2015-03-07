@@ -1,15 +1,16 @@
-CC=gcc
-#CC=clang
+#CC=gcc
+CC=clang
+CPP=clang++
 CFLAGS=
 #CFLAGS+=-DDEBUG
 #CFLAGS+=-DNCD_NO_KILL
 CFLAGS+=-pthread -lm -O2
 
 
-all: test ncd_main 
+all:ncd_main test
 
 test: unit_test.h unit_test.cpp
-	g++ unit_test.cpp  -pthread -L/usr/lib -lgtest -lgtest_main -o test
+	$(CPP) unit_test.cpp  -pthread -L/usr/lib -lgtest -lgtest_main -o test
 	
 ncd_main: ncd.o ncd_main.c
 	$(CC) ncd_main.c ncd.o -o ncd_main $(CFLAGS)

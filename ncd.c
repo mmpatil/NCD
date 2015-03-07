@@ -9,32 +9,40 @@
 /*  Global Variables  */
 
 /* input arguments */
-int data_size = 996;        	// size of udp data payload -- set to 996 by default
-int num_packets = 1000;       	// number of packets in udp data train -- set to 1000 by default
-int num_tail = 20;        	// number of tail icmp messages sent tail_wait apart -- set to 20 by default
-int tail_wait = 10;        	// time between ICMP tail messages -- set to 10 by default
+int data_size = 996;        // size of udp data payload -- set to 996 by default
+int num_packets = 1000;       // number of packets in udp data train -- set to 1000 by default
+int num_tail = 20;        // number of tail icmp messages sent tail_wait apart -- set to 20 by default
+int tail_wait = 10;        // time between ICMP tail messages -- set to 10 by default
 u_int16_t port = 33434; 	// port number -- set to 33434 by default
-char* dst_ip = NULL; 		// destination ip address
-char* file = "/dev/urandom";    //name of file to read from -- set to /dev/urandom by default
 u_int8_t ttl = 255;		// time to live -- set to 255 by default
+char* dst_ip = NULL; 		// destination ip address
+char* file = "/dev/urandom";        //name of file to read from -- set to /dev/urandom by default
+
+/* flags */
 int lflag = 1;    		// default option for low entropy -- set to on
 int hflag = 1;   		// default option for high entropy -- set to on
-int fflag = 0;        		// file flag <------- do we need this or is this redundant?
+int fflag = 0;        // file flag <------- do we need this or is this redundant?
+int done = 0;        // boolean flag for sending packets -- set to false by default
 
-int done = 0;        		// boolean for sending packets -- set to false by default
-
+/* file descriptors */
 int icmp_fd; 			//icmp socket file descriptor
 int send_fd; 			//udp socket file descriptor
 int recv_fd; 			//reply receiving socket file descriptor
+
+/* buffers for packets */
 char packet_send[SIZE] = { 0 };        // buffer for sending data
-uint16_t* packet_id = (uint16_t*) packet_send;        //sequence/ID number of udp msg
 char icmp_send[128] = { 0 };        // buffer for ICMP messages
 char packet_rcv[SIZE] = { 0 };        // buffer for receiving replies
+uint16_t* packet_id = (uint16_t*) packet_send;        //sequence/ID number of udp msg
+
+/* lengths of packets and data, etc. */
 size_t send_len;		// length of data to be sent
 size_t icmp_ip_len;		// length of IP icmp packet including payload
 size_t icmp_len;		// length of ICMP packet
 size_t icmp_data_len;		// length of ICMP data
 size_t rcv_len;			// length of data to be received
+
+/* misc */
 struct addrinfo *res = NULL;        // addrinfo struct for getaddrinfo()
 void *(*recv_data)(void*) = NULL;        // function pointer so we can select properly for IPV4 or IPV6
 
@@ -174,8 +182,7 @@ int comp_det()
 			rc = pthread_join(threads[i], &status[i]);
 			if(rc){
 				printf("ERROR CODE from pthread_create()"
-						" is %d\n",
-						rc);
+						" is %d\n", rc);
 				exit(-1);
 			}
 
@@ -352,7 +359,7 @@ void *send_train(void* num)
 			exit(EXIT_FAILURE);
 		}
 		(*packet_id)++;
-		udp->uh_dport = htons(++x);    // maybe we should increment port directly rather than reuse port numbers????
+		udp->uh_dport = htons( ++x);        // maybe we should increment port directly rather than reuse port numbers????
 	}
 
 	struct icmp *icmp = (struct icmp *) (icmp_send + sizeof(struct ip));
@@ -430,7 +437,7 @@ void *recv4(void *t)
 
 	uint32_t* bitset = make_bs_32(num_packets);
 	uint16_t *id = (uint16_t *) (udp + 1);
-	;
+
 	for(;;){
 
 		if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
@@ -682,18 +689,19 @@ int check_args(int argc, char* argv[])
 				return EXIT_FAILURE;
 			}
 			break;
-		case 'f':
+		case 'f': {
 			fflag = 1;
 			file = optarg;
 			int fd = open(file, O_RDONLY);
 			if(fd < 0){
-				fprintf(stderr,"Error opening file: "
-						"\"%s\" : %s\n",
-						file, strerror(errno));
+				fprintf(stderr, "Error opening file: "
+						"\"%s\" : %s\n", file,
+						strerror(errno));
 				return EXIT_FAILURE;
 			}
 			close(fd);
 			break;
+		}
 		case '?':
 			err = 1;        // hmm we don't even use this ...
 			printf("Arguments errors ...\n");
