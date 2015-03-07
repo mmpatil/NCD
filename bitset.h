@@ -18,7 +18,6 @@ inline int get_bs_32(uint32_t *buff, int index, size_t size)
 	return *ptr & mask;
 }
 
-
 /**
  * creates a bitset of num_items using 32 bit integers
  * @param num_items the number of items in the bitset

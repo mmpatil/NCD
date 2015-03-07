@@ -8,7 +8,6 @@
 
 #include <stdio.h>		/* for printf */
 #include <stdlib.h>		/* for EXIT_SUCCESS, EXIT_FAILURE, */
-#include <stdio.h>
 #include <string.h> 		/* for memcpy */
 //#include <time.h> 		/* for struct tv */
 #include <sys/time.h>		/* for gettimeofday() */
@@ -26,7 +25,6 @@
 #include <unistd.h>		/* for _________ */
 #include <ctype.h>		/* for inet_pton() */
 #include <pthread.h>		/* for pthreads */
-
 
 /**
  * Favor the BSD style struct udphdr for uh_sport, etc....
