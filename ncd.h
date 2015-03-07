@@ -38,15 +38,6 @@
 #include <netinet/icmp6.h>	/* for struct icmp */
 #include <netinet/udp.h>	/* for struct udphdr */
 
-#ifndef __FAVOR_BSD
-struct
-    {
-      u_int16_t uh_sport;		/* source port */
-      u_int16_t uh_dport;		/* destination port */
-      u_int16_t uh_ulen;		/* udp length */
-      u_int16_t uh_sum;			/* udp checksum */
-    };
-#endif
 
 /**
  *  maximum ip packet size
