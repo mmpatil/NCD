@@ -31,7 +31,7 @@ int recv_fd; 			//reply receiving socket file descriptor
 
 /* buffers for packets */
 char packet_send[SIZE] = { 0 };        // buffer for sending data
-char icmp_send[128] = { 0 };        // buffer for ICMP messages
+char icmp_send[256] = { 0 };        // buffer for ICMP messages
 char packet_rcv[SIZE] = { 0 };        // buffer for receiving replies
 uint16_t* packet_id = (uint16_t*) packet_send;        //sequence/ID number of udp msg
 
@@ -449,12 +449,12 @@ void *recv4(void *t)
 			perror("recvfrom failed");
 			continue;
 		}else if(ip_rcv->ip_src.s_addr != dest.s_addr){
-			printf("Echo sent to IP: %s\n", dst_ip);
-			printf("Echo reply from IP: %s\n", inet_ntoa(ip_rcv->ip_src));
+			//printf("Echo sent to IP: %s\n", dst_ip);
+			//printf("Echo reply from IP: %s\n", inet_ntoa(ip_rcv->ip_src));
 			continue;
 		}else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
 			ack++;
-			printf("Received packet#: %d\n", *id);
+			//printf("Received packet#: %d\n", *id);
 			set_bs_32(bitset, *id, num_packets);
 			continue;
 		}else if(icmp->icmp_type == 0){
