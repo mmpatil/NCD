@@ -122,7 +122,7 @@ int comp_det()
 	err = setuid(getuid());/*give up privileges */
 
 	if(err < 0){
-		perror("Elevated privliges not released");
+		perror("Elevated privileges not released");
 		return EXIT_FAILURE;
 	}
 
