@@ -28,11 +28,13 @@
 #include <ctype.h>		/* for inet_pton() */
 #include <pthread.h>		/* for pthreads */
 
-
 /**
  * Favor the BSD style struct udphdr for uh_sport, etc....
  */
 #define __FAVOR_BSD
+
+
+#define SIZE (1500 - sizeof(struct ip))
 
 /**
  *  maximum ip packet size
@@ -42,7 +44,28 @@
  *  2 16-bit packet ID
  *
  */
-#define SIZE (1500-40-8-2)
+
+#define UDP_DATA_SIZE (SIZE-sizeof(struct udphdr)-sizeof(uint16_t))
+#define TCP_DATA_SIZE (SIZE-sizeof(struct tcphdr)-sizeof(uint16_t))
+
+struct udp_packet {
+	//struct ip iphdr;
+	struct udphdr udp;
+	uint16_t seq;
+	char data[UDP_DATA_SIZE];
+};
+
+struct tcp_packet{
+	//struct ip iphdr;
+	struct tcphdr tcp;
+	uint16_t seq;
+	char data[TCP_DATA_SIZE];
+};
+
+union packet{
+	struct tcp_packet tcp;
+	struct udp_packet udp;
+};
 
 /**
  * struct for udp pseudo header
