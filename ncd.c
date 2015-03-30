@@ -11,7 +11,7 @@ int data_size; 			// size of udp data payload
 int num_packets;		// number of packets in udp data train
 int num_tail;		// number of tail icmp messages sent tail_wait apart
 int tail_wait;			// time between ICMP tail messages
-int done = 0;			// boolean
+volatile int done = 0;			// boolean
 u_int16_t port; 		// port number
 char entropy; 			// the entropy of the data High, Low, Both
 char* dst_ip = NULL; 		// destination ip address
@@ -35,8 +35,11 @@ void *(*recv_data)(void*) = NULL;        // function pointer so we can select pr
 
 unsigned long seq = 0;
 int tcp_bool = 1;        //bool for whether to use tcp or udp(1 == true, 0 == false)
+volatile int rcv_bool = 0;
 
 union packet* packet_ary = NULL;        // a pointer to an array of packets
+
+double td;
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -386,11 +389,10 @@ int mkicmpv6(void *buff, size_t datalen)
 void *send_train(void* num)
 {
 	int n;
-	//int ack_fd = socket();
+
 	char buff[1500] = { 0 };
 	struct tcphdr* tcp = (struct tcphdr*) packet_send;
-	double t;
-	//memcpy(buff, packet_send, sizeof(struct ip) +sizeof(struct tcphdr));
+
 	if(tcp_bool == 1){
 		tcp->syn = 1;
 		tcp->ack = 0;
@@ -403,14 +405,15 @@ void *send_train(void* num)
 		}
 
 		recvfrom(send_fd, buff, send_len, 0, 0, 0);
-		t = get_time();
-		struct tcphdr* tcprcv = (struct tcphdr*) (buff
-				+ sizeof(struct ip));
-		long seq_rcv = ntohl(tcprcv->seq);
-		sleep(1);        // figure out how to get ack for handshake
-		tcp->ack_seq = htonl(seq_rcv + 1);
+		td = get_time();
+		rcv_bool = 1;
+		/*struct tcphdr* tcprcv = (struct tcphdr*) (buff
+		 + sizeof(struct ip));
+		 long seq_rcv = ntohl(tcprcv->seq);
+		 sleep(1);        // figure out how to get ack for handshake
+		 tcp->ack_seq = htonl(seq_rcv + 1);*/
 		tcp->syn = 0;
-		tcp->ack = 1;
+		//tcp->ack = 1;
 		tcp->seq = htonl( ++seq);
 	}else{
 		/*send Head ICMP Packet*/
@@ -522,10 +525,21 @@ void *recv4(void *t)
 	socklen_t adrlen = sizeof(addr);
 
 	if(tcp_bool == 1){
+		while(!rcv_bool){
+		}
 		if((n = recvfrom(send_fd, packet_rcv, icmp_len, 0,
 				(struct sockaddr *) &addr, &adrlen)) < 0){
 			perror("recvfrom failed");
 		}
+		*time = get_time() - td;
+		printf("TCP time %f\n", *time);
+		rcv_bool = 0;
+		done = 1;
+		struct ip *ip = (struct ip*) packet_rcv;
+		printf("TCP reply from IP: %s\n", inet_ntoa(ip->ip_src));
+		struct tcphdr *tcp = (struct tcphdr *) (ip + 1);
+		printf("TCP reply from port: %d to port: %d\n",
+				ntohs(tcp->source), ntohs(tcp->dest));
 
 	}else{
 
@@ -591,7 +605,8 @@ void *recv4(void *t)
 		printf("Echo reply from IP: %s\n", inet_ntoa(ip->ip_src));
 
 		free(bitset);
-	}
+	}        // end if
+
 	return NULL;
 }
 
