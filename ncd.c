@@ -505,7 +505,7 @@ void *send_train(void* num)
 		tcp->check = ip_checksum(ps,
 				length + sizeof(struct pseudo_header));
 		rcv_bool = 1;
-		for(i = 0; i < num_tail; ++i){
+		for(i = 0; i < num_tail && done ==0; ++i){
 			n = sendto(send_fd, syn_packet_2, length, 0,
 					res->ai_addr, res->ai_addrlen);
 			if(n == -1){
@@ -592,7 +592,6 @@ void *recv4(void *t)
 		while(rcv_bool == 0){
 		}
 		struct ip *ip = (struct ip*) packet_rcv;
-		;
 		struct tcphdr *tcp = (struct tcphdr *) (ip + 1);
 		do{
 			if((n = recvfrom(send_fd, packet_rcv, 1500, 0,
