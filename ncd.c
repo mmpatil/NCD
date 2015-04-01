@@ -12,7 +12,9 @@ int num_packets;		// number of packets in udp data train
 int num_tail;		// number of tail icmp messages sent tail_wait apart
 int tail_wait;			// time between ICMP tail messages
 volatile int done = 0;			// boolean
-u_int16_t port; 		// port number
+u_int16_t dport; 		// destination port number
+u_int16_t sport; 		// source port number
+
 char entropy; 			// the entropy of the data High, Low, Both
 char* dst_ip = NULL; 		// destination ip address
 char* file = NULL;        //name of file to read from /dev/urandom by default
@@ -40,6 +42,8 @@ volatile int rcv_bool = 0;
 union packet* packet_ary = NULL;        // a pointer to an array of packets
 
 double td;
+char pseudo[1500] = { 0 }; /* buffer for pseudo header */
+struct pseudo_header *ps = (struct pseudo_header *) pseudo;
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -74,7 +78,7 @@ int comp_det()
 
 	/* FIX THIS !!!!!!!!!!!!!!!*/
 	char str[32] = { 0 };
-	snprintf(str, 32, "%d", port);
+	snprintf(str, 32, "%d", dport);
 
 	int err = getaddrinfo(dst_ip, str, &hints, &res);
 
@@ -159,7 +163,11 @@ int comp_det()
 		done = 0;        //boolean false
 
 		/* Acquire raw socket to listen for ICMP replies */
-		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
+		if(tcp_bool == 1)
+			recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
+		else
+			recv_fd = socket(res->ai_family, SOCK_RAW,
+			IPPROTO_ICMP);
 		if(recv_fd == -1){
 			perror("call to socket() failed");
 			return EXIT_FAILURE;
@@ -297,23 +305,23 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 
 int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 {
-	struct ip* ip = (struct ip *) buff;
-	ip--;
-	int len = data_len + sizeof(struct udphdr);
-	char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
+	//struct ip* ip = (struct ip *) buff;
+	//ip--;
+	int len = data_len + sizeof(struct tcphdr);
+
 	struct tcphdr *tcp = (struct tcphdr *) buff;
-	tcp->source = htons(port + 1);
-	tcp->dest = htons(port);
+	tcp->source = htons(sport);
+	tcp->dest = htons(dport);
 	tcp->seq = htonl(seq);
 	tcp->ack = 0;
-	tcp->doff = 5;
+	tcp->th_off = 5;
 	tcp->window = 1 << 15 - 1;
 	tcp->syn = 1;
 
 	/* pseudo header for udp checksum */
-	struct pseudo_header *ps = (struct pseudo_header *) pseudo;
-	ps->source = ip->ip_src.s_addr;
-	ps->dest = ip->ip_dst.s_addr;
+
+	inet_pton(AF_INET, "127.0.0.1", &ps->source);
+	inet_pton(AF_INET, dst_ip, &ps->dest);
 	ps->zero = 0;
 	ps->proto = proto;
 	ps->len = htons(len);
@@ -333,8 +341,8 @@ int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 	int udp_len = udp_data_len + sizeof(struct udphdr);
 	char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
 	struct udphdr *udp = (struct udphdr *) buff;
-	udp->uh_sport = htons(port); /* set source port*/
-	udp->uh_dport = htons(port); /* set destination port */
+	udp->uh_sport = htons(sport); /* set source port*/
+	udp->uh_dport = htons(dport); /* set destination port */
 	udp->uh_ulen = htons(udp_len); /* set udp length */
 	udp->uh_sum = 0;/* zero out the udp checksum */
 
@@ -389,32 +397,53 @@ int mkicmpv6(void *buff, size_t datalen)
 void *send_train(void* num)
 {
 	int n;
-
+	int length = send_len;
 	char buff[1500] = { 0 };
 	struct tcphdr* tcp = (struct tcphdr*) packet_send;
 
 	if(tcp_bool == 1){
+		length = send_len + sizeof(struct tcphdr);
 		tcp->syn = 1;
-		tcp->ack = 0;
+		//tcp->ack = 0;
 		printf("Send syn packet\n");
-		int n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
+		int n = sendto(send_fd, packet_send, length, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error tcp syn");
 			exit(EXIT_FAILURE);
 		}
+		struct sockaddr_in addr;
+		//addr.sin_addr.s_addr = res->ai_addr;
+		//socklen_t len;
 
-		recvfrom(send_fd, buff, send_len, 0, 0, 0);
-		td = get_time();
-		rcv_bool = 1;
+		recvfrom(send_fd, buff, 1500, 0, 0, 0);
+		struct ip *ip = (struct ip*) buff;
+		printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
+		struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
+		printf("TCP SYN reply from port: %d to port: %d\n",
+				ntohs(tcp_reply->source),
+				ntohs(tcp_reply->dest));
+
+		//rcv_bool = 1;
+
 		/*struct tcphdr* tcprcv = (struct tcphdr*) (buff
 		 + sizeof(struct ip));
 		 long seq_rcv = ntohl(tcprcv->seq);
 		 sleep(1);        // figure out how to get ack for handshake
 		 tcp->ack_seq = htonl(seq_rcv + 1);*/
+
+		printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
 		tcp->syn = 0;
-		//tcp->ack = 1;
 		tcp->seq = htonl( ++seq);
+		struct tcphdr* ps_tcp = (struct tcphdr *)(ps+1);
+		ps_tcp->seq = tcp->seq;
+		ps_tcp->syn = tcp->syn;
+		//memcpy(pseudo+sizeof(struct pseudo_header), tcp, length);
+		tcp->check = ip_checksum(pseudo,
+				sizeof(struct pseudo_header) + length);
+		printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
+
+		td = get_time();		//time stamp last
 	}else{
 		/*send Head ICMP Packet*/
 		n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
@@ -431,10 +460,12 @@ void *send_train(void* num)
 
 	/*send data train*/
 	int i = 0;
+
 	for(i = 0; i < num_packets; ++i){
-		(*packet_id)++;
-		tcp->seq = htonl(seq++);
-		n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
+		//(*packet_id)++;
+		//tcp->seq = htonl(seq++);
+
+		n = sendto(send_fd, packet_send, length, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error udp train");
@@ -443,16 +474,23 @@ void *send_train(void* num)
 	}
 
 	if(tcp_bool == 1){
-		tcp->source = htons(port + 2);
-		for(i = 0; i < num_tail && done == 0; ++i){
-			n = sendto(send_fd, packet_send, send_len, 0,
+		tcp->source = htons(14444);
+		tcp->syn = 1;
+		memcpy((ps + 1), tcp, length);
+
+		tcp->check = ip_checksum(ps,
+				length + sizeof(struct pseudo_header));
+		rcv_bool = 1;
+		for(i = 0; i < num_tail; ++i){
+			n = sendto(send_fd, packet_send, length, 0,
 					res->ai_addr, res->ai_addrlen);
 			if(n == -1){
 				perror("Send error TCP Tail Syn");
 				exit(EXIT_FAILURE);
 			}
 			usleep(tail_wait * 1000);
-		}
+		}		// end for
+		tcp->source = htons(sport);
 	}else{
 
 		struct icmp *icmp = (struct icmp *) (icmp_send
@@ -471,8 +509,8 @@ void *send_train(void* num)
 				exit(EXIT_FAILURE);
 			}
 			usleep(tail_wait * 1000);
-		}
-	}
+		}		//end for
+	}		// end if
 	return NULL;
 }
 
@@ -520,24 +558,32 @@ void *recv4(void *t)
 
 	/* to receive data with*/
 	struct sockaddr_in addr;
+	//addr.sin_port = htons(14444);
+	//inet_pton(AF_INET, dst_ip, &addr.sin_addr);
 
 	/* length of address */
 	socklen_t adrlen = sizeof(addr);
 
 	if(tcp_bool == 1){
-		while(!rcv_bool){
+		while(rcv_bool == 0){
 		}
-		if((n = recvfrom(send_fd, packet_rcv, icmp_len, 0,
+		struct ip *ip;
+		struct tcphdr *tcp;
+		//do{
+		if((n = recvfrom(send_fd, packet_rcv, 1500, 0,
 				(struct sockaddr *) &addr, &adrlen)) < 0){
 			perror("recvfrom failed");
 		}
+		ip = (struct ip*) packet_rcv;
+		tcp = (struct tcphdr *) (ip + 1);
+		//}while((addr.sin_port != 14444));
 		*time = get_time() - td;
 		printf("TCP time %f\n", *time);
 		rcv_bool = 0;
 		done = 1;
-		struct ip *ip = (struct ip*) packet_rcv;
+
 		printf("TCP reply from IP: %s\n", inet_ntoa(ip->ip_src));
-		struct tcphdr *tcp = (struct tcphdr *) (ip + 1);
+
 		printf("TCP reply from port: %d to port: %d\n",
 				ntohs(tcp->source), ntohs(tcp->dest));
 
@@ -750,9 +796,10 @@ int check_args(int argc, char* argv[])
 	dst_ip = NULL;
 
 	/* probably change default port from traceroute port */
-	port = 33434;
+	dport = 80;        //33434;
+	sport = 13333;
 	entropy = 'B';        // default to 2 data trains
-	data_size = 996;	//so we send 1 KB packets
+	data_size = 1024-sizeof(uint16_t) -sizeof(struct tcphdr)-sizeof(struct ip);	//so we send 1 KB packets
 	num_packets = 1000;        // send 1000 packets in udp data train
 	ttl = 255;		// max ttl
 	tail_wait = 10;		// wait 10 ms between ICMP tail messages
@@ -773,7 +820,7 @@ int check_args(int argc, char* argv[])
 			case 'p':
 				check = atoi(argv[i]);
 				if(check < (1 << 16) && check > 0)
-					port = check;
+					dport = check;
 				else{
 					errno = ERANGE;
 					perror("Port range: 0 - 65535");
