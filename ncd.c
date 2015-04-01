@@ -14,6 +14,7 @@ int tail_wait;			// time between ICMP tail messages
 volatile int done = 0;			// boolean
 u_int16_t dport; 		// destination port number
 u_int16_t sport; 		// source port number
+u_int16_t syn_port; 		// source port number
 
 char entropy; 			// the entropy of the data High, Low, Both
 char* dst_ip = NULL; 		// destination ip address
@@ -44,6 +45,11 @@ union packet* packet_ary = NULL;        // a pointer to an array of packets
 double td;
 char pseudo[1500] = { 0 }; /* buffer for pseudo header */
 struct pseudo_header *ps = (struct pseudo_header *) pseudo;
+
+char syn_packet_1[SIZE];
+char syn_packet_2[SIZE];
+
+int syn_bool = 0;        // bool, true(i.e. 1) if mktcphdr should use syn_port, else use sport
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -141,6 +147,9 @@ int comp_det()
 		mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
 		mkicmpv4(icmp_send + (sizeof(struct ip)), icmp_len);
 		mktcphdr(packet_send, send_len, IPPROTO_TCP);
+		memcpy(syn_packet_1, packet_send,
+				send_len + sizeof(struct tcphdr));
+		mktcphdr(syn_packet_2, send_len, IPPROTO_TCP);
 		recv_data = recv4;
 
 	}else if(res->ai_family == AF_INET6){
@@ -310,7 +319,8 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 	int len = data_len + sizeof(struct tcphdr);
 
 	struct tcphdr *tcp = (struct tcphdr *) buff;
-	tcp->source = htons(sport);
+
+	tcp->source = (syn_bool ==1) ? htons(syn_port) : htons(sport);
 	tcp->dest = htons(dport);
 	tcp->seq = htonl(seq);
 	tcp->ack = 0;
@@ -404,16 +414,16 @@ void *send_train(void* num)
 
 	if(tcp_bool == 1){
 		length = send_len + sizeof(struct tcphdr);
-		printf("send_len : %d\ndata Length: %d\n",send_len, length);
-		//tcp->syn = 1;
-		//tcp->ack = 0;
-		//tcp->check = 0;
-		//memcpy(ps+1, tcp, length);
-		//tcp->check = ip_checksum(ps,
-				//sizeof(struct pseudo_header) + length);
+		printf("send_len : %d\ndata Length: %d\n", (int)send_len, length);
+		tcp->syn = 1;
+		tcp->ack = 0;
+		tcp->check = 0;
+		memcpy(ps + 1, tcp, length);
+		tcp->check = ip_checksum(ps,
+				sizeof(struct pseudo_header) + length);
 
 		printf("Send syn packet\n");
-		int n = sendto(send_fd, packet_send, length, 0, res->ai_addr,
+		int n = sendto(send_fd, syn_packet_1, length, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error tcp syn");
@@ -441,10 +451,10 @@ void *send_train(void* num)
 
 		printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
 		tcp->syn = ps_tcp->syn = 0;
-		tcp->seq = ps_tcp->seq = htonl(++seq);
+		tcp->seq = ps_tcp->seq = htonl( ++seq);
 
 		tcp->check = 0;
-		memcpy(ps+1, tcp, length);
+		memcpy(ps + 1, tcp, length);
 		tcp->check = ip_checksum(ps,
 				sizeof(struct pseudo_header) + length);
 		printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
@@ -480,14 +490,14 @@ void *send_train(void* num)
 	}
 
 	if(tcp_bool == 1){
-		tcp->seq = ps_tcp->seq = htonl(++seq);
+		tcp->seq = ps_tcp->seq = htonl( ++seq);
 		tcp->syn = ps_tcp->syn = 1;
-		tcp->source = ps_tcp->source = htons(14444);
+		tcp->source = ps_tcp->source = htons(syn_port);
 		tcp->check = ip_checksum(ps,
 				length + sizeof(struct pseudo_header));
 		rcv_bool = 1;
 		for(i = 0; i < num_tail; ++i){
-			n = sendto(send_fd, packet_send, length, 0,
+			n = sendto(send_fd, syn_packet_2, length, 0,
 					res->ai_addr, res->ai_addrlen);
 			if(n == -1){
 				perror("Send error TCP Tail Syn");
@@ -563,7 +573,7 @@ void *recv4(void *t)
 
 	/* to receive data with*/
 	struct sockaddr_in addr;
-	//addr.sin_port = htons(14444);
+	//addr.sin_port = htons(syn_port);
 	//inet_pton(AF_INET, dst_ip, &addr.sin_addr);
 
 	/* length of address */
@@ -581,7 +591,7 @@ void *recv4(void *t)
 		}
 		ip = (struct ip*) packet_rcv;
 		tcp = (struct tcphdr *) (ip + 1);
-		//}while((addr.sin_port != 14444));
+		//}while((addr.sin_port != syn_port));
 		*time = get_time() - td;
 		printf("TCP time %f\n", *time);
 		rcv_bool = 0;
@@ -803,6 +813,7 @@ int check_args(int argc, char* argv[])
 	/* probably change default port from traceroute port */
 	dport = 80;        //33434;
 	sport = 13333;
+	syn_port = 14444;
 	entropy = 'B';        // default to 2 data trains
 	data_size = 1024 - sizeof(uint16_t) - sizeof(struct tcphdr)
 			- sizeof(struct ip);        //so we send 1 KB packets
