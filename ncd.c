@@ -149,7 +149,9 @@ int comp_det()
 		mktcphdr(packet_send, send_len, IPPROTO_TCP);
 		memcpy(syn_packet_1, packet_send,
 				send_len + sizeof(struct tcphdr));
+		syn_bool = 1;
 		mktcphdr(syn_packet_2, send_len, IPPROTO_TCP);
+		syn_bool = 0;
 		recv_data = recv4;
 
 	}else if(res->ai_family == AF_INET6){
@@ -320,7 +322,7 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 
 	struct tcphdr *tcp = (struct tcphdr *) buff;
 
-	tcp->source = (syn_bool ==1) ? htons(syn_port) : htons(sport);
+	tcp->source = (syn_bool == 1) ? htons(syn_port) : htons(sport);
 	tcp->dest = htons(dport);
 	tcp->seq = htonl(seq);
 	tcp->ack = 0;
@@ -330,7 +332,7 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 
 	/* pseudo header for udp checksum */
 
-	inet_pton(AF_INET, "127.0.0.1", &ps->source);
+	inet_pton(AF_INET,"127.0.0.1" /*"192.168.1.100"*/, &ps->source);
 	inet_pton(AF_INET, dst_ip, &ps->dest);
 	ps->zero = 0;
 	ps->proto = proto;
@@ -414,7 +416,8 @@ void *send_train(void* num)
 
 	if(tcp_bool == 1){
 		length = send_len + sizeof(struct tcphdr);
-		printf("send_len : %d\ndata Length: %d\n", (int)send_len, length);
+		printf("send_len : %d\ndata Length: %d\n", (int) send_len,
+				length);
 		tcp->syn = 1;
 		tcp->ack = 0;
 		tcp->check = 0;
@@ -432,11 +435,17 @@ void *send_train(void* num)
 		struct sockaddr_in addr;
 		//addr.sin_addr.s_addr = res->ai_addr;
 		//socklen_t len;
-
-		recvfrom(send_fd, buff, 1500, 0, 0, 0);
 		struct ip *ip = (struct ip*) buff;
-		printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
 		struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
+
+		do{
+			recvfrom(send_fd, buff, 1500, 0, 0, 0);
+		}while((ip->ip_src.s_addr
+				!= ((struct ip *) syn_packet_1)->ip_dst.s_addr)
+				&& (tcp_reply->source != htons(dport)));
+
+		printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
+
 		printf("TCP SYN reply from port: %d to port: %d\n",
 				ntohs(tcp_reply->source),
 				ntohs(tcp_reply->dest));
@@ -459,7 +468,7 @@ void *send_train(void* num)
 				sizeof(struct pseudo_header) + length);
 		printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
 
-		td = get_time();		//time stamp last
+		td = get_time();	//time stamp last
 	}else{
 		/*send Head ICMP Packet*/
 		n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
@@ -582,16 +591,17 @@ void *recv4(void *t)
 	if(tcp_bool == 1){
 		while(rcv_bool == 0){
 		}
-		struct ip *ip;
-		struct tcphdr *tcp;
-		//do{
-		if((n = recvfrom(send_fd, packet_rcv, 1500, 0,
-				(struct sockaddr *) &addr, &adrlen)) < 0){
-			perror("recvfrom failed");
-		}
-		ip = (struct ip*) packet_rcv;
-		tcp = (struct tcphdr *) (ip + 1);
-		//}while((addr.sin_port != syn_port));
+		struct ip *ip = (struct ip*) packet_rcv;
+		;
+		struct tcphdr *tcp = (struct tcphdr *) (ip + 1);
+		do{
+			if((n = recvfrom(send_fd, packet_rcv, 1500, 0,
+					(struct sockaddr *) &addr, &adrlen))
+					< 0){
+				perror("recvfrom failed");
+			}
+
+		}while(tcp->dest != htons(syn_port));
 		*time = get_time() - td;
 		printf("TCP time %f\n", *time);
 		rcv_bool = 0;
@@ -819,7 +829,7 @@ int check_args(int argc, char* argv[])
 			- sizeof(struct ip);        //so we send 1 KB packets
 	num_packets = 1000;        // send 1000 packets in udp data train
 	ttl = 255;		// max ttl
-	tail_wait = 10;		// wait 10 ms between ICMP tail messages
+	tail_wait = 10;        // wait 10 ms between ICMP tail messages
 	num_tail = 20;		// send 20 ICMP tail messages
 	file = "/dev/urandom";        // default to random data for compression detection
 
@@ -901,7 +911,8 @@ int check_args(int argc, char* argv[])
 				if(fd < 0){
 					fprintf(stderr,
 							"Error opening file: \"%s\" : %s\n",
-							file, strerror(errno));
+							file, strerror(
+							errno));
 					return EXIT_FAILURE;
 				}
 				close(fd);
