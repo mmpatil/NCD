@@ -70,7 +70,7 @@ union packet{
 /**
  * struct for udp pseudo header
  */
-struct pseudo_header {
+struct __attribute__((__packed__))pseudo_header {
 	u_int32_t source;
 	u_int32_t dest;
 	u_int8_t zero;

@@ -282,7 +282,7 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 	ip->ip_id = htons(getpid());
 
 	/* get a better way to assign my IP address!!!*/
-	//inet_pton(AF_INET, "192.168.1.101", &ip->ip_src.s_addr);
+	//inet_pton(AF_INET, "127.0.0.1", &ip->ip_src.s_addr);
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 	ip->ip_off |= ntohs(IP_DF);
 	ip->ip_ttl = ttl;
@@ -400,11 +400,18 @@ void *send_train(void* num)
 	int length = send_len;
 	char buff[1500] = { 0 };
 	struct tcphdr* tcp = (struct tcphdr*) packet_send;
+	struct tcphdr* ps_tcp = (struct tcphdr *) (ps + 1);
 
 	if(tcp_bool == 1){
 		length = send_len + sizeof(struct tcphdr);
-		tcp->syn = 1;
+		printf("send_len : %d\ndata Length: %d\n",send_len, length);
+		//tcp->syn = 1;
 		//tcp->ack = 0;
+		//tcp->check = 0;
+		//memcpy(ps+1, tcp, length);
+		//tcp->check = ip_checksum(ps,
+				//sizeof(struct pseudo_header) + length);
+
 		printf("Send syn packet\n");
 		int n = sendto(send_fd, packet_send, length, 0, res->ai_addr,
 				res->ai_addrlen);
@@ -433,13 +440,12 @@ void *send_train(void* num)
 		 tcp->ack_seq = htonl(seq_rcv + 1);*/
 
 		printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
-		tcp->syn = 0;
-		tcp->seq = htonl( ++seq);
-		struct tcphdr* ps_tcp = (struct tcphdr *)(ps+1);
-		ps_tcp->seq = tcp->seq;
-		ps_tcp->syn = tcp->syn;
-		//memcpy(pseudo+sizeof(struct pseudo_header), tcp, length);
-		tcp->check = ip_checksum(pseudo,
+		tcp->syn = ps_tcp->syn = 0;
+		tcp->seq = ps_tcp->seq = htonl(++seq);
+
+		tcp->check = 0;
+		memcpy(ps+1, tcp, length);
+		tcp->check = ip_checksum(ps,
 				sizeof(struct pseudo_header) + length);
 		printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
 
@@ -474,10 +480,9 @@ void *send_train(void* num)
 	}
 
 	if(tcp_bool == 1){
-		tcp->source = htons(14444);
-		tcp->syn = 1;
-		memcpy((ps + 1), tcp, length);
-
+		tcp->seq = ps_tcp->seq = htonl(++seq);
+		tcp->syn = ps_tcp->syn = 1;
+		tcp->source = ps_tcp->source = htons(14444);
 		tcp->check = ip_checksum(ps,
 				length + sizeof(struct pseudo_header));
 		rcv_bool = 1;
@@ -490,7 +495,7 @@ void *send_train(void* num)
 			}
 			usleep(tail_wait * 1000);
 		}		// end for
-		tcp->source = htons(sport);
+		tcp->source = ps_tcp->source = htons(sport);
 	}else{
 
 		struct icmp *icmp = (struct icmp *) (icmp_send
@@ -799,7 +804,8 @@ int check_args(int argc, char* argv[])
 	dport = 80;        //33434;
 	sport = 13333;
 	entropy = 'B';        // default to 2 data trains
-	data_size = 1024-sizeof(uint16_t) -sizeof(struct tcphdr)-sizeof(struct ip);	//so we send 1 KB packets
+	data_size = 1024 - sizeof(uint16_t) - sizeof(struct tcphdr)
+			- sizeof(struct ip);        //so we send 1 KB packets
 	num_packets = 1000;        // send 1000 packets in udp data train
 	ttl = 255;		// max ttl
 	tail_wait = 10;		// wait 10 ms between ICMP tail messages
