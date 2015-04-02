@@ -46,6 +46,9 @@ double td;
 char pseudo[1500] = { 0 }; /* buffer for pseudo header */
 struct pseudo_header *ps = (struct pseudo_header *) pseudo;
 
+struct sockaddr_in srcaddrs = { 0 };
+socklen_t sa_len = sizeof(srcaddrs);
+
 char syn_packet_1[SIZE];
 char syn_packet_2[SIZE];
 
@@ -88,6 +91,19 @@ int comp_det()
 
 	int err = getaddrinfo(dst_ip, str, &hints, &res);
 
+	{
+		int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		connect(s, res->ai_addr, res->ai_addrlen);
+		if(getsockname(s, (struct sockaddr *) &srcaddrs, &sa_len)
+				== -1){
+			perror("getsockname() failed");
+			return -1;
+		}
+		close(s);
+	}
+
+	printf("Local IP address is: %s\n", inet_ntoa(srcaddrs.sin_addr));
+
 	/*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
 	if(err != 0){
 		if(err == EAI_SYSTEM)
@@ -117,6 +133,9 @@ int comp_det()
 
 	//set TTL
 	setsockopt(send_fd, r, IP_TTL, &ttl, sizeof(ttl));
+
+	socklen_t size = 1500 * num_packets;
+	setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 
 	/* acquire socket for icmp messages*/
 	int l = res->ai_family == AF_INET ? IPPROTO_ICMP : IPPROTO_ICMPV6;
@@ -185,10 +204,12 @@ int comp_det()
 		}
 
 		/*increase size of receive buffer*/
-		int size = 1500 * num_packets;
 		int buffsize;
 		socklen_t bufflen = sizeof(buffsize);
 		setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
+		getsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, (void*) &buffsize,
+				&bufflen);
+		printf("Send Buffer size: %d\n", buffsize);
 		getsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, (void*) &buffsize,
 				&bufflen);
 		printf("Receive Buffer size: %d\n", buffsize);
@@ -244,7 +265,6 @@ int comp_det()
 		}
 
 		/*increase size of receive buffer*/
-		int size = 60 * 1024;
 		setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
 
 		rc = pthread_create(&threads[0], NULL, recv_data, &time);
@@ -332,9 +352,10 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 
 	/* pseudo header for udp checksum */
 
-	inet_pton(AF_INET,/*"127.0.0.1"*/ "192.168.1.100", &ps->source);
+	ps->source = srcaddrs.sin_addr.s_addr;
+	//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
 	//inet_pton(AF_INET, dst_ip, &ps->dest);
-	ps->dest = ((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
+	ps->dest = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
 	ps->zero = 0;
 	ps->proto = proto;
 	ps->len = htons(len);
@@ -440,10 +461,19 @@ void *send_train(void* num)
 		struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
 
 		do{
-			recvfrom(send_fd, buff, 1500, 0, 0, 0);
-		}while((ip->ip_src.s_addr
-				!= ((struct ip *) syn_packet_1)->ip_dst.s_addr)
-				&& (tcp_reply->source != htons(dport)));
+			if((recvfrom(send_fd, buff, 1500, 0, 0, 0)) == -1){
+				perror("rcv error tcp SYN-ACK");
+				exit(EXIT_FAILURE);
+			}
+
+//Note I think the logic here is wrong!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			// the while loop should use an ||
+			// it stops discarding packet if the src address or the
+			// port is correct. it should keep discarding them until
+			// they are both right
+		}while(((tcp_reply->dest != htons(sport)
+				&& (ip->ip_src.s_addr
+						!= ((struct ip *) syn_packet_1)->ip_dst.s_addr))));
 
 		printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
 
@@ -506,7 +536,7 @@ void *send_train(void* num)
 		tcp->check = ip_checksum(ps,
 				length + sizeof(struct pseudo_header));
 		rcv_bool = 1;
-		for(i = 0; i < num_tail && done ==0; ++i){
+		for(i = 0; i < num_tail && done == 0; ++i){
 			n = sendto(send_fd, syn_packet_2, length, 0,
 					res->ai_addr, res->ai_addrlen);
 			if(n == -1){
