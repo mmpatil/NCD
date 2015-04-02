@@ -248,6 +248,17 @@ int comp_det()
 		close(recv_fd);
 	}
 
+	{
+		//clear out rcvbuffer
+		char buff[1500] = { 0 };
+		if(tcp_bool == 1)
+			while(recvfrom(send_fd, buff, 1500, MSG_DONTWAIT, NULL,
+					NULL) != -1){}
+		else
+			while(recvfrom(recv_fd, buff, 1500, MSG_DONTWAIT, NULL,
+								NULL) != -1){}
+		printf("\nClearing buffer...\n\n");
+	}
 	sleep(3);        // sloppy replace with better metric
 
 	if(entropy == 'B' || entropy == 'H'){
@@ -440,13 +451,13 @@ void *send_train(void* num)
 		length = send_len + sizeof(struct tcphdr);
 		printf("send_len : %d\ndata Length: %d\n", (int) send_len,
 				length);
-		tcp->syn = 1;
-		tcp->ack = 0;
-		tcp->check = 0;
-		memcpy(ps + 1, tcp, length);
-		tcp->check = ip_checksum(ps,
-				sizeof(struct pseudo_header) + length);
-
+		/*tcp->syn = 1;
+		 tcp->ack = 0;
+		 tcp->check = 0;
+		 memcpy(ps + 1, tcp, length);
+		 tcp->check = ip_checksum(ps,
+		 sizeof(struct pseudo_header) + length);
+		 */
 		printf("Send syn packet\n");
 		int n = sendto(send_fd, syn_packet_1, length, 0, res->ai_addr,
 				res->ai_addrlen);
@@ -460,7 +471,6 @@ void *send_train(void* num)
 		struct ip *ip = (struct ip*) buff;
 		struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
 
-
 		do{
 			if((recvfrom(send_fd, buff, 1500, 0, 0, 0)) == -1){
 				perror("rcv error tcp SYN-ACK");
@@ -468,7 +478,7 @@ void *send_train(void* num)
 			}
 		}while(((tcp_reply->dest != htons(sport)
 				|| (ip->ip_src.s_addr
-						!= ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr))));
+						!= ((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr))));
 
 		printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
 
@@ -476,25 +486,23 @@ void *send_train(void* num)
 				ntohs(tcp_reply->source),
 				ntohs(tcp_reply->dest));
 
-		//rcv_bool = 1;
-
 		/*struct tcphdr* tcprcv = (struct tcphdr*) (buff
 		 + sizeof(struct ip));
 		 long seq_rcv = ntohl(tcprcv->seq);
 		 sleep(1);        // figure out how to get ack for handshake
 		 tcp->ack_seq = htonl(seq_rcv + 1);*/
 
-		//printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
-		tcp->syn = ps_tcp->syn = 0;
-		tcp->seq = ps_tcp->seq = htonl( ++seq);
+		/*
+		 tcp->syn = ps_tcp->syn = 0;
+		 tcp->seq = ps_tcp->seq = htonl( ++seq);
 
-		tcp->check = 0;
-		memcpy(ps + 1, tcp, length);
-		tcp->check = ip_checksum(ps,
-				sizeof(struct pseudo_header) + length);
-		//printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
+		 tcp->check = 0;
+		 memcpy(ps + 1, tcp, length);
+		 tcp->check = ip_checksum(ps,
+		 sizeof(struct pseudo_header) + length);
+		 */
 
-		td = get_time();	//time stamp last
+		td = get_time();	//time stamp just before we begin sending
 	}else{
 		/*send Head ICMP Packet*/
 		n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
@@ -626,8 +634,9 @@ void *recv4(void *t)
 				perror("recvfrom failed");
 			}
 
-		}while(tcp->dest != htons(syn_port) || (ip->ip_src.s_addr
-				!= ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr));
+		}while(tcp->dest != htons(syn_port)
+				|| (ip->ip_src.s_addr
+						!= ((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr));
 		*time = get_time() - td;
 		rcv_bool = 0;
 		done = 1;
