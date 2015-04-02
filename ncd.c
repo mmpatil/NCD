@@ -347,7 +347,7 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 	tcp->seq = htonl(seq);
 	tcp->ack = 0;
 	tcp->th_off = 5;
-	tcp->window = 1 << 15 - 1;
+	tcp->window = (1 << 15) - 1;
 	tcp->syn = 1;
 
 	/* pseudo header for udp checksum */
@@ -460,20 +460,15 @@ void *send_train(void* num)
 		struct ip *ip = (struct ip*) buff;
 		struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
 
+
 		do{
 			if((recvfrom(send_fd, buff, 1500, 0, 0, 0)) == -1){
 				perror("rcv error tcp SYN-ACK");
 				exit(EXIT_FAILURE);
 			}
-
-//Note I think the logic here is wrong!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			// the while loop should use an ||
-			// it stops discarding packet if the src address or the
-			// port is correct. it should keep discarding them until
-			// they are both right
 		}while(((tcp_reply->dest != htons(sport)
-				&& (ip->ip_src.s_addr
-						!= ((struct ip *) syn_packet_1)->ip_dst.s_addr))));
+				|| (ip->ip_src.s_addr
+						!= ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr))));
 
 		printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
 
@@ -489,7 +484,7 @@ void *send_train(void* num)
 		 sleep(1);        // figure out how to get ack for handshake
 		 tcp->ack_seq = htonl(seq_rcv + 1);*/
 
-		printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
+		//printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
 		tcp->syn = ps_tcp->syn = 0;
 		tcp->seq = ps_tcp->seq = htonl( ++seq);
 
@@ -497,7 +492,7 @@ void *send_train(void* num)
 		memcpy(ps + 1, tcp, length);
 		tcp->check = ip_checksum(ps,
 				sizeof(struct pseudo_header) + length);
-		printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
+		//printf("TCP CHECKSUM = %04x<------\n", ntohs(tcp->check));
 
 		td = get_time();	//time stamp last
 	}else{
@@ -511,7 +506,7 @@ void *send_train(void* num)
 	}
 
 	if(tcp_bool == 1)
-		packet_id = (void*) packet_send + sizeof(struct tcphdr);
+		packet_id = (uint16_t *) (packet_send + sizeof(struct tcphdr));
 	*packet_id = 0;
 
 	/*send data train*/
@@ -631,9 +626,9 @@ void *recv4(void *t)
 				perror("recvfrom failed");
 			}
 
-		}while(tcp->dest != htons(syn_port));
+		}while(tcp->dest != htons(syn_port) || (ip->ip_src.s_addr
+				!= ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr));
 		*time = get_time() - td;
-		printf("TCP time %f\n", *time);
 		rcv_bool = 0;
 		done = 1;
 
