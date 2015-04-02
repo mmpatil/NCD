@@ -332,8 +332,9 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 
 	/* pseudo header for udp checksum */
 
-	inet_pton(AF_INET,"127.0.0.1" /*"192.168.1.100"*/, &ps->source);
-	inet_pton(AF_INET, dst_ip, &ps->dest);
+	inet_pton(AF_INET,/*"127.0.0.1"*/ "192.168.1.100", &ps->source);
+	//inet_pton(AF_INET, dst_ip, &ps->dest);
+	ps->dest = ((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
 	ps->zero = 0;
 	ps->proto = proto;
 	ps->len = htons(len);
