@@ -66,7 +66,7 @@ uint16_t* packet_id = (uint16_t*) packet_send;        //sequence/ID number of ud
 struct sockaddr_in srcaddrs = { 0 };
 socklen_t sa_len = sizeof(srcaddrs);
 
-union packet **packet_ary;
+union packet *packet_ary;
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
