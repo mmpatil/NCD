@@ -1,6 +1,6 @@
 #CC=gcc
 CC=clang
-CPP=$(CC)++
+CPP=clang++
 CFLAGS=
 #CFLAGS+=-DDEBUG
 #CFLAGS+=-DNCD_NO_KILL

@@ -11,48 +11,62 @@ int data_size; 			// size of udp data payload
 int num_packets;		// number of packets in udp data train
 int num_tail;		// number of tail icmp messages sent tail_wait apart
 int tail_wait;			// time between ICMP tail messages
-volatile int done = 0;			// boolean
+//16 bytes
+
 u_int16_t dport; 		// destination port number
 u_int16_t sport; 		// source port number
 u_int16_t syn_port; 		// source port number
+u_int8_t ttl;			// time to live
+//16+7=23bytes
 
 char entropy; 			// the entropy of the data High, Low, Both
 char* dst_ip = NULL; 		// destination ip address
 char* file = NULL;        //name of file to read from /dev/urandom by default
-u_int8_t ttl;			// time to live
+//=23+1+16=40bytes
 
 int icmp_fd; 			//icmp socket file descriptor
 int send_fd; 			//udp socket file descriptor
 int recv_fd; 			//reply receiving socket file descriptor
-char packet_send[TCP_DATA_SIZE] = { 0 };        // buffer for sending data
-uint16_t* packet_id = (uint16_t*) packet_send;        //sequence/ID number of udp msg
-char icmp_send[128] = { 0 };			// buffer for ICMP messages
-char packet_rcv[1500] = { 0 };			// buffer for receiving replies
+
+//40+12= 52 Bytes
+
 size_t send_len;		// length of data to be sent
+int tcp_bool = 1;        //bool for whether to use tcp or udp(1 == true, 0 == false)
+//52+8+4=64
+
+//cacheline
+
+size_t seq = 0;
 size_t icmp_ip_len;		// length of IP icmp packet including payload
 size_t icmp_len;		// length of ICMP packet
 size_t icmp_data_len;		// length of ICMP data
 size_t rcv_len;			// length of data to be received
 struct addrinfo *res = NULL;        // addrinfo struct for getaddrinfo()
 void *(*recv_data)(void*) = NULL;        // function pointer so we can select properly for IPV4 or IPV6
-
-unsigned long seq = 0;
-int tcp_bool = 1;        //bool for whether to use tcp or udp(1 == true, 0 == false)
-volatile int rcv_bool = 0;
-
-union packet* packet_ary = NULL;        // a pointer to an array of packets
-
 double td;
-char pseudo[1500] = { 0 }; /* buffer for pseudo header */
-struct pseudo_header *ps = (struct pseudo_header *) pseudo;
+//(8*8) = 64 bytes
 
+//cacheline
+
+int syn_bool = 0;        // bool, true(i.e. 1) if mktcphdr should use syn_port, else use sport
+volatile int done = 0;			// boolean for if the send can stop
+volatile int rcv_bool = 0;		// bool for recving SYN packets really a Condition variable, consider replacing
+//4+4+4=12
+
+
+char pseudo[1500] = { 0 }; /* buffer for pseudo header */
+char packet_rcv[1500] = { 0 };			// buffer for receiving replies
+char packet_send[SIZE] = { 0 };        		// buffer for sending data
+char syn_packet_1[SIZE] = { 0 };		// packet for initial SYN
+char syn_packet_2[SIZE] = { 0 };			// packet for tail SYN
+char icmp_send[128] = { 0 };			// buffer for ICMP messages
+
+struct pseudo_header *ps = (struct pseudo_header *) pseudo;        //pseudo header
+uint16_t* packet_id = (uint16_t*) packet_send;        //sequence/ID number of udp msg
 struct sockaddr_in srcaddrs = { 0 };
 socklen_t sa_len = sizeof(srcaddrs);
 
-char syn_packet_1[SIZE];
-char syn_packet_2[SIZE];
-
-int syn_bool = 0;        // bool, true(i.e. 1) if mktcphdr should use syn_port, else use sport
+union packet **packet_ary;
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -91,6 +105,7 @@ int comp_det()
 
 	int err = getaddrinfo(dst_ip, str, &hints, &res);
 
+	// get temp socket to obtain source IP -- its a hack
 	{
 		int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		connect(s, res->ai_addr, res->ai_addrlen);
@@ -215,27 +230,24 @@ int comp_det()
 		printf("Receive Buffer size: %d\n", buffsize);
 		rc = pthread_create(&threads[0], NULL, recv_data, &time);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR: return code from pthread_create()"
+					" is %d\n", rc);
 			exit(-1);
 		}
 
 		int rc = pthread_create(&threads[1], NULL, send_train,
 				status[1]);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR: return code from pthread_create() "
+					"is %d\n", rc);
 			exit(-1);
 		}
 
 		for(i = 0; i < 2; ++i){
 			rc = pthread_join(threads[i], &status[i]);
 			if(rc){
-				printf(
-						"ERROR; return code from pthread_create() is %d\n",
-						rc);
+				printf("ERROR; return code from "
+						"pthread_create() is %d\n", rc);
 				exit(-1);
 			}
 
@@ -253,10 +265,12 @@ int comp_det()
 		char buff[1500] = { 0 };
 		if(tcp_bool == 1)
 			while(recvfrom(send_fd, buff, 1500, MSG_DONTWAIT, NULL,
-					NULL) != -1){}
+			NULL) != -1){
+			}
 		else
 			while(recvfrom(recv_fd, buff, 1500, MSG_DONTWAIT, NULL,
-								NULL) != -1){}
+			NULL) != -1){
+			}
 		printf("\nClearing buffer...\n\n");
 	}
 	sleep(3);        // sloppy replace with better metric
@@ -280,27 +294,24 @@ int comp_det()
 
 		rc = pthread_create(&threads[0], NULL, recv_data, &time);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR: return code from pthread_create() "
+					"is %d\n", rc);
 			exit(-1);
 		}
 
 		int rc = pthread_create(&threads[1], NULL, send_train,
 				(void *) &num_tail);
 		if(rc){
-			printf(
-					"ERROR; return code from pthread_create() is %d\n",
-					rc);
+			printf("ERROR: return code from pthread_create() "
+					"is %d\n", rc);
 			exit(-1);
 		}
 
 		for(i = 0; i < 2; ++i){
 			rc = pthread_join(threads[i], &status[i]);
 			if(rc){
-				printf(
-						"ERROR; return code from pthread_create() is %d\n",
-						rc);
+				printf("ERROR: return code from "
+						"pthread_create() is %d\n", rc);
 				exit(-1);
 			}
 			if(status[i] != NULL)
@@ -465,9 +476,6 @@ void *send_train(void* num)
 			perror("Send error tcp syn");
 			exit(EXIT_FAILURE);
 		}
-		struct sockaddr_in addr;
-		//addr.sin_addr.s_addr = res->ai_addr;
-		//socklen_t len;
 		struct ip *ip = (struct ip*) buff;
 		struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
 
@@ -477,8 +485,8 @@ void *send_train(void* num)
 				exit(EXIT_FAILURE);
 			}
 		}while(((tcp_reply->dest != htons(sport)
-				|| (ip->ip_src.s_addr
-						!= ((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr))));
+				|| (((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr
+						!= ip->ip_src.s_addr))));
 
 		printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
 
@@ -943,9 +951,9 @@ int check_args(int argc, char* argv[])
 				file = argv[i];
 				int fd = open(file, O_RDONLY);
 				if(fd < 0){
-					fprintf(stderr,
-							"Error opening file: \"%s\" : %s\n",
-							file, strerror(
+					fprintf(stderr, "Error opening file: "
+							"\"%s\" : %s\n", file,
+							strerror(
 							errno));
 					return EXIT_FAILURE;
 				}
