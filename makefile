@@ -5,7 +5,7 @@ CPP=clang++
 CFLAGS=
 #CFLAGS+=-DDEBUG
 #CFLAGS+=-DNCD_NO_KILL
-CFLAGS+=-pthread -lm -O2
+CFLAGS+=-pthread -lm -O2 -g #-fsanitize=thread
 
 
 all: test ncd_main 

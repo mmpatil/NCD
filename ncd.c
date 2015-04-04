@@ -50,9 +50,8 @@ double td;
 
 int syn_bool = 0;        // bool, true(i.e. 1) if mktcphdr should use syn_port, else use sport
 volatile int done = 0;			// boolean for if the send can stop
-volatile int rcv_bool = 0;		// bool for recving SYN packets really a Condition variable, consider replacing
+volatile int rcv_bool = 0;        // bool for recving SYN packets really a Condition variable, consider replacing
 //4+4+4=12
-
 
 char pseudo[1500] = { 0 }; /* buffer for pseudo header */
 char packet_rcv[1500] = { 0 };			// buffer for receiving replies
@@ -108,7 +107,10 @@ int comp_det()
 	// get temp socket to obtain source IP -- its a hack
 	{
 		int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		connect(s, res->ai_addr, res->ai_addrlen);
+		if(connect(s, res->ai_addr, res->ai_addrlen) == -1){
+			perror("Connect failed");
+			return -1;
+		}
 		if(getsockname(s, (struct sockaddr *) &srcaddrs, &sa_len)
 				== -1){
 			perror("getsockname() failed");
@@ -179,7 +181,7 @@ int comp_det()
 	//make ICMP packets
 	if(res->ai_family == AF_INET){
 		mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
-		mkicmpv4(icmp_send + (sizeof(struct ip)), icmp_len);
+		mkicmpv4(icmp_send + sizeof(struct ip), icmp_data_len);
 		mktcphdr(packet_send, send_len, IPPROTO_TCP);
 		memcpy(syn_packet_1, packet_send,
 				send_len + sizeof(struct tcphdr));
@@ -260,6 +262,7 @@ int comp_det()
 		close(recv_fd);
 	}
 
+	sleep(3);        // sloppy replace with better metric
 	{
 		//clear out rcvbuffer
 		char buff[1500] = { 0 };
@@ -273,7 +276,6 @@ int comp_det()
 			}
 		printf("\nClearing buffer...\n\n");
 	}
-	sleep(3);        // sloppy replace with better metric
 
 	if(entropy == 'B' || entropy == 'H'){
 
@@ -423,6 +425,8 @@ int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 int mkicmpv4(void *buff, size_t datalen)
 {
 	/* set up icmp message header*/
+	//struct ip *ip = (struct ip *) buff;
+	//ip--;
 	struct icmp *icmp = (struct icmp *) buff;
 	icmp->icmp_type = ICMP_ECHO;
 	icmp->icmp_code = 0;
