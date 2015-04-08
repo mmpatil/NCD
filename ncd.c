@@ -5,6 +5,7 @@
 
 #include "ncd.h"
 #include "bitset.h"
+#include <sanitizer/msan_interface.h>
 
 /*  Global Variables  */
 int data_size; 			// size of udp data payload
@@ -291,7 +292,7 @@ int comp_det()
 		close(recv_fd);
 	}
 
-	sleep(3);        // sloppy replace with better metric
+	sleep(5);        // sloppy replace with better metric
 
 	{
 		//clear out rcvbuffer
@@ -618,10 +619,11 @@ void *send_tcp(void* arg)
 		}		// end if
 	}		// end of
 
-	tcp->seq = ps_tcp->seq = htonl( ++seq);
+	/*tcp->seq = ps_tcp->seq = htonl( ++seq);
 	tcp->syn = ps_tcp->syn = 1;
 	tcp->source = ps_tcp->source = htons(syn_port);
 	tcp->check = ip_checksum(ps, length + sizeof(struct pseudo_header));
+	*/
 	rcv_bool = 1;
 	for(i = 0; i < num_tail && done == 0; ++i){
 		n = sendto(send_fd, syn_packet_2, length, 0, res->ai_addr,
@@ -674,7 +676,7 @@ int setup_tcp_packets()
 	packets_f = calloc(num_packets, len);
 	if(!packets_f)
 		return -1;
-	int pslen = len + sizeof(struct pseudo_header);
+	size_t pslen = len + sizeof(struct pseudo_header);
 
 	char *ptr = packets_e;
 	register int i = 0;
@@ -720,7 +722,7 @@ int setup_tcp_packets()
 
 		tcp->source = htons(sport);
 		tcp->dest = htons(dport);
-		tcp->seq = htonl(seq++);
+		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
 		tcp->ack = 1;
 		tcp->ack_seq = htonl(ack++);
 		tcp->th_off = 5;
@@ -971,8 +973,10 @@ uint16_t ip_checksum(void* vdata, size_t length)
 	// Handle any complete 32-bit blocks.
 	char* data_end = data + (length & ~3);
 	while(data != data_end){
-		uint32_t word;
+		uint32_t word = 0;
 		memcpy(&word, data, 4);
+		//__msan_print_shadow(&acc, sizeof(acc));
+		__msan_print_shadow(&word, sizeof(word));
 		acc += ntohl(word);
 		data += 4;
 	}
@@ -980,7 +984,7 @@ uint16_t ip_checksum(void* vdata, size_t length)
 
 	// Handle any partial block at the end of the data.
 	if(length){
-		uint32_t word;
+		uint32_t word = 0;
 		memcpy(&word, data, length);
 		acc += ntohl(word);
 	}

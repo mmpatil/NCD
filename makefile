@@ -5,7 +5,7 @@ CPP=clang++
 CFLAGS=
 #CFLAGS+=-DDEBUG
 #CFLAGS+=-DNCD_NO_KILL
-CFLAGS+=-pthread -lm -O2 -g -fPIE #-fsanitize=memory 
+CFLAGS+=-pthread -lm -O2 -g #-fPIE -fsanitize=address #memory -fsanitize-memory-track-origins -fno-omit-frame-pointer 
 
 
 all: ncd_main #test 
