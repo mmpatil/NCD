@@ -31,7 +31,7 @@ int recv_fd; 			//reply receiving socket file descriptor
 //40+12= 52 Bytes
 
 size_t send_len;		// length of data to be sent
-int tcp_bool = 1;        //bool for whether to use tcp or udp(1 == true, 0 == false)
+int tcp_bool = 0;        //bool for whether to use tcp or udp(1 == true, 0 == false)
 //52+8+4=64
 
 //cacheline
@@ -148,7 +148,11 @@ int comp_det()
 	 }*/
 
 	/* Setup TCP Socket to bypass filters*/
-	send_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
+	if(tcp_bool ==1)
+		send_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
+	else
+		send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
+
 	if(send_fd == -1){
 		perror("call to socket() failed");
 		exit(EXIT_FAILURE);
@@ -188,20 +192,24 @@ int comp_det()
 
 	//make ICMP packets
 	if(res->ai_family == AF_INET){
-		mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
-		mkicmpv4(icmp_send + sizeof(struct ip), icmp_data_len);
-		mktcphdr(packet_send, send_len, IPPROTO_TCP);
-		memcpy(syn_packet_1, packet_send,
-				send_len + sizeof(struct tcphdr));
-		syn_bool = 1;
-		mktcphdr(syn_packet_2, send_len, IPPROTO_TCP);
-		syn_bool = 0;
-		if((setup_tcp_packets()) == -1){
-			errno = ENOMEM;
-			perror("Packet setup failed...");
-			return EXIT_FAILURE;
-		}
 		recv_data = recv4;
+
+		if(tcp_bool == 1){
+			mktcphdr(packet_send, send_len, IPPROTO_TCP);
+			memcpy(syn_packet_1, packet_send,
+					send_len + sizeof(struct tcphdr));
+			syn_bool = 1;
+			mktcphdr(syn_packet_2, send_len, IPPROTO_TCP);
+			syn_bool = 0;
+			if((setup_tcp_packets()) == -1){
+				errno = ENOMEM;
+				perror("Packet setup failed...");
+				return EXIT_FAILURE;
+			}
+		}else{
+			mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
+			mkicmpv4(icmp_send + sizeof(struct ip), icmp_data_len);
+		}
 
 	}else if(res->ai_family == AF_INET6){
 		mkipv6(icmp_send, icmp_len, res, IPPROTO_ICMPV6);
@@ -476,7 +484,6 @@ int mkicmpv6(void *buff, size_t datalen)
 void *send_udp(void* arg)
 {
 	int n;
-	int length = send_len;
 
 	/*send Head ICMP Packet*/
 	n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
@@ -494,7 +501,7 @@ void *send_udp(void* arg)
 	for(i = 0; i < num_packets; ++i){
 		(*packet_id)++;
 
-		n = sendto(send_fd, packet_send, length, 0, res->ai_addr,
+		n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error udp train");
@@ -586,9 +593,9 @@ void *send_tcp(void* arg)
 
 	/*send data train*/
 	int i = 0;
-	char *ptr = second_train ? packets_f: packets_e;
+	char *ptr = second_train ? packets_f : packets_e;
 
-	for(i = 0; i < num_packets; ++i, ptr +=length){
+	for(i = 0; i < num_packets; ++i, ptr += length){
 		//(*packet_id)++;
 		//tcp->seq = htonl(seq++);
 
@@ -923,7 +930,7 @@ int setup_tcp_packets()
 		tcp->dest = htons(dport);
 		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
 		tcp->ack = 1;
-		tcp->ack_seq=htonl(ack++);
+		tcp->ack_seq = htonl(ack++);
 		tcp->th_off = 5;
 		tcp->window = (1 << 15) - 1;
 		tcp->syn = 0;
@@ -976,7 +983,7 @@ int setup_tcp_packets()
 		ps->len = htons(len);
 
 		memcpy(ptr + sizeof(struct tcphdr) + sizeof(uint16_t), buffer,
-						data_size);
+				data_size);
 
 		/*copy udp packet into pseudo header buffer to calculate checksum*/
 		memcpy(ps + 1, tcp, pslen);
@@ -1012,7 +1019,7 @@ int check_args(int argc, char* argv[])
 	num_tail = 20;		// send 20 ICMP tail messages
 	file = "/dev/urandom";        // default to random data for compression detection
 
-	send_train = send_tcp;
+	send_train = send_udp;
 
 	register int i;
 	int check;
@@ -1097,6 +1104,10 @@ int check_args(int argc, char* argv[])
 			case 'h':
 				print_use();
 				return EXIT_FAILURE;
+				break;
+			case 'T':
+				tcp_bool = 1;
+				send_train = send_tcp;
 				break;
 			default:
 				errno = ERANGE;
