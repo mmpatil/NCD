@@ -669,10 +669,10 @@ int setup_tcp_packets()
 
 	//int size = tcp_bool ? data_size : data_size + sizeof(struct tcphdr);
 
-	packets_e = calloc(num_packets, len);
+	packets_e = (char *)calloc(num_packets, len);
 	if(!packets_e)
 		return -1;
-	packets_f = calloc(num_packets, len);
+	packets_f = (char *)calloc(num_packets, len);
 	if(!packets_f)
 		return -1;
 	size_t pslen = len + sizeof(struct pseudo_header);
