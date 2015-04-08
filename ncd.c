@@ -409,7 +409,7 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 	tcp->dest = htons(dport);
 	tcp->seq = htonl(seq);
 	tcp->ack = 0;
-	tcp->th_off = 5;
+	tcp->doff = 5;
 	tcp->window = (1 << 15) - 1;
 	tcp->syn = 1;
 
@@ -438,10 +438,10 @@ int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 	int udp_len = udp_data_len + sizeof(struct udphdr);
 	char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
 	struct udphdr *udp = (struct udphdr *) buff;
-	udp->uh_sport = htons(sport); /* set source port*/
-	udp->uh_dport = htons(dport); /* set destination port */
-	udp->uh_ulen = htons(udp_len); /* set udp length */
-	udp->uh_sum = 0;/* zero out the udp checksum */
+	udp->source = htons(sport); /* set source port*/
+	udp->dest = htons(dport); /* set destination port */
+	udp->len = htons(udp_len); /* set udp length */
+	udp->check = 0;/* zero out the udp checksum */
 
 	/* pseudo header for udp checksum */
 	struct pseudo_header *ps = (struct pseudo_header *) pseudo;
@@ -456,7 +456,7 @@ int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 
 	/* set udp checksum */
 
-	udp->uh_sum = ip_checksum(ps, udp_len + sizeof(struct pseudo_header));
+	udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header));
 
 	return 0;
 }
@@ -688,7 +688,7 @@ int setup_tcp_packets()
 		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
 		tcp->ack = 1;
 		tcp->ack_seq = htonl(ack++);
-		tcp->th_off = 5;
+		tcp->doff = 5;
 		tcp->window = (1 << 15) - 1;
 		tcp->syn = 0;
 
@@ -724,7 +724,7 @@ int setup_tcp_packets()
 		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
 		tcp->ack = 1;
 		tcp->ack_seq = htonl(ack++);
-		tcp->th_off = 5;
+		tcp->doff = 5;
 		tcp->window = (1 << 15) - 1;
 		tcp->syn = 0;
 
