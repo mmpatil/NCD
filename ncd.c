@@ -5,7 +5,6 @@
 
 #include "ncd.h"
 #include "bitset.h"
-#include <sanitizer/msan_interface.h>
 
 /*  Global Variables  */
 int data_size; 			// size of udp data payload
@@ -975,8 +974,6 @@ uint16_t ip_checksum(void* vdata, size_t length)
 	while(data != data_end){
 		uint32_t word = 0;
 		memcpy(&word, data, 4);
-		//__msan_print_shadow(&acc, sizeof(acc));
-		__msan_print_shadow(&word, sizeof(word));
 		acc += ntohl(word);
 		data += 4;
 	}
