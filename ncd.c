@@ -360,6 +360,9 @@ int comp_det()
 	if(packets_e)
 		free(packets_e);
 	packets_e = NULL;
+
+	if(packets_f)
+		free(packets_f);
 	return EXIT_SUCCESS;
 }
 
@@ -739,7 +742,7 @@ int setup_tcp_packets()
 				data_size);
 
 		/*copy udp packet into pseudo header buffer to calculate checksum*/
-		memcpy(ps + 1, tcp, pslen);
+		memcpy(ps + 1, tcp, len);
 
 		/* set tcp checksum */
 		tcp->check = ip_checksum(ps, pslen);
@@ -977,7 +980,7 @@ uint16_t ip_checksum(void* vdata, size_t length)
 
 	// Handle any partial block at the end of the data.
 	if(length){
-		uint32_t word = 0;
+		uint32_t word;
 		memcpy(&word, data, length);
 		acc += ntohl(word);
 	}
