@@ -8,12 +8,18 @@
 
 #include <stdio.h>		/* for printf */
 #include <stdlib.h>		/* for EXIT_SUCCESS, EXIT_FAILURE, */
+#include <stdio.h>
 #include <string.h> 		/* for memcpy */
 //#include <time.h> 		/* for struct tv */
 #include <sys/time.h>		/* for gettimeofday() */
 #include <errno.h>		/* for errno*/
 #include <sys/socket.h>		/* for socket(), setsockopt(), etc...*/
-
+#include <netinet/ip.h>		/* for struct ip */
+#include <netinet/ip6.h>	/* for struct ip6_hdr */
+#include <netinet/ip_icmp.h>	/* for struct icmp */
+#include <netinet/icmp6.h>	/* for struct icmp */
+#include <netinet/tcp.h>	/* for struct tcphdr */
+#include <netinet/udp.h>	/* for struct udphdr */
 #include <netdb.h>		/* for getaddrinfo() */
 #include <arpa/inet.h>		/* for inet_pton() */
 #include <signal.h>		/* for kill() */
@@ -21,6 +27,7 @@
 #include <unistd.h>		/* for _________ */
 #include <ctype.h>		/* for inet_pton() */
 #include <pthread.h>		/* for pthreads */
+
 
 /**
  * Favor the BSD style UDP & IP headers
@@ -32,13 +39,6 @@
 #define __FAVOR_BSD
 #endif
 
-#include <netinet/ip.h>		/* for struct ip */
-#include <netinet/ip6.h>	/* for struct ip6_hdr */
-#include <netinet/ip_icmp.h>	/* for struct icmp */
-#include <netinet/icmp6.h>	/* for struct icmp */
-#include <netinet/udp.h>	/* for struct udphdr */
-
-
 /**
  *  maximum ip packet size
  *  1500 bytes Ethernet max size
@@ -47,12 +47,16 @@
  *  2 16-bit packet ID
  *
  */
-#define SIZE (1500-40-8-2)
+#define SIZE (1500 - sizeof(struct ip))
+#define UDP_DATA_SIZE (SIZE-sizeof(struct udphdr)-sizeof(uint16_t))
+#define TCP_DATA_SIZE (SIZE-sizeof(struct tcphdr)-sizeof(uint16_t))
+
+
 
 /**
  * struct for udp pseudo header
  */
-struct pseudo_header {
+struct __attribute__((__packed__))pseudo_header {
 	u_int32_t source;
 	u_int32_t dest;
 	u_int8_t zero;
@@ -64,13 +68,18 @@ struct pseudo_header {
  * Determines if compression occurs along the current transmission path to host
  * by sending data to a remote location.
  *
- * Two data trains are sent each with leading and trailing ICMP timestamp messages.
+ * Two data trains are sent each with leading and trailing ICMP timestamp
+ * messages
  *
- * The first data train will be low entropy data, to encourage compression, while
- * the second train will have high entropy data, which should not be compressed well.
- * If the times are significantly different, we have reasonable evidence
+ * The first data train will be low entropy data, to encourage compression
+ * the second train will have high entropy data, which should not be compressed
+ * if the times are significantly different, we have reasonable evidence
  * compression exists along this path.
  *
+ * @param address the address of the end host stored in a char array (cstring)
+ * @param port the port number or service name
+ * @param num_packets the number of packets in each data train
+ * @param time_wait the wait between trains
  * @return 0 success, 1 error/failure
  * */
 int comp_det();
@@ -95,7 +104,7 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto);
-
+int mktcphdr(void* buff, size_t data_len, u_int8_t proto);
 /**
  * Formats an ICMP packet beginning at buff with a payload of length datalen
  * @param buff Address of the starting location for the ICMP packet
@@ -115,15 +124,23 @@ void fill_data(void *buff, size_t size);
 
 /**
  * Sends the UDP data train with leading and trailing ICMP messages
- * @return An Integer value cast to void*. 0 success, 1 error/failure
- * @param num The number of tail ICMP messages to send
+ * @return An unsigned integer value cast to void*. 0 success, 1 error/failure
+ * @param status returns the status/return code
  */
-void *send_train(void* num);
+void *send_udp(void* status);
+
+/**
+ * sends a tcp data train with leading and trailing ICMP messages
+ * @return unsigned integer value cast to void*. 0 success, 1 error/failure
+ * @param status returns the status/return code
+ */
+void *send_tcp(void* status);
 
 /**
  * Receives ICMP responses from end host and records times
  * @param t Pointer to a double. Returns the time in ms between head echo response and first
- * processed tail echo response to a resolution of microseconds (10^-6 sec)
+ * processed tail echo response to a resolution of 
+ * microseconds (10^-6 sec)
  * @return 0 success, 1 error/failure -- pthreads
  */
 void *recv4(void *t);
@@ -145,5 +162,12 @@ uint16_t ip_checksum(void* vdata, size_t length);
  * @return 0 success, 1 Failure
  */
 int check_args(int argc, char* argv[]);
+
+
+/**
+ * sets up arrays of tcp packets. Can be extended to udp if neccessary
+ * @return
+ */
+int setup_tcp_packets();
 
 #endif

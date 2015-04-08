@@ -1,12 +1,14 @@
 #CC=gcc
+#CPP=g++
 CC=clang
 CPP=clang++
 CFLAGS=
 #CFLAGS+=-DDEBUG
 #CFLAGS+=-DNCD_NO_KILL
-CFLAGS+=-pthread -lm -O2 #-g -fsanitize=thread
+CFLAGS+=-pthread -lm -O2 -g #-fsanitize=thread
 
-all:ncd_main test
+
+all: ncd_main #test 
 
 test: unit_test.h unit_test.cpp
 	$(CPP) unit_test.cpp  -pthread -L/usr/lib -lgtest -lgtest_main -o test
