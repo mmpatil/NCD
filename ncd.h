@@ -33,7 +33,6 @@
  */
 #define __FAVOR_BSD
 
-
 #define SIZE (1500 - sizeof(struct ip))
 
 /**
@@ -55,14 +54,14 @@ struct udp_packet {
 	char data[UDP_DATA_SIZE];
 };
 
-struct tcp_packet{
+struct tcp_packet {
 	//struct ip iphdr;
 	struct tcphdr tcp;
 	uint16_t seq;
 	char data[TCP_DATA_SIZE];
 };
 
-union packet{
+union packet {
 	struct tcp_packet tcp;
 	struct udp_packet udp;
 };
@@ -82,7 +81,8 @@ struct __attribute__((__packed__))pseudo_header {
  * Determines if compression occurs along the current transmission path to host
  * by sending data to a remote location.
  *
- * two data trains are sent each with leading and trailing ICMP timestamp messages
+ * two data trains are sent each with leading and trailing ICMP timestamp
+ * messages
  *
  * the first data train will be low entropy data, to encourage compression
  * the second train will have high entropy data, which should not be compressed
@@ -137,15 +137,23 @@ void fill_data(void *buff, size_t size);
 
 /**
  * sends the udp data train with leading and trailing ICMP messages
- * @return integer value cast to void*. 0 success, 1 error/failure
- * @param num number of tail icmp messages to send
+ * @return unsigned integer value cast to void*. 0 success, 1 error/failure
+ * @param status returns the status/return code
  */
-void *send_train(void* num);
+void *send_udp(void* status);
+
+/**
+ * sends a tcp data train with leading and trailing ICMP messages
+ * @return unsigned integer value cast to void*. 0 success, 1 error/failure
+ * @param status returns the status/return code
+ */
+void *send_tcp(void* status);
 
 /**
  * Receives ICMP responses from end host and records times
- * @param t pointer to a double. returns the time in ms between head echo response and first
- * processed tail echo response to a resolution of microseconds (10^-6 sec)
+ * @param t pointer to a double. returns the time in ms between head echo
+ * response and first processed tail echo response to a resolution of
+ * microseconds (10^-6 sec)
  * @return 0 success, 1 error/failure
  */
 void *recv4(void *t);
@@ -167,5 +175,12 @@ uint16_t ip_checksum(void* vdata, size_t length);
  * @return 0 success, 1 Failure
  */
 int check_args(int argc, char* argv[]);
+
+
+/**
+ * sets up arrays of tcp packets. Can be extended to udp if neccessary
+ * @return
+ */
+int setup_tcp_packets();
 
 #endif

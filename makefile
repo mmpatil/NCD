@@ -8,7 +8,7 @@ CFLAGS=
 CFLAGS+=-pthread -lm -O2 -g #-fsanitize=thread
 
 
-all: test ncd_main 
+all: ncd_main #test 
 
 test: unit_test.h unit_test.cpp
 	$(CPP) unit_test.cpp  -pthread -L/usr/lib -lgtest -lgtest_main -o test

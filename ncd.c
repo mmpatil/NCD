@@ -43,15 +43,21 @@ size_t icmp_data_len;		// length of ICMP data
 size_t rcv_len;			// length of data to be received
 struct addrinfo *res = NULL;        // addrinfo struct for getaddrinfo()
 void *(*recv_data)(void*) = NULL;        // function pointer so we can select properly for IPV4 or IPV6
-double td;
+void* (*send_train)(void*) = NULL;        // function pointer to send data: UDP or TCP
 //(8*8) = 64 bytes
 
 //cacheline
-
+double td;
 int syn_bool = 0;        // bool, true(i.e. 1) if mktcphdr should use syn_port, else use sport
 volatile int done = 0;			// boolean for if the send can stop
 volatile int rcv_bool = 0;        // bool for recving SYN packets really a Condition variable, consider replacing
-//4+4+4=12
+/*pthread_mutex_t stop_mutex;
+ pthread_mutex_t recv_ready_mutex;
+ pthread_cond_t stop;
+ pthread_cond_t recv_ready;*/
+
+//8+4+4+4=20
+volatile int second_train = 0;
 
 char pseudo[1500] = { 0 }; /* buffer for pseudo header */
 char packet_rcv[1500] = { 0 };			// buffer for receiving replies
@@ -65,7 +71,9 @@ uint16_t* packet_id = (uint16_t*) packet_send;        //sequence/ID number of ud
 struct sockaddr_in srcaddrs = { 0 };
 socklen_t sa_len = sizeof(srcaddrs);
 
-union packet *packet_ary;
+//union packet *packet_ary;
+char * packets_e = NULL;        //empty packets
+char *packets_f = NULL;        //filled packets
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -188,6 +196,11 @@ int comp_det()
 		syn_bool = 1;
 		mktcphdr(syn_packet_2, send_len, IPPROTO_TCP);
 		syn_bool = 0;
+		if((setup_tcp_packets()) == -1){
+			errno = ENOMEM;
+			perror("Packet setup failed...");
+			return EXIT_FAILURE;
+		}
 		recv_data = recv4;
 
 	}else if(res->ai_family == AF_INET6){
@@ -204,7 +217,7 @@ int comp_det()
 	pthread_t threads[2];
 	int rc;
 	register int i;
-	void *status[2];
+	void *status[2] = { 0 };
 	if(entropy == 'B' || entropy == 'L'){
 
 		done = 0;        //boolean false
@@ -282,7 +295,8 @@ int comp_det()
 		done = 0;        //boolean false
 
 		int offset = tcp_bool == 1 ? sizeof(struct tcphdr) : 0;
-		fill_data(packet_send + offset, data_size);
+		if(!tcp_bool)
+			fill_data(packet_send + offset, data_size);
 
 		/* Acquire raw socket to listen for ICMP replies */
 		recv_fd = socket(res->ai_family, SOCK_RAW, l);
@@ -302,7 +316,7 @@ int comp_det()
 		}
 
 		int rc = pthread_create(&threads[1], NULL, send_train,
-				(void *) &num_tail);
+				&status[1]);
 		if(rc){
 			printf("ERROR: return code from pthread_create() "
 					"is %d\n", rc);
@@ -322,8 +336,12 @@ int comp_det()
 		printf("%c %f sec\n", 'H', time);
 		close(recv_fd);
 	}
-	freeaddrinfo(res);
-	free(packet_ary);
+	if(res)
+		freeaddrinfo(res);
+	res = NULL;
+	if(packets_e)
+		free(packets_e);
+	packets_e = NULL;
 	return EXIT_SUCCESS;
 }
 
@@ -454,87 +472,26 @@ int mkicmpv6(void *buff, size_t datalen)
 	return 0;
 }
 
-void *send_train(void* num)
+void *send_udp(void* arg)
 {
 	int n;
 	int length = send_len;
-	char buff[1500] = { 0 };
-	struct tcphdr* tcp = (struct tcphdr*) packet_send;
-	struct tcphdr* ps_tcp = (struct tcphdr *) (ps + 1);
 
-	if(tcp_bool == 1){
-		length = send_len + sizeof(struct tcphdr);
-		printf("send_len : %d\ndata Length: %d\n", (int) send_len,
-				length);
-		/*tcp->syn = 1;
-		 tcp->ack = 0;
-		 tcp->check = 0;
-		 memcpy(ps + 1, tcp, length);
-		 tcp->check = ip_checksum(ps,
-		 sizeof(struct pseudo_header) + length);
-		 */
-		printf("Send syn packet\n");
-		int n = sendto(send_fd, syn_packet_1, length, 0, res->ai_addr,
-				res->ai_addrlen);
-		if(n == -1){
-			perror("Send error tcp syn");
-			exit(EXIT_FAILURE);
-		}
-		struct ip *ip = (struct ip*) buff;
-		struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
-
-		do{
-			if((recvfrom(send_fd, buff, 1500, 0, 0, 0)) == -1){
-				perror("rcv error tcp SYN-ACK");
-				exit(EXIT_FAILURE);
-			}
-		}while(((tcp_reply->dest != htons(sport)
-				|| (((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr
-						!= ip->ip_src.s_addr))));
-
-		printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
-
-		printf("TCP SYN reply from port: %d to port: %d\n",
-				ntohs(tcp_reply->source),
-				ntohs(tcp_reply->dest));
-
-		/*struct tcphdr* tcprcv = (struct tcphdr*) (buff
-		 + sizeof(struct ip));
-		 long seq_rcv = ntohl(tcprcv->seq);
-		 sleep(1);        // figure out how to get ack for handshake
-		 tcp->ack_seq = htonl(seq_rcv + 1);*/
-
-		/*
-		 tcp->syn = ps_tcp->syn = 0;
-		 tcp->seq = ps_tcp->seq = htonl( ++seq);
-
-		 tcp->check = 0;
-		 memcpy(ps + 1, tcp, length);
-		 tcp->check = ip_checksum(ps,
-		 sizeof(struct pseudo_header) + length);
-		 */
-
-		td = get_time();	//time stamp just before we begin sending
-	}else{
-		/*send Head ICMP Packet*/
-		n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
-				res->ai_addrlen);
-		if(n == -1){
-			perror("Send error ICMP head");
-			exit(EXIT_FAILURE);
-		}
+	/*send Head ICMP Packet*/
+	n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
+			res->ai_addrlen);
+	if(n == -1){
+		perror("Send error ICMP head");
+		exit(EXIT_FAILURE);
 	}
 
-	if(tcp_bool == 1)
-		packet_id = (uint16_t *) (packet_send + sizeof(struct tcphdr));
 	*packet_id = 0;
 
 	/*send data train*/
 	int i = 0;
 
 	for(i = 0; i < num_packets; ++i){
-		//(*packet_id)++;
-		//tcp->seq = htonl(seq++);
+		(*packet_id)++;
 
 		n = sendto(send_fd, packet_send, length, 0, res->ai_addr,
 				res->ai_addrlen);
@@ -544,43 +501,120 @@ void *send_train(void* num)
 		}
 	}
 
-	if(tcp_bool == 1){
-		tcp->seq = ps_tcp->seq = htonl( ++seq);
-		tcp->syn = ps_tcp->syn = 1;
-		tcp->source = ps_tcp->source = htons(syn_port);
-		tcp->check = ip_checksum(ps,
-				length + sizeof(struct pseudo_header));
-		rcv_bool = 1;
-		for(i = 0; i < num_tail && done == 0; ++i){
-			n = sendto(send_fd, syn_packet_2, length, 0,
-					res->ai_addr, res->ai_addrlen);
-			if(n == -1){
-				perror("Send error TCP Tail Syn");
-				exit(EXIT_FAILURE);
-			}
-			usleep(tail_wait * 1000);
-		}		// end for
-		tcp->source = ps_tcp->source = htons(sport);
-	}else{
+	struct icmp *icmp = (struct icmp *) (icmp_send + sizeof(struct ip));
+	/*send tail ICMP Packets w/ timer*/
+	for(i = 0; i < num_tail && done == 0; ++i){
+		/*not sure if changing the sequence number will help*/
+		icmp->icmp_cksum = 0;
+		icmp->icmp_seq += 1;
+		icmp->icmp_cksum = ip_checksum(icmp, icmp_len);
 
-		struct icmp *icmp = (struct icmp *) (icmp_send
-				+ sizeof(struct ip));
-		/*send tail ICMP Packets w/ timer*/
-		for(i = 0; i < num_tail && done == 0; ++i){
-			/*not sure if changing the sequence number will help*/
-			icmp->icmp_cksum = 0;
-			icmp->icmp_seq += 1;
-			icmp->icmp_cksum = ip_checksum(icmp, icmp_len);
+		n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
+				res->ai_addrlen);
+		if(n == -1){
+			perror("Send error icmp tail");
+			exit(EXIT_FAILURE);
+		}
+		usleep(tail_wait * 1000);
+	}		//end for
 
-			n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0,
-					res->ai_addr, res->ai_addrlen);
-			if(n == -1){
-				perror("Send error icmp tail");
-				exit(EXIT_FAILURE);
-			}
-			usleep(tail_wait * 1000);
-		}		//end for
-	}		// end if
+	return NULL;
+}
+
+void *send_tcp(void* arg)
+{
+	int n;
+	int length = send_len;
+	char buff[1500] = { 0 };
+	struct tcphdr* tcp = (struct tcphdr*) packet_send;
+	struct tcphdr* ps_tcp = (struct tcphdr *) (ps + 1);
+
+	length = send_len + sizeof(struct tcphdr);
+	printf("send_len : %d\ndata Length: %d\n", (int) send_len, length);
+	/*tcp->syn = 1;
+	 tcp->ack = 0;
+	 tcp->check = 0;
+	 memcpy(ps + 1, tcp, length);
+	 tcp->check = ip_checksum(ps,
+	 sizeof(struct pseudo_header) + length);
+	 */
+	printf("Send syn packet\n");
+	n = sendto(send_fd, syn_packet_1, length, 0, res->ai_addr,
+			res->ai_addrlen);
+	if(n == -1){
+		perror("Send error tcp syn");
+		exit(EXIT_FAILURE);
+	}
+	struct ip *ip = (struct ip*) buff;
+	struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
+
+	do{
+		if((recvfrom(send_fd, buff, 1500, 0, 0, 0)) == -1){
+			perror("rcv error tcp SYN-ACK");
+			exit(EXIT_FAILURE);
+		}
+	}while(((tcp_reply->dest != htons(sport)
+			|| (((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr
+					!= ip->ip_src.s_addr))));
+
+	printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
+
+	printf("TCP SYN reply from port: %d to port: %d\n",
+			ntohs(tcp_reply->source), ntohs(tcp_reply->dest));
+
+	/*struct tcphdr* tcprcv = (struct tcphdr*) (buff
+	 + sizeof(struct ip));
+	 long seq_rcv = ntohl(tcprcv->seq);
+	 sleep(1);        // figure out how to get ack for handshake
+	 tcp->ack_seq = htonl(seq_rcv + 1);*/
+
+	/*
+	 tcp->syn = ps_tcp->syn = 0;
+	 tcp->seq = ps_tcp->seq = htonl( ++seq);
+
+	 tcp->check = 0;
+	 memcpy(ps + 1, tcp, length);
+	 tcp->check = ip_checksum(ps,
+	 sizeof(struct pseudo_header) + length);
+	 */
+
+	td = get_time();	//time stamp just before we begin sending
+
+	//packet_id = (uint16_t *) (packet_send + sizeof(struct tcphdr));
+	//*packet_id = 0;
+
+	/*send data train*/
+	int i = 0;
+	char *ptr = second_train ? packets_f: packets_e;
+
+	for(i = 0; i < num_packets; ++i, ptr +=length){
+		//(*packet_id)++;
+		//tcp->seq = htonl(seq++);
+
+		n = sendto(send_fd, ptr, length, 0, res->ai_addr,
+				res->ai_addrlen);
+		if(n == -1){
+			perror("Send error udp train");
+			exit(EXIT_FAILURE);
+		}		// end if
+	}		// end of
+
+	tcp->seq = ps_tcp->seq = htonl( ++seq);
+	tcp->syn = ps_tcp->syn = 1;
+	tcp->source = ps_tcp->source = htons(syn_port);
+	tcp->check = ip_checksum(ps, length + sizeof(struct pseudo_header));
+	rcv_bool = 1;
+	for(i = 0; i < num_tail && done == 0; ++i){
+		n = sendto(send_fd, syn_packet_2, length, 0, res->ai_addr,
+				res->ai_addrlen);
+		if(n == -1){
+			perror("Send error TCP Tail Syn");
+			exit(EXIT_FAILURE);
+		}
+		usleep(tail_wait * 1000);
+	}		// end for
+	tcp->source = ps_tcp->source = htons(sport);
+
 	return NULL;
 }
 
@@ -856,6 +890,104 @@ void print_use()
 			"-f [file name to read into Payload]\n");
 }
 
+int setup_tcp_packets()
+{
+	//packet_send is already set up;
+
+	size_t len = data_size + sizeof(uint16_t) + sizeof(struct tcphdr);
+	char buffer[1500];
+	struct tcphdr *tcp;
+
+	//memcpy(buffer, packet_send, len);
+
+	u_int32_t ack = 256;
+
+	//int size = tcp_bool ? data_size : data_size + sizeof(struct tcphdr);
+
+	packets_e = calloc(num_packets, len);
+	if(!packets_e)
+		return -1;
+	packets_f = calloc(num_packets, len);
+	if(!packets_f)
+		return -1;
+	int pslen = len + sizeof(struct pseudo_header);
+
+	char *ptr = packets_e;
+	register int i = 0;
+	for(i = 0; i < num_packets; ++i, ptr += len){
+
+		tcp = (struct tcphdr *) ptr;
+
+		tcp->source = htons(sport);
+		tcp->dest = htons(dport);
+		tcp->seq = htonl(seq++);
+		tcp->ack = 1;
+		tcp->ack_seq=htonl(ack++);
+		tcp->th_off = 5;
+		tcp->window = (1 << 15) - 1;
+		tcp->syn = 0;
+
+		/* pseudo header for udp checksum */
+
+		ps->source = srcaddrs.sin_addr.s_addr;
+		//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
+		//inet_pton(AF_INET, dst_ip, &ps->dest);
+		ps->dest =
+				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+		ps->zero = 0;
+		ps->proto = IPPROTO_TCP;
+		ps->len = htons(len);
+
+		/*copy udp packet into pseudo header buffer to calculate checksum*/
+		memcpy(ps + 1, tcp, len);
+
+		/* set tcp checksum */
+		tcp->check = ip_checksum(ps, pslen);
+	}
+
+	seq = 0;
+	ack = 256;
+	ptr = packets_f;
+	fill_data(buffer + sizeof(uint16_t), data_size);
+
+	for(i = 0; i < num_packets; ++i, ptr += len){
+
+		tcp = (struct tcphdr *) ptr;
+
+		tcp->source = htons(sport);
+		tcp->dest = htons(dport);
+		tcp->seq = htonl(seq++);
+		tcp->ack = 1;
+		tcp->ack_seq = htonl(ack++);
+		tcp->th_off = 5;
+		tcp->window = (1 << 15) - 1;
+		tcp->syn = 0;
+
+		/* pseudo header for udp checksum */
+
+		ps->source = srcaddrs.sin_addr.s_addr;
+		//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
+		//inet_pton(AF_INET, dst_ip, &ps->dest);
+		ps->dest =
+				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+		ps->zero = 0;
+		ps->proto = IPPROTO_TCP;
+		ps->len = htons(len);
+
+		memcpy(ptr + sizeof(struct tcphdr) + sizeof(uint16_t), buffer,
+						data_size);
+
+		/*copy udp packet into pseudo header buffer to calculate checksum*/
+		memcpy(ps + 1, tcp, pslen);
+
+		/* set tcp checksum */
+		tcp->check = ip_checksum(ps, pslen);
+	}
+
+	return 0;
+
+}
+
 int check_args(int argc, char* argv[])
 {
 	if(argc < 2){
@@ -878,6 +1010,8 @@ int check_args(int argc, char* argv[])
 	tail_wait = 10;        // wait 10 ms between ICMP tail messages
 	num_tail = 20;		// send 20 ICMP tail messages
 	file = "/dev/urandom";        // default to random data for compression detection
+
+	send_train = send_tcp;
 
 	register int i;
 	int check;
@@ -919,11 +1053,6 @@ int check_args(int argc, char* argv[])
 					errno = ERANGE;
 					perror("# UDP packets: 1 - 10,000");
 					return EXIT_FAILURE;
-				}else{
-					packet_ary = (union packet *) calloc(
-							num_packets,
-							sizeof(union packet));
-
 				}
 				break;
 			case 't':        //ttl
