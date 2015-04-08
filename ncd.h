@@ -28,12 +28,16 @@
 #include <ctype.h>		/* for inet_pton() */
 #include <pthread.h>		/* for pthreads */
 
-/**
- * Favor the BSD style struct udphdr for uh_sport, etc....
- */
-#define __FAVOR_BSD
 
-#define SIZE (1500 - sizeof(struct ip))
+/**
+ * Favor the BSD style UDP & IP headers
+ */
+#ifndef __USE_BSD
+#define __USE_BSD
+#endif
+#ifndef __FAVOR_BSD
+#define __FAVOR_BSD
+#endif
 
 /**
  *  maximum ip packet size
@@ -43,28 +47,11 @@
  *  2 16-bit packet ID
  *
  */
-
+#define SIZE (1500 - sizeof(struct ip))
 #define UDP_DATA_SIZE (SIZE-sizeof(struct udphdr)-sizeof(uint16_t))
 #define TCP_DATA_SIZE (SIZE-sizeof(struct tcphdr)-sizeof(uint16_t))
 
-struct udp_packet {
-	//struct ip iphdr;
-	struct udphdr udp;
-	uint16_t seq;
-	char data[UDP_DATA_SIZE];
-};
 
-struct tcp_packet {
-	//struct ip iphdr;
-	struct tcphdr tcp;
-	uint16_t seq;
-	char data[TCP_DATA_SIZE];
-};
-
-union packet {
-	struct tcp_packet tcp;
-	struct udp_packet udp;
-};
 
 /**
  * struct for udp pseudo header
@@ -81,10 +68,10 @@ struct __attribute__((__packed__))pseudo_header {
  * Determines if compression occurs along the current transmission path to host
  * by sending data to a remote location.
  *
- * two data trains are sent each with leading and trailing ICMP timestamp
+ * Two data trains are sent each with leading and trailing ICMP timestamp
  * messages
  *
- * the first data train will be low entropy data, to encourage compression
+ * The first data train will be low entropy data, to encourage compression
  * the second train will have high entropy data, which should not be compressed
  * if the times are significantly different, we have reasonable evidence
  * compression exists along this path.
@@ -98,46 +85,46 @@ struct __attribute__((__packed__))pseudo_header {
 int comp_det();
 
 /**
- * formats an ipv4 header beginning at buff of length size
- * @param buff
- * @param size
- * @param res
- * @param proto
- * @return
+ * Formats an ipv4 header beginning at buff of length size
+ * @param buff Address of the starting location for the IP packet
+ * @param size The length of the IP packet
+ * @param res A pointer to a struct addrinfo -- from getaddrinfo()
+ * @param proto The 8-bit protocol
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 
 int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 
 /**
- * formats an udp header beginning at buff with a payload of length udp_data_len
- * @param buff
- * @param udp_data_len
- * @param proto
- * @return
+ * Formats a UDP header beginning at buff with a payload of length udp_data_len
+ * @param buff Address of the starting location for the UDP packet
+ * @param udp_data_len The length of the UDP payload
+ * @param proto The 8-bit protocol
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto);
 int mktcphdr(void* buff, size_t data_len, u_int8_t proto);
 /**
- * formats an ICMP packet beginning at buff with a payload of length datalen
- * @param buff
- * @param datalen
- * @return
+ * Formats an ICMP packet beginning at buff with a payload of length datalen
+ * @param buff Address of the starting location for the ICMP packet
+ * @param datalen The length of the ICMP payload
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int mkicmpv4(void *buff, size_t datalen);
 
 int mkicmpv6(void *buff, size_t datalen);
 
 /**
- * fills the data portion of a packet with the size data from a file char* file
- * @param buff
- * @param size
+ * Fills the data portion of a packet with the size data from a file (char* file)
+ * @param buff Address of the starting location for the data
+ * @param size The length of the data region
  */
 void fill_data(void *buff, size_t size);
 
 /**
- * sends the udp data train with leading and trailing ICMP messages
- * @return unsigned integer value cast to void*. 0 success, 1 error/failure
+ * Sends the UDP data train with leading and trailing ICMP messages
+ * @return An unsigned integer value cast to void*. 0 success, 1 error/failure
  * @param status returns the status/return code
  */
 void *send_udp(void* status);
@@ -151,10 +138,10 @@ void *send_tcp(void* status);
 
 /**
  * Receives ICMP responses from end host and records times
- * @param t pointer to a double. returns the time in ms between head echo
- * response and first processed tail echo response to a resolution of
+ * @param t Pointer to a double. Returns the time in ms between head echo response and first
+ * processed tail echo response to a resolution of 
  * microseconds (10^-6 sec)
- * @return 0 success, 1 error/failure
+ * @return 0 success, 1 error/failure -- pthreads
  */
 void *recv4(void *t);
 

@@ -24,15 +24,23 @@ char* dst_ip = NULL; 		// destination ip address
 char* file = NULL;        //name of file to read from /dev/urandom by default
 //=23+1+16=40bytes
 
+/* flags */
+uint8_t lflag = 1;    		// default option for low entropy -- set to on
+uint8_t hflag = 1;   		// default option for high entropy -- set to on
+uint8_t fflag = 0;        // file flag <------- do we need this or is this redundant?
+// 40+(3*1) = 40+3 = 43
+//cacheline
+
+/* file descriptors */
 int icmp_fd; 			//icmp socket file descriptor
 int send_fd; 			//udp socket file descriptor
 int recv_fd; 			//reply receiving socket file descriptor
+//= 43+3*4 = 43+12 = 55 Bytes
 
-//40+12= 52 Bytes
-
+/* lengths of packets and data, etc. */
 size_t send_len;		// length of data to be sent
-int tcp_bool = 0;        //bool for whether to use tcp or udp(1 == true, 0 == false)
-//52+8+4=64
+uint8_t tcp_bool = 0;        //bool for whether to use tcp or udp(1 == true, 0 == false)
+//55+8+1=64
 
 //cacheline
 
@@ -148,7 +156,7 @@ int comp_det()
 	 }*/
 
 	/* Setup TCP Socket to bypass filters*/
-	if(tcp_bool ==1)
+	if(tcp_bool == 1)
 		send_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
 	else
 		send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
@@ -186,7 +194,7 @@ int comp_det()
 	err = setuid(getuid());/*give up privileges */
 
 	if(err < 0){
-		perror("Elevated privliges not released");
+		perror("Elevated privileges not released");
 		return EXIT_FAILURE;
 	}
 
@@ -225,9 +233,8 @@ int comp_det()
 	pthread_t threads[2];
 	int rc;
 	register int i;
-	void *status[2] = { 0 };
-	if(entropy == 'B' || entropy == 'L'){
-
+	void *status[2];
+	if(lflag == 1){
 		done = 0;        //boolean false
 
 		/* Acquire raw socket to listen for ICMP replies */
@@ -242,6 +249,7 @@ int comp_det()
 		}
 
 		/*increase size of receive buffer*/
+		int size = 1500 * num_packets;
 		int buffsize;
 		socklen_t bufflen = sizeof(buffsize);
 		setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
@@ -284,6 +292,7 @@ int comp_det()
 	}
 
 	sleep(3);        // sloppy replace with better metric
+
 	{
 		//clear out rcvbuffer
 		char buff[1500] = { 0 };
@@ -298,7 +307,7 @@ int comp_det()
 		printf("\nClearing buffer...\n\n");
 	}
 
-	if(entropy == 'B' || entropy == 'H'){
+	if(hflag == 1){
 
 		done = 0;        //boolean false
 		second_train = 1;
@@ -498,8 +507,7 @@ void *send_udp(void* arg)
 	/*send data train*/
 	int i = 0;
 
-	for(i = 0; i < num_packets; ++i){
-		(*packet_id)++;
+	for(i = 0; i < num_packets; ++i, (*packet_id)++){
 
 		n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr,
 				res->ai_addrlen);
@@ -643,6 +651,103 @@ void fill_data(void *buff, size_t size)
 	close(fd);
 }
 
+int setup_tcp_packets()
+{
+	//packet_send is already set up;
+
+	size_t len = data_size + sizeof(uint16_t) + sizeof(struct tcphdr);
+	char buffer[1500];
+	struct tcphdr *tcp;
+
+	//memcpy(buffer, packet_send, len);
+
+	u_int32_t ack = 0;
+
+	//int size = tcp_bool ? data_size : data_size + sizeof(struct tcphdr);
+
+	packets_e = calloc(num_packets, len);
+	if(!packets_e)
+		return -1;
+	packets_f = calloc(num_packets, len);
+	if(!packets_f)
+		return -1;
+	int pslen = len + sizeof(struct pseudo_header);
+
+	char *ptr = packets_e;
+	register int i = 0;
+	for(i = 0; i < num_packets; ++i, ptr += len){
+
+		tcp = (struct tcphdr *) ptr;
+
+		tcp->source = htons(sport);
+		tcp->dest = htons(dport);
+		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
+		tcp->ack = 1;
+		tcp->ack_seq = htonl(ack++);
+		tcp->th_off = 5;
+		tcp->window = (1 << 15) - 1;
+		tcp->syn = 0;
+
+		/* pseudo header for udp checksum */
+
+		ps->source = srcaddrs.sin_addr.s_addr;
+		//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
+		//inet_pton(AF_INET, dst_ip, &ps->dest);
+		ps->dest =
+				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+		ps->zero = 0;
+		ps->proto = IPPROTO_TCP;
+		ps->len = htons(len);
+
+		/*copy udp packet into pseudo header buffer to calculate checksum*/
+		memcpy(ps + 1, tcp, len);
+
+		/* set tcp checksum */
+		tcp->check = ip_checksum(ps, pslen);
+	}
+
+	seq = 0;
+	ack = 0;
+	ptr = packets_f;
+	fill_data(buffer + sizeof(uint16_t), data_size);
+
+	for(i = 0; i < num_packets; ++i, ptr += len){
+
+		tcp = (struct tcphdr *) ptr;
+
+		tcp->source = htons(sport);
+		tcp->dest = htons(dport);
+		tcp->seq = htonl(seq++);
+		tcp->ack = 1;
+		tcp->ack_seq = htonl(ack++);
+		tcp->th_off = 5;
+		tcp->window = (1 << 15) - 1;
+		tcp->syn = 0;
+
+		/* pseudo header for udp checksum */
+
+		ps->source = srcaddrs.sin_addr.s_addr;
+		//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
+		//inet_pton(AF_INET, dst_ip, &ps->dest);
+		ps->dest =
+				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+		ps->zero = 0;
+		ps->proto = IPPROTO_TCP;
+		ps->len = htons(len);
+
+		memcpy(ptr + sizeof(struct tcphdr) + sizeof(uint16_t), buffer,
+				data_size);
+
+		/*copy udp packet into pseudo header buffer to calculate checksum*/
+		memcpy(ps + 1, tcp, pslen);
+
+		/* set tcp checksum */
+		tcp->check = ip_checksum(ps, pslen);
+	}
+
+	return 0;
+}		// end setup_tcp_packets()
+
 void *recv4(void *t)
 {
 	double* time = (double *) t;
@@ -710,6 +815,8 @@ void *recv4(void *t)
 
 		uint32_t* bitset = make_bs_32(num_packets);
 		uint16_t *id = (uint16_t *) (udp + 1);
+		struct in_addr dest;
+		inet_aton(dst_ip, &dest);
 
 		for(;;){
 
@@ -720,10 +827,13 @@ void *recv4(void *t)
 					continue;
 				perror("recvfrom failed");
 				continue;
+			}else if(ip->ip_src.s_addr != dest.s_addr){
+				//printf("Echo sent to IP: %s\n", dst_ip);
+				//printf("Echo reply from IP: %s\n", inet_ntoa(ip_rcv->ip_src));
+				continue;
 			}else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
 				ack++;
-				//id = *(uint16_t *) (udp + 1);
-				//printf("Packet #%d\n", id);
+				//printf("Received packet#: %d\n", *id);
 				set_bs_32(bitset, *id, num_packets);
 				continue;
 			}else if(icmp->icmp_type == 0){
@@ -749,21 +859,21 @@ void *recv4(void *t)
 			if(get_bs_32(bitset, i, num_packets) == 0){
 				int start = i;
 				while(i < num_packets
-						&& get_bs_32(bitset, i,
+						&& (get_bs_32(bitset, i + 1,
 								num_packets)
-								== 0)
+								== 0))
 					i++;
 				int end = i;
-				if(start - end == 0)
+				if(end - start == 0)
 					printf("%d, ", start + 1);
 				else
-					printf("%d-%d, ", start + 1, end);
+					printf("%d-%d, ", start + 1, end + 1);
 			}
 		}
 		printf("\b\b \n");
 		printf("Echo reply from IP: %s\n", inet_ntoa(ip->ip_src));
-
-		free(bitset);
+		if(bitset)
+			free(bitset);
 	}        // end if
 
 	return NULL;
@@ -888,112 +998,11 @@ uint16_t ip_checksum(void* vdata, size_t length)
 	return htons(~acc);
 }
 
-void print_use()
+void print_use(char* program_name)
 {
-	printf("NCD IPAddress -p [port number] [-H |-L | -B (entropy)] "
-			"-s [Payload data size in bytes] "
-			"-n [number of packets] "
-			"-t [TTL] -w [tail wait time] "
-			"-t [number of tail icmp messages] "
-			"-f [file name to read into Payload]\n");
-}
-
-int setup_tcp_packets()
-{
-	//packet_send is already set up;
-
-	size_t len = data_size + sizeof(uint16_t) + sizeof(struct tcphdr);
-	char buffer[1500];
-	struct tcphdr *tcp;
-
-	//memcpy(buffer, packet_send, len);
-
-	u_int32_t ack = 0;
-
-	//int size = tcp_bool ? data_size : data_size + sizeof(struct tcphdr);
-
-	packets_e = calloc(num_packets, len);
-	if(!packets_e)
-		return -1;
-	packets_f = calloc(num_packets, len);
-	if(!packets_f)
-		return -1;
-	int pslen = len + sizeof(struct pseudo_header);
-
-	char *ptr = packets_e;
-	register int i = 0;
-	for(i = 0; i < num_packets; ++i, ptr += len){
-
-		tcp = (struct tcphdr *) ptr;
-
-		tcp->source = htons(sport);
-		tcp->dest = htons(dport);
-		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
-		tcp->ack = 1;
-		tcp->ack_seq = htonl(ack++);
-		tcp->th_off = 5;
-		tcp->window = (1 << 15) - 1;
-		tcp->syn = 0;
-
-		/* pseudo header for udp checksum */
-
-		ps->source = srcaddrs.sin_addr.s_addr;
-		//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
-		//inet_pton(AF_INET, dst_ip, &ps->dest);
-		ps->dest =
-				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
-		ps->zero = 0;
-		ps->proto = IPPROTO_TCP;
-		ps->len = htons(len);
-
-		/*copy udp packet into pseudo header buffer to calculate checksum*/
-		memcpy(ps + 1, tcp, len);
-
-		/* set tcp checksum */
-		tcp->check = ip_checksum(ps, pslen);
-	}
-
-	seq = 0;
-	ack = 0;
-	ptr = packets_f;
-	fill_data(buffer + sizeof(uint16_t), data_size);
-
-	for(i = 0; i < num_packets; ++i, ptr += len){
-
-		tcp = (struct tcphdr *) ptr;
-
-		tcp->source = htons(sport);
-		tcp->dest = htons(dport);
-		tcp->seq = htonl(seq++);
-		tcp->ack = 1;
-		tcp->ack_seq = htonl(ack++);
-		tcp->th_off = 5;
-		tcp->window = (1 << 15) - 1;
-		tcp->syn = 0;
-
-		/* pseudo header for udp checksum */
-
-		ps->source = srcaddrs.sin_addr.s_addr;
-		//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
-		//inet_pton(AF_INET, dst_ip, &ps->dest);
-		ps->dest =
-				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
-		ps->zero = 0;
-		ps->proto = IPPROTO_TCP;
-		ps->len = htons(len);
-
-		memcpy(ptr + sizeof(struct tcphdr) + sizeof(uint16_t), buffer,
-				data_size);
-
-		/*copy udp packet into pseudo header buffer to calculate checksum*/
-		memcpy(ps + 1, tcp, pslen);
-
-		/* set tcp checksum */
-		tcp->check = ip_checksum(ps, pslen);
-	}
-
-	return 0;
-
+	printf("%s IPAddress [-p PORT] [-H | -L] [-s DATA_SIZE] "
+			"[-n NUM_PACKETS] [-t TTL] [-w TAIL_INTERVAL] "
+			"[-t NUM_TAIL] [-f FILENAME_PAYLOAD]\n", program_name);
 }
 
 int check_args(int argc, char* argv[])
@@ -1001,7 +1010,7 @@ int check_args(int argc, char* argv[])
 	if(argc < 2){
 		errno = EINVAL;
 		perror("Too few arguments, see use");
-		print_use();
+		print_use(argv[0]);
 		return EXIT_FAILURE;
 	}
 	dst_ip = NULL;
@@ -1023,106 +1032,105 @@ int check_args(int argc, char* argv[])
 
 	register int i;
 	int check;
-	char* cp;
-	char c;
-	for(i = 1; i < argc; ++i){
-		cp = argv[i];
-		c = *cp;
-		if(c == '-'){
-			c = *(cp + 1);
-			i++;
-			switch(c){
-			case 'p':
-				check = atoi(argv[i]);
-				if(check < (1 << 16) && check > 0)
-					dport = check;
-				else{
-					errno = ERANGE;
-					perror("Port range: 0 - 65535");
-					return EXIT_FAILURE;
-				}
-				break;
-			case 'H':
-			case 'L':
-				entropy = c;
-				i--;
-				break;
-			case 's':
-				data_size = atoi(argv[i]);
-				if(data_size < 1 || data_size > TCP_DATA_SIZE){
-					errno = ERANGE;
-					perror("Valid UDP data size: 1-1460");
-					return EXIT_FAILURE;
-				}
-				break;
-			case 'n':
-				num_packets = atoi(argv[i]);
-				if(num_packets < 1 || num_packets > 10000){
-					errno = ERANGE;
-					perror("# UDP packets: 1 - 10,000");
-					return EXIT_FAILURE;
-				}
-				break;
-			case 't':        //ttl
-				check = atoi(argv[i]);
-				if(check < 0 || check > 255){
-					errno = ERANGE;
-					perror("TTL range: 0 - 255");
-					return EXIT_FAILURE;
-				}else
-					ttl = check;
-				break;
-			case 'w':        // tail_wait
-				tail_wait = atoi(argv[i]);
-				if(tail_wait < 0){
-					errno = ERANGE;
-					perror("Time wait must be positive");
-					return EXIT_FAILURE;
-				}
-				break;
-			case 'r':
-				num_tail = atoi(argv[i]);
-				if(num_tail < 1 || num_tail > 1000){
-					errno = ERANGE;
-					perror("# Tail Packets: 1 - 1,000");
-					return EXIT_FAILURE;
-				}
-				break;
-			case 'f': {
-				file = argv[i];
-				int fd = open(file, O_RDONLY);
-				if(fd < 0){
-					fprintf(stderr, "Error opening file: "
-							"\"%s\" : %s\n", file,
-							strerror(
-							errno));
-					return EXIT_FAILURE;
-				}
-				close(fd);
-				break;
-			}
-			case 'h':
-				print_use();
-				return EXIT_FAILURE;
-				break;
-			case 'T':
-				tcp_bool = 1;
-				send_train = send_tcp;
-				break;
-			default:
+	int c = 0;
+	int err = 0;        // error flag for options
+	while((c = getopt(argc, argv, "HLTp:f:s:n:t:w:r:")) != -1){
+		switch(c){
+		case 'H':
+			lflag = 0;
+			break;
+		case 'L':
+			hflag = 0;
+			break;
+		case 'p':
+			check = atoi(optarg);
+			if(check < (1 << 16) & check > 0){
+				dport = check;
+			}else{
 				errno = ERANGE;
-				perror("Invalid options, check use");
+				perror("Port range: 1 - 65535");
 				return EXIT_FAILURE;
-			}        //end switch
-		}else if(dst_ip == NULL){
-			dst_ip = argv[i];
-		}else{
-			errno = ERANGE;
-			perror("Too many IP Addresses, check use");
-			print_use();
+			}
+			break;
+		case 's':
+			data_size = atoi(optarg);
+			if(data_size < 1 || data_size > SIZE){
+				errno = ERANGE;
+				perror("Valid UDP data size: 1-1460");
+				return EXIT_FAILURE;
+			}
+			break;
+		case 'n':
+			num_packets = atoi(optarg);
+			if(num_packets < 1 || num_packets > 10000){
+				errno = ERANGE;
+				perror("# of packets: 0 - 10000");
+				return EXIT_FAILURE;
+			}
+			break;
+		case 't':
+			check = atoi(optarg);
+			if(check < 0 || check > 255){
+				errno = ERANGE;
+				perror("TTL range: 0 - 255");
+				return EXIT_FAILURE;
+			}else
+				ttl = check;
+			break;
+		case 'w':
+			tail_wait = atoi(optarg);
+			if(tail_wait < 0){
+				errno = ERANGE;
+				perror("Time wait must be positive");
+				return EXIT_FAILURE;
+			}
+			break;
+		case 'r':
+			num_tail = atoi(optarg);
+			if(num_tail < 1 || num_tail > 1000){
+				errno = ERANGE;
+				perror("# Tail Packets: 1 - 1,000");
+				return EXIT_FAILURE;
+			}
+			break;
+		case 'f': {
+			fflag = 1;
+			file = optarg;
+			int fd = open(file, O_RDONLY);
+			if(fd < 0){
+				fprintf(stderr, "Error opening file: "
+						"\"%s\" : %s\n", file,
+						strerror(errno));
+				return EXIT_FAILURE;
+			}
+			close(fd);
+			break;
+		}
+		case '?':
+			err = 1;        // hmm we don't even use this ...
+			printf("Arguments errors ...\n");
 			return EXIT_FAILURE;
-		}        // end if
-	}        //end for
+			break;
+		case 'h':
+			print_use(argv[0]);
+			return EXIT_FAILURE;
+			break;
+		case 'T':
+			tcp_bool = 1;
+			send_train = send_tcp;
+			break;
+		default:
+			errno = ERANGE;
+			perror("Invalid options, check use");
+			return EXIT_FAILURE;
+		}        // end switch
+	}        //end while
+	/* these are the arguments after the command-line options */
+	for(; optind < argc; optind++){
+		dst_ip = argv[optind];
+		//printf("argument: \"%s\"\n", dst_ip);
+	}
+
 	return EXIT_SUCCESS;
 }
 

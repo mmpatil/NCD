@@ -9,15 +9,14 @@
  */
 inline int get_bs_32(uint32_t *buff, int index, size_t size)
 {
-	if(index > size - 1)
+	if(index >= size || index < 0)
 		return -1;
 	int offset = index / 32;
 	uint32_t* ptr = (uint32_t *) buff;
 	ptr += offset;
-	uint32_t mask = 1 << (index % 32);
-	return *ptr & mask;
+	uint32_t mask = 1 << ((index) % 32);
+	return (*ptr) & mask;
 }
-
 
 /**
  * creates a bitset of num_items using 32 bit integers
@@ -58,10 +57,8 @@ inline int clear_bs_32(uint32_t* buff, int index, size_t size)
  */
 inline int set_bs_32(uint32_t* buff, int index, size_t size)
 {
-	index--;
-	if(index > size)
+	if(index > size || index < 0)
 		return -1;
-
 	uint32_t* ptr = (uint32_t*) buff;
 	//int offset = index /32;
 	ptr += (index >> 5);

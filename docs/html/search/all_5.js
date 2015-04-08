@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['main',['main',['../dd/d93/client_8c.html#a0ddf1224851353fc92bfbff6f499fa97',1,'main(int argc, char *argv[]):&#160;client.c'],['../df/dfe/ncd_8c.html#a0ddf1224851353fc92bfbff6f499fa97',1,'main(int argc, char *argv[]):&#160;ncd.c'],['../d9/d54/ping_8c.html#accdee5855b5aa8b3fa2be41ccf9be430',1,'main(int arc, char *argv[]):&#160;ping.c'],['../d7/d51/ping__ip_8c.html#accdee5855b5aa8b3fa2be41ccf9be430',1,'main(int arc, char *argv[]):&#160;ping_ip.c'],['../d1/d20/server_8c.html#a0ddf1224851353fc92bfbff6f499fa97',1,'main(int argc, char *argv[]):&#160;server.c'],['../d8/db9/test_8c.html#accdee5855b5aa8b3fa2be41ccf9be430',1,'main(int arc, char *argv[]):&#160;test.c'],['../d7/d31/tracert_8c.html#accdee5855b5aa8b3fa2be41ccf9be430',1,'main(int arc, char *argv[]):&#160;tracert.c']]]
+  ['get_5fbs_5f32',['get_bs_32',['../d1/d69/bitset_8h.html#affb71d85f40ab8f2015056a9e5eb315f',1,'bitset.h']]],
+  ['get_5ftime',['get_time',['../df/dfe/ncd_8c.html#a634b2de1d27b4fd5b22f6fc46b805d9b',1,'ncd.c']]]
 ];

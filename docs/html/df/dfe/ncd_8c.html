@@ -81,12 +81,14 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">ncd.c File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../dc/d68/ncd_8h_source.html">ncd.h</a>&quot;</code><br/>
+<code>#include &quot;<a class="el" href="../../d1/d69/bitset_8h_source.html">bitset.h</a>&quot;</code><br/>
 </div>
 <p><a href="../../df/dfe/ncd_8c_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -94,79 +96,117 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 Functions</h2></td></tr>
 <tr class="memitem:a634b2de1d27b4fd5b22f6fc46b805d9b"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a634b2de1d27b4fd5b22f6fc46b805d9b">get_time</a> (void)</td></tr>
 <tr class="separator:a634b2de1d27b4fd5b22f6fc46b805d9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa5d407939440fe5743c9e978debe7322"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#aa5d407939440fe5743c9e978debe7322">comp_det</a> (char *address, char *port, char hl, size_t data_size, size_t num_packets, ushort ttl, size_t time_wait, int n_tail)</td></tr>
-<tr class="memdesc:aa5d407939440fe5743c9e978debe7322"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines if compression occurs along the current transmission path to host by sending data to a remote location.  <a href="#aa5d407939440fe5743c9e978debe7322">More...</a><br/></td></tr>
-<tr class="separator:aa5d407939440fe5743c9e978debe7322"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9763bfecd49c11e8488a9b8d940c1b71"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a9763bfecd49c11e8488a9b8d940c1b71">send_data</a> (char *address, char *port_name, char hl, size_t data_size, size_t num_packets, ushort ttl, size_t time_wait, int n_tail)</td></tr>
-<tr class="memdesc:a9763bfecd49c11e8488a9b8d940c1b71"><td class="mdescLeft">&#160;</td><td class="mdescRight">sends data train to the end host with leading and trailing icmp timestamps  <a href="#a9763bfecd49c11e8488a9b8d940c1b71">More...</a><br/></td></tr>
-<tr class="separator:a9763bfecd49c11e8488a9b8d940c1b71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a39544cf1c63682d17e9c1d9215f42842"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a39544cf1c63682d17e9c1d9215f42842">recv_data</a> (double *time)</td></tr>
-<tr class="memdesc:a39544cf1c63682d17e9c1d9215f42842"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receives ICMP responses from end host and records times.  <a href="#a39544cf1c63682d17e9c1d9215f42842">More...</a><br/></td></tr>
-<tr class="separator:a39544cf1c63682d17e9c1d9215f42842"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7da9feca0e536478b6a79b0e4974a8d6"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a7da9feca0e536478b6a79b0e4974a8d6">comp_det</a> ()</td></tr>
+<tr class="memdesc:a7da9feca0e536478b6a79b0e4974a8d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines if compression occurs along the current transmission path to host by sending data to a remote location.  <a href="#a7da9feca0e536478b6a79b0e4974a8d6">More...</a><br/></td></tr>
+<tr class="separator:a7da9feca0e536478b6a79b0e4974a8d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c361136c836098ee919436b5edf77aa"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a9c361136c836098ee919436b5edf77aa">mkipv4</a> (void *buff, size_t size, struct addrinfo *<a class="el" href="../../df/dfe/ncd_8c.html#a8df42e4f21cb586ea4981025137520e0">res</a>, u_int8_t proto)</td></tr>
+<tr class="memdesc:a9c361136c836098ee919436b5edf77aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formats an ipv4 header beginning at buff of length size.  <a href="#a9c361136c836098ee919436b5edf77aa">More...</a><br/></td></tr>
+<tr class="separator:a9c361136c836098ee919436b5edf77aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac35b8012c32dd6ff2fa7efa928f33692"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ac35b8012c32dd6ff2fa7efa928f33692">mkipv6</a> (void *buff, size_t size, struct addrinfo *<a class="el" href="../../df/dfe/ncd_8c.html#a8df42e4f21cb586ea4981025137520e0">res</a>, u_int8_t proto)</td></tr>
+<tr class="separator:ac35b8012c32dd6ff2fa7efa928f33692"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3e68891fcccd5a71c8b12ed78943313"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ac3e68891fcccd5a71c8b12ed78943313">mkudphdr</a> (void *buff, size_t udp_data_len, u_int8_t proto)</td></tr>
+<tr class="memdesc:ac3e68891fcccd5a71c8b12ed78943313"><td class="mdescLeft">&#160;</td><td class="mdescRight">formats an udp header beginning at buff with a payload of length udp_data_len  <a href="#ac3e68891fcccd5a71c8b12ed78943313">More...</a><br/></td></tr>
+<tr class="separator:ac3e68891fcccd5a71c8b12ed78943313"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9248ef96d5f84b0a6fada680529a029c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a9248ef96d5f84b0a6fada680529a029c">mkicmpv4</a> (void *buff, size_t datalen)</td></tr>
+<tr class="memdesc:a9248ef96d5f84b0a6fada680529a029c"><td class="mdescLeft">&#160;</td><td class="mdescRight">formats an ICMP packet beginning at buff with a payload of length datalen  <a href="#a9248ef96d5f84b0a6fada680529a029c">More...</a><br/></td></tr>
+<tr class="separator:a9248ef96d5f84b0a6fada680529a029c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2eada3fc40a96989ac7e16e256f84240"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a2eada3fc40a96989ac7e16e256f84240">mkicmpv6</a> (void *buff, size_t datalen)</td></tr>
+<tr class="separator:a2eada3fc40a96989ac7e16e256f84240"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a951a5d1c4d59b79654a5bb53a7eb65d0"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a951a5d1c4d59b79654a5bb53a7eb65d0">send_train</a> (void *num)</td></tr>
+<tr class="memdesc:a951a5d1c4d59b79654a5bb53a7eb65d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">sends the udp data train with leading and trailing ICMP messages  <a href="#a951a5d1c4d59b79654a5bb53a7eb65d0">More...</a><br/></td></tr>
+<tr class="separator:a951a5d1c4d59b79654a5bb53a7eb65d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a115536db290a1c30ffbc2c07e0db5fbf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a115536db290a1c30ffbc2c07e0db5fbf">fill_data</a> (void *buff, size_t size)</td></tr>
+<tr class="memdesc:a115536db290a1c30ffbc2c07e0db5fbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">fills the data portion of a packet with the size data from a file char* file  <a href="#a115536db290a1c30ffbc2c07e0db5fbf">More...</a><br/></td></tr>
+<tr class="separator:a115536db290a1c30ffbc2c07e0db5fbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa584eddd915ff9cc908280b49b5cc60"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#aaa584eddd915ff9cc908280b49b5cc60">recv4</a> (void *t)</td></tr>
+<tr class="memdesc:aaa584eddd915ff9cc908280b49b5cc60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receives ICMP responses from end host and records times.  <a href="#aaa584eddd915ff9cc908280b49b5cc60">More...</a><br/></td></tr>
+<tr class="separator:aaa584eddd915ff9cc908280b49b5cc60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a25afec74c6238073a2be4d3896b722"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a1a25afec74c6238073a2be4d3896b722">recv6</a> (void *t)</td></tr>
+<tr class="separator:a1a25afec74c6238073a2be4d3896b722"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e25195727f4483c9e7224de02cb55be"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a6e25195727f4483c9e7224de02cb55be">ip_checksum</a> (void *vdata, size_t length)</td></tr>
 <tr class="memdesc:a6e25195727f4483c9e7224de02cb55be"><td class="mdescLeft">&#160;</td><td class="mdescRight">calculates the ip cheksum for some buffer of size length  <a href="#a6e25195727f4483c9e7224de02cb55be">More...</a><br/></td></tr>
 <tr class="separator:a6e25195727f4483c9e7224de02cb55be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a0ddf1224851353fc92bfbff6f499fa97">main</a> (int argc, char *argv[])</td></tr>
-<tr class="memdesc:a0ddf1224851353fc92bfbff6f499fa97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main function only calls comp_detection()  <a href="#a0ddf1224851353fc92bfbff6f499fa97">More...</a><br/></td></tr>
-<tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6bb04c1388ab75a69d14f9858953463c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a6bb04c1388ab75a69d14f9858953463c">print_use</a> (char *program_name)</td></tr>
+<tr class="separator:a6bb04c1388ab75a69d14f9858953463c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91ffa5784a46ec2b471bf3ba8c1aa870"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a91ffa5784a46ec2b471bf3ba8c1aa870">check_args</a> (int argc, char *argv[])</td></tr>
+<tr class="memdesc:a91ffa5784a46ec2b471bf3ba8c1aa870"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks arguments given on command line and stores values in global variables.  <a href="#a91ffa5784a46ec2b471bf3ba8c1aa870">More...</a><br/></td></tr>
+<tr class="separator:a91ffa5784a46ec2b471bf3ba8c1aa870"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:af69e180c878a9c8f4e45ec7dc25a062f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#af69e180c878a9c8f4e45ec7dc25a062f">data_size</a> = 996</td></tr>
+<tr class="separator:af69e180c878a9c8f4e45ec7dc25a062f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a437716dca9e6cf8866668b853ab8f61b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a437716dca9e6cf8866668b853ab8f61b">num_packets</a> = 1000</td></tr>
+<tr class="separator:a437716dca9e6cf8866668b853ab8f61b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a038f351872dc589c5fa05257e4d8ba69"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a038f351872dc589c5fa05257e4d8ba69">num_tail</a> = 20</td></tr>
+<tr class="separator:a038f351872dc589c5fa05257e4d8ba69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afce17f4e9b9e870734147cb57c0aadad"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#afce17f4e9b9e870734147cb57c0aadad">tail_wait</a> = 10</td></tr>
+<tr class="separator:afce17f4e9b9e870734147cb57c0aadad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e26a4afe91a21810290057677a17a11"><td class="memItemLeft" align="right" valign="top">u_int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a9e26a4afe91a21810290057677a17a11">port</a> = 33434</td></tr>
+<tr class="separator:a9e26a4afe91a21810290057677a17a11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0684734c5b6ef6dd888d43664c483d5"><td class="memItemLeft" align="right" valign="top">u_int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ae0684734c5b6ef6dd888d43664c483d5">ttl</a> = 255</td></tr>
+<tr class="separator:ae0684734c5b6ef6dd888d43664c483d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa600d86ba40a79af175750031d366976"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#aa600d86ba40a79af175750031d366976">dst_ip</a> = NULL</td></tr>
+<tr class="separator:aa600d86ba40a79af175750031d366976"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf16cd437526a5c5e0e0af87745acbb8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#adf16cd437526a5c5e0e0af87745acbb8">file</a> = &quot;/dev/urandom&quot;</td></tr>
+<tr class="separator:adf16cd437526a5c5e0e0af87745acbb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4cc7e6867b564ffab9f569351d574a67"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a4cc7e6867b564ffab9f569351d574a67">lflag</a> = 1</td></tr>
+<tr class="separator:a4cc7e6867b564ffab9f569351d574a67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6fe8b762116512ab777118cd3e043200"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a6fe8b762116512ab777118cd3e043200">hflag</a> = 1</td></tr>
+<tr class="separator:a6fe8b762116512ab777118cd3e043200"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab9e30d72b4b6af02ce19b24422ad2ce"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#aab9e30d72b4b6af02ce19b24422ad2ce">fflag</a> = 0</td></tr>
+<tr class="separator:aab9e30d72b4b6af02ce19b24422ad2ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5992b274cfdcacdbc1fa8347fd01ebde"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a5992b274cfdcacdbc1fa8347fd01ebde">done</a> = 0</td></tr>
+<tr class="separator:a5992b274cfdcacdbc1fa8347fd01ebde"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab3ed3199bc18936386acca307bf5d5c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#aab3ed3199bc18936386acca307bf5d5c">icmp_fd</a></td></tr>
+<tr class="separator:aab3ed3199bc18936386acca307bf5d5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ccd8921f38d8d73068731023f739eac"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a4ccd8921f38d8d73068731023f739eac">send_fd</a></td></tr>
+<tr class="separator:a4ccd8921f38d8d73068731023f739eac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbd35ba49b28a4cd44185c0f3cb57d31"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#acbd35ba49b28a4cd44185c0f3cb57d31">recv_fd</a></td></tr>
+<tr class="separator:acbd35ba49b28a4cd44185c0f3cb57d31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43587531405dea543232fa917b84de56"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a43587531405dea543232fa917b84de56">packet_send</a> [<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td></tr>
+<tr class="separator:a43587531405dea543232fa917b84de56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a806e49f97606bb7dbd7046b2fe7f0f3a"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a806e49f97606bb7dbd7046b2fe7f0f3a">icmp_send</a> [128] = { 0 }</td></tr>
+<tr class="separator:a806e49f97606bb7dbd7046b2fe7f0f3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a863976a08e4f559d807feb999808fd04"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a863976a08e4f559d807feb999808fd04">packet_rcv</a> [<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td></tr>
+<tr class="separator:a863976a08e4f559d807feb999808fd04"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1619259258d48d4330333c75a93ec7a6"><td class="memItemLeft" align="right" valign="top">uint16_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a1619259258d48d4330333c75a93ec7a6">packet_id</a> = (uint16_t*) <a class="el" href="../../df/dfe/ncd_8c.html#a43587531405dea543232fa917b84de56">packet_send</a></td></tr>
+<tr class="separator:a1619259258d48d4330333c75a93ec7a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4b5567ce4e42c0d3f03830d91170fd6"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#af4b5567ce4e42c0d3f03830d91170fd6">send_len</a></td></tr>
+<tr class="separator:af4b5567ce4e42c0d3f03830d91170fd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86d35c3e67b1956a675d70490f38f09b"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a86d35c3e67b1956a675d70490f38f09b">icmp_ip_len</a></td></tr>
+<tr class="separator:a86d35c3e67b1956a675d70490f38f09b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2fe19f17b763c479d75d205ef579b7cc"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a2fe19f17b763c479d75d205ef579b7cc">icmp_len</a></td></tr>
+<tr class="separator:a2fe19f17b763c479d75d205ef579b7cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b262227cac184fe927e55d4e8e35338"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a4b262227cac184fe927e55d4e8e35338">icmp_data_len</a></td></tr>
+<tr class="separator:a4b262227cac184fe927e55d4e8e35338"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae25856ab27d6f6b2fcfddf78fdf673b2"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ae25856ab27d6f6b2fcfddf78fdf673b2">rcv_len</a></td></tr>
+<tr class="separator:ae25856ab27d6f6b2fcfddf78fdf673b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8df42e4f21cb586ea4981025137520e0"><td class="memItemLeft" align="right" valign="top">struct addrinfo *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a8df42e4f21cb586ea4981025137520e0">res</a> = NULL</td></tr>
+<tr class="separator:a8df42e4f21cb586ea4981025137520e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e7246feab9bd6f3f5da6f698465c62a"><td class="memItemLeft" align="right" valign="top">void *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a6e7246feab9bd6f3f5da6f698465c62a">recv_data</a> )(void *) = NULL</td></tr>
+<tr class="separator:a6e7246feab9bd6f3f5da6f698465c62a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><dl class="section author"><dt>Author</dt><dd>: Paul Kirth</dd></dl>
-<p>Comp 429 Project 2 Phase III </p>
+<div class="textblock"><dl class="section author"><dt>Author</dt><dd>: Paul Kirth </dd></dl>
 
 <p>Definition in file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="aa5d407939440fe5743c9e978debe7322"></a>
+<a class="anchor" id="a91ffa5784a46ec2b471bf3ba8c1aa870"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int comp_det </td>
+          <td class="memname">int check_args </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>address</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>port</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char&#160;</td>
-          <td class="paramname"><em>hl</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>data_size</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>num_packets</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">ushort&#160;</td>
-          <td class="paramname"><em>ttl</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>time_wait</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>n_tail</em>&#160;</td>
+          <td class="paramname"><em>argc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>argv</em>[]&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -176,21 +216,76 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Determines if compression occurs along the current transmission path to host by sending data to a remote location. </p>
-<p>two data trains are sent each with leading and trailing ICMP timestamp messages</p>
-<p>the first data train will be low entropy data, to encourage compression the second train will have high entropy data, which should not be compressed if the times are significantly different, we have reasonable evidence compression exists along this path.</p>
+<p>Checks arguments given on command line and stores values in global variables. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">address</td><td>the address of the end host stored in a char array (cstring) </td></tr>
-    <tr><td class="paramname">port</td><td>the port number or service name </td></tr>
-    <tr><td class="paramname">num_packets</td><td>the number of packets in each data train </td></tr>
-    <tr><td class="paramname">time_wait</td><td>the wait between trains </td></tr>
+    <tr><td class="paramname">argc</td><td>number of command line args </td></tr>
+    <tr><td class="paramname">argv</td><td>array of commandline args </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>0 success, 1 Failure </dd></dl>
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00621">621</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a7da9feca0e536478b6a79b0e4974a8d6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int comp_det </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Determines if compression occurs along the current transmission path to host by sending data to a remote location. </p>
+<p>Two data trains are sent each with leading and trailing ICMP timestamp messages.</p>
+<p>The first data train will be low entropy data, to encourage compression, while the second train will have high entropy data, which should not be compressed well. If the times are significantly different, we have reasonable evidence compression exists along this path.</p>
 <dl class="section return"><dt>Returns</dt><dd>0 success, 1 error/failure </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00019">19</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00059">59</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a115536db290a1c30ffbc2c07e0db5fbf"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void fill_data </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>fills the data portion of a packet with the size data from a file char* file </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>Address of the starting location for the data </td></tr>
+    <tr><td class="paramname">size</td><td>The length of the data region </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00384">384</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -208,7 +303,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00010">10</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00050">50</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -246,25 +341,25 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>the IP checksum of the buffer </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00333">333</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00560">560</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a0ddf1224851353fc92bfbff6f499fa97"></a>
+<a class="anchor" id="a9248ef96d5f84b0a6fada680529a029c"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int main </td>
+          <td class="memname">int mkicmpv4 </td>
           <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>argc</em>, </td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>argv</em>[]&#160;</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>datalen</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -274,22 +369,212 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Main function only calls comp_detection() </p>
-<p>[1] Destination IP address [2] Port Number [3] High or low entropy data 'H' or 'L' [4] Size of udp data [5] Number of packets in UDP Data Train [6] Time to Live [7] Wait time in milliseconds [8] Number of tail ICMP messages to send </p>
+<p>formats an ICMP packet beginning at buff with a payload of length datalen </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>Address of the starting location for the ICMP packet </td></tr>
+    <tr><td class="paramname">datalen</td><td>The length of the ICMP payload </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00401">401</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00309">309</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a39544cf1c63682d17e9c1d9215f42842"></a>
+<a class="anchor" id="a2eada3fc40a96989ac7e16e256f84240"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int recv_data </td>
+          <td class="memname">int mkicmpv6 </td>
           <td>(</td>
-          <td class="paramtype">double *&#160;</td>
-          <td class="paramname"><em>time</em></td><td>)</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>datalen</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00324">324</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a9c361136c836098ee919436b5edf77aa"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mkipv4 </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct addrinfo *&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">u_int8_t&#160;</td>
+          <td class="paramname"><em>proto</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Formats an ipv4 header beginning at buff of length size. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>Address of the starting location for the IP packet </td></tr>
+    <tr><td class="paramname">size</td><td>The length of the IP packet </td></tr>
+    <tr><td class="paramname">res</td><td>A pointer to a struct addrinfo &ndash; from getaddrinfo() </td></tr>
+    <tr><td class="paramname">proto</td><td>The 8-bit protocol </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00248">248</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ac35b8012c32dd6ff2fa7efa928f33692"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mkipv6 </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">struct addrinfo *&#160;</td>
+          <td class="paramname"><em>res</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">u_int8_t&#160;</td>
+          <td class="paramname"><em>proto</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00266">266</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ac3e68891fcccd5a71c8b12ed78943313"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mkudphdr </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>udp_data_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">u_int8_t&#160;</td>
+          <td class="paramname"><em>proto</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>formats an udp header beginning at buff with a payload of length udp_data_len </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buff</td><td>Address of the starting location for the UDP packet </td></tr>
+    <tr><td class="paramname">udp_data_len</td><td>The length of the UDP payload </td></tr>
+    <tr><td class="paramname">proto</td><td>The 8-bit protocol </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00279">279</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a6bb04c1388ab75a69d14f9858953463c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void print_use </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>program_name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00614">614</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="aaa584eddd915ff9cc908280b49b5cc60"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void* recv4 </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>t</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -298,101 +583,430 @@ Functions</h2></td></tr>
 <p>Receives ICMP responses from end host and records times. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">time</td><td>returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10^-6 sec) </td></tr>
+    <tr><td class="paramname">t</td><td>pointer to a double. returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10^-6 sec) </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>0 success, 1 error/failure </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00254">254</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00401">401</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a9763bfecd49c11e8488a9b8d940c1b71"></a>
+<a class="anchor" id="a1a25afec74c6238073a2be4d3896b722"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int send_data </td>
+          <td class="memname">void* recv6 </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>address</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>t</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>port</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char&#160;</td>
-          <td class="paramname"><em>hl</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>data_size</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>num_packets</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">ushort&#160;</td>
-          <td class="paramname"><em>ttl</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>time_wait</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>n_tail</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>sends data train to the end host with leading and trailing icmp timestamps </p>
-<p>sets up a connection using raw sockets and sends a head ICMP echo request followed by a UDP data train. After the data train is sent, a series of ICMP echo responses is sent.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00495">495</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a951a5d1c4d59b79654a5bb53a7eb65d0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void* send_train </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>num</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>sends the udp data train with leading and trailing ICMP messages </p>
+<dl class="section return"><dt>Returns</dt><dd>integer value cast to void*. 0 success, 1 error/failure </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">address</td><td>the address of the end host stored in a char array (cstring) </td></tr>
-    <tr><td class="paramname">port</td><td>the port number or service name </td></tr>
-    <tr><td class="paramname">hl</td><td>the entropy of the data (either 'H' for high entropy or 'L' for low entropy </td></tr>
-    <tr><td class="paramname">data_size</td><td>the size in bytes of the data to be sent in the udp train </td></tr>
-    <tr><td class="paramname">num_packets</td><td>the number of packets in each data train </td></tr>
-    <tr><td class="paramname">ttl</td><td>the time to live for each packet (max size 255) </td></tr>
-    <tr><td class="paramname">time_wait</td><td>the wait between ICMP tail messages </td></tr>
-    <tr><td class="paramname">n_tail</td><td>the number of ICMP tail messages to be sent </td></tr>
+    <tr><td class="paramname">num</td><td>number of tail icmp messages to send </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>0 success, 1 error/failure </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00054">54</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00339">339</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a class="anchor" id="af69e180c878a9c8f4e45ec7dc25a062f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int data_size = 996</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00012">12</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a5992b274cfdcacdbc1fa8347fd01ebde"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int done = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00025">25</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="aa600d86ba40a79af175750031d366976"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* dst_ip = NULL</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00018">18</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="aab9e30d72b4b6af02ce19b24422ad2ce"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int fflag = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00024">24</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="adf16cd437526a5c5e0e0af87745acbb8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* file = &quot;/dev/urandom&quot;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00019">19</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a6fe8b762116512ab777118cd3e043200"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int hflag = 1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00023">23</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a4b262227cac184fe927e55d4e8e35338"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t icmp_data_len</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00042">42</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="aab3ed3199bc18936386acca307bf5d5c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int icmp_fd</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00028">28</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a86d35c3e67b1956a675d70490f38f09b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t icmp_ip_len</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00040">40</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a2fe19f17b763c479d75d205ef579b7cc"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t icmp_len</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00041">41</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a806e49f97606bb7dbd7046b2fe7f0f3a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char icmp_send[128] = { 0 }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00034">34</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a4cc7e6867b564ffab9f569351d574a67"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int lflag = 1</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00022">22</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a437716dca9e6cf8866668b853ab8f61b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int num_packets = 1000</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00013">13</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a038f351872dc589c5fa05257e4d8ba69"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int num_tail = 20</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00014">14</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a1619259258d48d4330333c75a93ec7a6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t* packet_id = (uint16_t*) <a class="el" href="../../df/dfe/ncd_8c.html#a43587531405dea543232fa917b84de56">packet_send</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00036">36</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a863976a08e4f559d807feb999808fd04"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char packet_rcv[<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00035">35</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a43587531405dea543232fa917b84de56"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char packet_send[<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00033">33</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a9e26a4afe91a21810290057677a17a11"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int16_t port = 33434</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00016">16</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ae25856ab27d6f6b2fcfddf78fdf673b2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t rcv_len</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00043">43</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a6e7246feab9bd6f3f5da6f698465c62a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void*(* recv_data)(void *) = NULL</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00047">47</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="acbd35ba49b28a4cd44185c0f3cb57d31"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int recv_fd</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00030">30</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a8df42e4f21cb586ea4981025137520e0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct addrinfo* res = NULL</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00046">46</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a4ccd8921f38d8d73068731023f739eac"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int send_fd</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00029">29</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="af4b5567ce4e42c0d3f03830d91170fd6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t send_len</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00039">39</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="afce17f4e9b9e870734147cb57c0aadad"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int tail_wait = 10</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00015">15</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ae0684734c5b6ef6dd888d43664c483d5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int8_t ttl = 255</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00017">17</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Dec 7 2014 17:46:53 for Network Compression Detection by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Mar 7 2015 10:48:42 for Network Compression Detection by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>
