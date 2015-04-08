@@ -293,6 +293,7 @@ int comp_det()
 	if(entropy == 'B' || entropy == 'H'){
 
 		done = 0;        //boolean false
+		second_train = 1;
 
 		int offset = tcp_bool == 1 ? sizeof(struct tcphdr) : 0;
 		if(!tcp_bool)
@@ -900,7 +901,7 @@ int setup_tcp_packets()
 
 	//memcpy(buffer, packet_send, len);
 
-	u_int32_t ack = 256;
+	u_int32_t ack = 0;
 
 	//int size = tcp_bool ? data_size : data_size + sizeof(struct tcphdr);
 
@@ -920,7 +921,7 @@ int setup_tcp_packets()
 
 		tcp->source = htons(sport);
 		tcp->dest = htons(dport);
-		tcp->seq = htonl(seq++);
+		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
 		tcp->ack = 1;
 		tcp->ack_seq=htonl(ack++);
 		tcp->th_off = 5;
@@ -946,7 +947,7 @@ int setup_tcp_packets()
 	}
 
 	seq = 0;
-	ack = 256;
+	ack = 0;
 	ptr = packets_f;
 	fill_data(buffer + sizeof(uint16_t), data_size);
 
