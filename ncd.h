@@ -32,13 +32,14 @@
 /**
  * Favor the BSD style UDP & IP headers
  */
+/*
 #ifndef __USE_BSD
 #define __USE_BSD
 #endif
 #ifndef __FAVOR_BSD
 #define __FAVOR_BSD
 #endif
-
+*/
 /**
  *  maximum ip packet size
  *  1500 bytes Ethernet max size

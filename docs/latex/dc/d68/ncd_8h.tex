@@ -7,6 +7,12 @@
 {\ttfamily \#include $<$sys/time.\-h$>$}\\*
 {\ttfamily \#include $<$errno.\-h$>$}\\*
 {\ttfamily \#include $<$sys/socket.\-h$>$}\\*
+{\ttfamily \#include $<$netinet/ip.\-h$>$}\\*
+{\ttfamily \#include $<$netinet/ip6.\-h$>$}\\*
+{\ttfamily \#include $<$netinet/ip\-\_\-icmp.\-h$>$}\\*
+{\ttfamily \#include $<$netinet/icmp6.\-h$>$}\\*
+{\ttfamily \#include $<$netinet/tcp.\-h$>$}\\*
+{\ttfamily \#include $<$netinet/udp.\-h$>$}\\*
 {\ttfamily \#include $<$netdb.\-h$>$}\\*
 {\ttfamily \#include $<$arpa/inet.\-h$>$}\\*
 {\ttfamily \#include $<$signal.\-h$>$}\\*
@@ -14,16 +20,6 @@
 {\ttfamily \#include $<$unistd.\-h$>$}\\*
 {\ttfamily \#include $<$ctype.\-h$>$}\\*
 {\ttfamily \#include $<$pthread.\-h$>$}\\*
-{\ttfamily \#include $<$netinet/ip.\-h$>$}\\*
-{\ttfamily \#include $<$netinet/ip6.\-h$>$}\\*
-{\ttfamily \#include $<$netinet/ip\-\_\-icmp.\-h$>$}\\*
-{\ttfamily \#include $<$netinet/icmp6.\-h$>$}\\*
-{\ttfamily \#include $<$netinet/udp.\-h$>$}\\*
-\subsection*{Data Structures}
-\begin{DoxyCompactItemize}
-\item 
-struct \hyperlink{structpseudo__header}{pseudo\-\_\-header}
-\begin{DoxyCompactList}\small\item\em struct for udp pseudo header \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Macros}
 \begin{DoxyCompactItemize}
 \item 
@@ -31,11 +27,17 @@ struct \hyperlink{structpseudo__header}{pseudo\-\_\-header}
 \begin{DoxyCompactList}\small\item\em Favor the B\-S\-D style U\-D\-P \& I\-P headers. \end{DoxyCompactList}\item 
 \#define \hyperlink{ncd_8h_a0e25ec3d9c374c5e6dceeb9341baf766}{\-\_\-\-\_\-\-F\-A\-V\-O\-R\-\_\-\-B\-S\-D}
 \item 
-\#define \hyperlink{ncd_8h_a70ed59adcb4159ac551058053e649640}{S\-I\-Z\-E}~(1500-\/40-\/8-\/2)
-\begin{DoxyCompactList}\small\item\em maximum ip packet size 1500 bytes Ethernet max size 40 I\-Pv6 header max size 8 U\-D\-P header 2 16-\/bit packet I\-D \end{DoxyCompactList}\end{DoxyCompactItemize}
+\#define \hyperlink{ncd_8h_a70ed59adcb4159ac551058053e649640}{S\-I\-Z\-E}~(1500 -\/ sizeof(struct ip))
+\begin{DoxyCompactList}\small\item\em maximum ip packet size 1500 bytes Ethernet max size 40 I\-Pv6 header max size 8 U\-D\-P header 2 16-\/bit packet I\-D \end{DoxyCompactList}\item 
+\#define \hyperlink{ncd_8h_a8e039e4bc205e04f774f09e68e63868f}{U\-D\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E}~(\hyperlink{ncd_8h_a70ed59adcb4159ac551058053e649640}{S\-I\-Z\-E}-\/sizeof(struct udphdr)-\/sizeof(uint16\-\_\-t))
+\item 
+\#define \hyperlink{ncd_8h_afdac791ecf1a42be6a814a0c23aa795b}{T\-C\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E}~(\hyperlink{ncd_8h_a70ed59adcb4159ac551058053e649640}{S\-I\-Z\-E}-\/sizeof(struct tcphdr)-\/sizeof(uint16\-\_\-t))
+\end{DoxyCompactItemize}
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
+struct \hyperlink{ncd_8h_a4ad006b97556561b12d11cc3aee188a3}{\-\_\-\-\_\-attribute\-\_\-\-\_\-} ((\-\_\-\-\_\-packed\-\_\-\-\_\-)) pseudo\-\_\-header
+\begin{DoxyCompactList}\small\item\em struct for udp pseudo header \end{DoxyCompactList}\item 
 int \hyperlink{ncd_8h_a7da9feca0e536478b6a79b0e4974a8d6}{comp\-\_\-det} ()
 \begin{DoxyCompactList}\small\item\em Determines if compression occurs along the current transmission path to host by sending data to a remote location. \end{DoxyCompactList}\item 
 int \hyperlink{ncd_8h_a9c361136c836098ee919436b5edf77aa}{mkipv4} (void $\ast$buff, size\-\_\-t size, struct addrinfo $\ast$\hyperlink{ncd_8c_a8df42e4f21cb586ea4981025137520e0}{res}, u\-\_\-int8\-\_\-t proto)
@@ -43,15 +45,19 @@ int \hyperlink{ncd_8h_a9c361136c836098ee919436b5edf77aa}{mkipv4} (void $\ast$buf
 int \hyperlink{ncd_8h_ac35b8012c32dd6ff2fa7efa928f33692}{mkipv6} (void $\ast$buff, size\-\_\-t size, struct addrinfo $\ast$\hyperlink{ncd_8c_a8df42e4f21cb586ea4981025137520e0}{res}, u\-\_\-int8\-\_\-t proto)
 \item 
 int \hyperlink{ncd_8h_ac3e68891fcccd5a71c8b12ed78943313}{mkudphdr} (void $\ast$buff, size\-\_\-t udp\-\_\-data\-\_\-len, u\-\_\-int8\-\_\-t proto)
-\begin{DoxyCompactList}\small\item\em formats an udp header beginning at buff with a payload of length udp\-\_\-data\-\_\-len \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Formats a U\-D\-P header beginning at buff with a payload of length udp\-\_\-data\-\_\-len. \end{DoxyCompactList}\item 
+int \hyperlink{ncd_8h_a749e5dcb5f2858945531a3ff94b11462}{mktcphdr} (void $\ast$buff, size\-\_\-t data\-\_\-len, u\-\_\-int8\-\_\-t proto)
+\item 
 int \hyperlink{ncd_8h_a9248ef96d5f84b0a6fada680529a029c}{mkicmpv4} (void $\ast$buff, size\-\_\-t datalen)
-\begin{DoxyCompactList}\small\item\em formats an I\-C\-M\-P packet beginning at buff with a payload of length datalen \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Formats an I\-C\-M\-P packet beginning at buff with a payload of length datalen. \end{DoxyCompactList}\item 
 int \hyperlink{ncd_8h_a2eada3fc40a96989ac7e16e256f84240}{mkicmpv6} (void $\ast$buff, size\-\_\-t datalen)
 \item 
 void \hyperlink{ncd_8h_a115536db290a1c30ffbc2c07e0db5fbf}{fill\-\_\-data} (void $\ast$buff, size\-\_\-t size)
-\begin{DoxyCompactList}\small\item\em fills the data portion of a packet with the size data from a file char$\ast$ file \end{DoxyCompactList}\item 
-void $\ast$ \hyperlink{ncd_8h_a951a5d1c4d59b79654a5bb53a7eb65d0}{send\-\_\-train} (void $\ast$num)
-\begin{DoxyCompactList}\small\item\em sends the udp data train with leading and trailing I\-C\-M\-P messages \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Fills the data portion of a packet with the size data from a file (char$\ast$ file) \end{DoxyCompactList}\item 
+void $\ast$ \hyperlink{ncd_8h_a0c8bb5479a27edccf644f75c36f88a03}{send\-\_\-udp} (void $\ast$status)
+\begin{DoxyCompactList}\small\item\em Sends the U\-D\-P data train with leading and trailing I\-C\-M\-P messages. \end{DoxyCompactList}\item 
+void $\ast$ \hyperlink{ncd_8h_afd55a5cd2ac890d1ea9b629322c8ed92}{send\-\_\-tcp} (void $\ast$status)
+\begin{DoxyCompactList}\small\item\em sends a tcp data train with leading and trailing I\-C\-M\-P messages \end{DoxyCompactList}\item 
 void $\ast$ \hyperlink{ncd_8h_aaa584eddd915ff9cc908280b49b5cc60}{recv4} (void $\ast$t)
 \begin{DoxyCompactList}\small\item\em Receives I\-C\-M\-P responses from end host and records times. \end{DoxyCompactList}\item 
 void $\ast$ \hyperlink{ncd_8h_a1a25afec74c6238073a2be4d3896b722}{recv6} (void $\ast$t)
@@ -59,7 +65,9 @@ void $\ast$ \hyperlink{ncd_8h_a1a25afec74c6238073a2be4d3896b722}{recv6} (void $\
 uint16\-\_\-t \hyperlink{ncd_8h_a6e25195727f4483c9e7224de02cb55be}{ip\-\_\-checksum} (void $\ast$vdata, size\-\_\-t length)
 \begin{DoxyCompactList}\small\item\em calculates the ip cheksum for some buffer of size length \end{DoxyCompactList}\item 
 int \hyperlink{ncd_8h_a91ffa5784a46ec2b471bf3ba8c1aa870}{check\-\_\-args} (int argc, char $\ast$argv\mbox{[}$\,$\mbox{]})
-\begin{DoxyCompactList}\small\item\em Checks arguments given on command line and stores values in global variables. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Checks arguments given on command line and stores values in global variables. \end{DoxyCompactList}\item 
+int \hyperlink{ncd_8h_a95d03bf539922f9b644641a45bd7c836}{setup\-\_\-tcp\-\_\-packets} ()
+\begin{DoxyCompactList}\small\item\em sets up arrays of tcp packets. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Macro Definition Documentation}
@@ -68,7 +76,7 @@ int \hyperlink{ncd_8h_a91ffa5784a46ec2b471bf3ba8c1aa870}{check\-\_\-args} (int a
 \subsubsection[{\-\_\-\-\_\-\-F\-A\-V\-O\-R\-\_\-\-B\-S\-D}]{\setlength{\rightskip}{0pt plus 5cm}\#define \-\_\-\-\_\-\-F\-A\-V\-O\-R\-\_\-\-B\-S\-D}}\label{ncd_8h_a0e25ec3d9c374c5e6dceeb9341baf766}
 
 
-Definition at line 32 of file ncd.\-h.
+Definition at line 39 of file ncd.\-h.
 
 \hypertarget{ncd_8h_a564ea801faec77e3835f72bc584e3969}{\index{ncd.\-h@{ncd.\-h}!\-\_\-\-\_\-\-U\-S\-E\-\_\-\-B\-S\-D@{\-\_\-\-\_\-\-U\-S\-E\-\_\-\-B\-S\-D}}
 \index{\-\_\-\-\_\-\-U\-S\-E\-\_\-\-B\-S\-D@{\-\_\-\-\_\-\-U\-S\-E\-\_\-\-B\-S\-D}!ncd.h@{ncd.\-h}}
@@ -79,11 +87,11 @@ Favor the B\-S\-D style U\-D\-P \& I\-P headers.
 
 
 
-Definition at line 29 of file ncd.\-h.
+Definition at line 36 of file ncd.\-h.
 
 \hypertarget{ncd_8h_a70ed59adcb4159ac551058053e649640}{\index{ncd.\-h@{ncd.\-h}!S\-I\-Z\-E@{S\-I\-Z\-E}}
 \index{S\-I\-Z\-E@{S\-I\-Z\-E}!ncd.h@{ncd.\-h}}
-\subsubsection[{S\-I\-Z\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define S\-I\-Z\-E~(1500-\/40-\/8-\/2)}}\label{ncd_8h_a70ed59adcb4159ac551058053e649640}
+\subsubsection[{S\-I\-Z\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define S\-I\-Z\-E~(1500 -\/ sizeof(struct ip))}}\label{ncd_8h_a70ed59adcb4159ac551058053e649640}
 
 
 maximum ip packet size 1500 bytes Ethernet max size 40 I\-Pv6 header max size 8 U\-D\-P header 2 16-\/bit packet I\-D 
@@ -92,9 +100,38 @@ maximum ip packet size 1500 bytes Ethernet max size 40 I\-Pv6 header max size 8 
 
 Definition at line 50 of file ncd.\-h.
 
+\hypertarget{ncd_8h_afdac791ecf1a42be6a814a0c23aa795b}{\index{ncd.\-h@{ncd.\-h}!T\-C\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E@{T\-C\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E}}
+\index{T\-C\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E@{T\-C\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E}!ncd.h@{ncd.\-h}}
+\subsubsection[{T\-C\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define T\-C\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E~({\bf S\-I\-Z\-E}-\/sizeof(struct tcphdr)-\/sizeof(uint16\-\_\-t))}}\label{ncd_8h_afdac791ecf1a42be6a814a0c23aa795b}
+
+
+Definition at line 52 of file ncd.\-h.
+
+\hypertarget{ncd_8h_a8e039e4bc205e04f774f09e68e63868f}{\index{ncd.\-h@{ncd.\-h}!U\-D\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E@{U\-D\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E}}
+\index{U\-D\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E@{U\-D\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E}!ncd.h@{ncd.\-h}}
+\subsubsection[{U\-D\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E}]{\setlength{\rightskip}{0pt plus 5cm}\#define U\-D\-P\-\_\-\-D\-A\-T\-A\-\_\-\-S\-I\-Z\-E~({\bf S\-I\-Z\-E}-\/sizeof(struct udphdr)-\/sizeof(uint16\-\_\-t))}}\label{ncd_8h_a8e039e4bc205e04f774f09e68e63868f}
+
+
+Definition at line 51 of file ncd.\-h.
+
 
 
 \subsection{Function Documentation}
+\hypertarget{ncd_8h_a4ad006b97556561b12d11cc3aee188a3}{\index{ncd.\-h@{ncd.\-h}!\-\_\-\-\_\-attribute\-\_\-\-\_\-@{\-\_\-\-\_\-attribute\-\_\-\-\_\-}}
+\index{\-\_\-\-\_\-attribute\-\_\-\-\_\-@{\-\_\-\-\_\-attribute\-\_\-\-\_\-}!ncd.h@{ncd.\-h}}
+\subsubsection[{\-\_\-\-\_\-attribute\-\_\-\-\_\-}]{\setlength{\rightskip}{0pt plus 5cm}struct \-\_\-\-\_\-attribute\-\_\-\-\_\- (
+\begin{DoxyParamCaption}
+\item[{(\-\_\-\-\_\-packed\-\_\-\-\_\-)}]{}
+\end{DoxyParamCaption}
+)}}\label{ncd_8h_a4ad006b97556561b12d11cc3aee188a3}
+
+
+struct for udp pseudo header 
+
+
+
+Definition at line 59 of file ncd.\-h.
+
 \hypertarget{ncd_8h_a91ffa5784a46ec2b471bf3ba8c1aa870}{\index{ncd.\-h@{ncd.\-h}!check\-\_\-args@{check\-\_\-args}}
 \index{check\-\_\-args@{check\-\_\-args}!ncd.h@{ncd.\-h}}
 \subsubsection[{check\-\_\-args}]{\setlength{\rightskip}{0pt plus 5cm}int check\-\_\-args (
@@ -119,7 +156,7 @@ Checks arguments given on command line and stores values in global variables.
 \end{DoxyReturn}
 
 
-Definition at line 621 of file ncd.\-c.
+Definition at line 1012 of file ncd.\-c.
 
 \hypertarget{ncd_8h_a7da9feca0e536478b6a79b0e4974a8d6}{\index{ncd.\-h@{ncd.\-h}!comp\-\_\-det@{comp\-\_\-det}}
 \index{comp\-\_\-det@{comp\-\_\-det}!ncd.h@{ncd.\-h}}
@@ -132,16 +169,27 @@ Definition at line 621 of file ncd.\-c.
 
 Determines if compression occurs along the current transmission path to host by sending data to a remote location. 
 
-Two data trains are sent each with leading and trailing I\-C\-M\-P timestamp messages.
+Two data trains are sent each with leading and trailing I\-C\-M\-P timestamp messages
 
-The first data train will be low entropy data, to encourage compression, while the second train will have high entropy data, which should not be compressed well. If the times are significantly different, we have reasonable evidence compression exists along this path.
+The first data train will be low entropy data, to encourage compression the second train will have high entropy data, which should not be compressed if the times are significantly different, we have reasonable evidence compression exists along this path.
 
+
+\begin{DoxyParams}{Parameters}
+{\em address} & the address of the end host stored in a char array (cstring) \\
+\hline
+{\em port} & the port number or service name \\
+\hline
+{\em num\-\_\-packets} & the number of packets in each data train \\
+\hline
+{\em time\-\_\-wait} & the wait between trains \\
+\hline
+\end{DoxyParams}
 \begin{DoxyReturn}{Returns}
 0 success, 1 error/failure 
 \end{DoxyReturn}
 
 
-Definition at line 59 of file ncd.\-c.
+Definition at line 96 of file ncd.\-c.
 
 \hypertarget{ncd_8h_a115536db290a1c30ffbc2c07e0db5fbf}{\index{ncd.\-h@{ncd.\-h}!fill\-\_\-data@{fill\-\_\-data}}
 \index{fill\-\_\-data@{fill\-\_\-data}!ncd.h@{ncd.\-h}}
@@ -153,7 +201,7 @@ Definition at line 59 of file ncd.\-c.
 )}}\label{ncd_8h_a115536db290a1c30ffbc2c07e0db5fbf}
 
 
-fills the data portion of a packet with the size data from a file char$\ast$ file 
+Fills the data portion of a packet with the size data from a file (char$\ast$ file) 
 
 
 \begin{DoxyParams}{Parameters}
@@ -164,7 +212,7 @@ fills the data portion of a packet with the size data from a file char$\ast$ fil
 \end{DoxyParams}
 
 
-Definition at line 384 of file ncd.\-c.
+Definition at line 641 of file ncd.\-c.
 
 \hypertarget{ncd_8h_a6e25195727f4483c9e7224de02cb55be}{\index{ncd.\-h@{ncd.\-h}!ip\-\_\-checksum@{ip\-\_\-checksum}}
 \index{ip\-\_\-checksum@{ip\-\_\-checksum}!ncd.h@{ncd.\-h}}
@@ -190,7 +238,7 @@ the I\-P checksum of the buffer
 \end{DoxyReturn}
 
 
-Definition at line 560 of file ncd.\-c.
+Definition at line 951 of file ncd.\-c.
 
 \hypertarget{ncd_8h_a9248ef96d5f84b0a6fada680529a029c}{\index{ncd.\-h@{ncd.\-h}!mkicmpv4@{mkicmpv4}}
 \index{mkicmpv4@{mkicmpv4}!ncd.h@{ncd.\-h}}
@@ -202,7 +250,7 @@ Definition at line 560 of file ncd.\-c.
 )}}\label{ncd_8h_a9248ef96d5f84b0a6fada680529a029c}
 
 
-formats an I\-C\-M\-P packet beginning at buff with a payload of length datalen 
+Formats an I\-C\-M\-P packet beginning at buff with a payload of length datalen. 
 
 
 \begin{DoxyParams}{Parameters}
@@ -216,7 +264,7 @@ Returns an integer value for success(0), failure(1), or error(-\/1)
 \end{DoxyReturn}
 
 
-Definition at line 309 of file ncd.\-c.
+Definition at line 464 of file ncd.\-c.
 
 \hypertarget{ncd_8h_a2eada3fc40a96989ac7e16e256f84240}{\index{ncd.\-h@{ncd.\-h}!mkicmpv6@{mkicmpv6}}
 \index{mkicmpv6@{mkicmpv6}!ncd.h@{ncd.\-h}}
@@ -228,7 +276,7 @@ Definition at line 309 of file ncd.\-c.
 )}}\label{ncd_8h_a2eada3fc40a96989ac7e16e256f84240}
 
 
-Definition at line 324 of file ncd.\-c.
+Definition at line 481 of file ncd.\-c.
 
 \hypertarget{ncd_8h_a9c361136c836098ee919436b5edf77aa}{\index{ncd.\-h@{ncd.\-h}!mkipv4@{mkipv4}}
 \index{mkipv4@{mkipv4}!ncd.h@{ncd.\-h}}
@@ -260,7 +308,7 @@ Returns an integer value for success(0), failure(1), or error(-\/1)
 \end{DoxyReturn}
 
 
-Definition at line 248 of file ncd.\-c.
+Definition at line 369 of file ncd.\-c.
 
 \hypertarget{ncd_8h_ac35b8012c32dd6ff2fa7efa928f33692}{\index{ncd.\-h@{ncd.\-h}!mkipv6@{mkipv6}}
 \index{mkipv6@{mkipv6}!ncd.h@{ncd.\-h}}
@@ -274,7 +322,20 @@ Definition at line 248 of file ncd.\-c.
 )}}\label{ncd_8h_ac35b8012c32dd6ff2fa7efa928f33692}
 
 
-Definition at line 266 of file ncd.\-c.
+Definition at line 387 of file ncd.\-c.
+
+\hypertarget{ncd_8h_a749e5dcb5f2858945531a3ff94b11462}{\index{ncd.\-h@{ncd.\-h}!mktcphdr@{mktcphdr}}
+\index{mktcphdr@{mktcphdr}!ncd.h@{ncd.\-h}}
+\subsubsection[{mktcphdr}]{\setlength{\rightskip}{0pt plus 5cm}int mktcphdr (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{buff, }
+\item[{size\-\_\-t}]{data\-\_\-len, }
+\item[{u\-\_\-int8\-\_\-t}]{proto}
+\end{DoxyParamCaption}
+)}}\label{ncd_8h_a749e5dcb5f2858945531a3ff94b11462}
+
+
+Definition at line 400 of file ncd.\-c.
 
 \hypertarget{ncd_8h_ac3e68891fcccd5a71c8b12ed78943313}{\index{ncd.\-h@{ncd.\-h}!mkudphdr@{mkudphdr}}
 \index{mkudphdr@{mkudphdr}!ncd.h@{ncd.\-h}}
@@ -287,7 +348,7 @@ Definition at line 266 of file ncd.\-c.
 )}}\label{ncd_8h_ac3e68891fcccd5a71c8b12ed78943313}
 
 
-formats an udp header beginning at buff with a payload of length udp\-\_\-data\-\_\-len 
+Formats a U\-D\-P header beginning at buff with a payload of length udp\-\_\-data\-\_\-len. 
 
 
 \begin{DoxyParams}{Parameters}
@@ -303,7 +364,7 @@ Returns an integer value for success(0), failure(1), or error(-\/1)
 \end{DoxyReturn}
 
 
-Definition at line 279 of file ncd.\-c.
+Definition at line 434 of file ncd.\-c.
 
 \hypertarget{ncd_8h_aaa584eddd915ff9cc908280b49b5cc60}{\index{ncd.\-h@{ncd.\-h}!recv4@{recv4}}
 \index{recv4@{recv4}!ncd.h@{ncd.\-h}}
@@ -318,15 +379,15 @@ Receives I\-C\-M\-P responses from end host and records times.
 
 
 \begin{DoxyParams}{Parameters}
-{\em t} & pointer to a double. returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10$^\wedge$-\/6 sec) \\
+{\em t} & Pointer to a double. Returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10$^\wedge$-\/6 sec) \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-0 success, 1 error/failure 
+0 success, 1 error/failure -- pthreads 
 \end{DoxyReturn}
 
 
-Definition at line 401 of file ncd.\-c.
+Definition at line 755 of file ncd.\-c.
 
 \hypertarget{ncd_8h_a1a25afec74c6238073a2be4d3896b722}{\index{ncd.\-h@{ncd.\-h}!recv6@{recv6}}
 \index{recv6@{recv6}!ncd.h@{ncd.\-h}}
@@ -337,28 +398,69 @@ Definition at line 401 of file ncd.\-c.
 )}}\label{ncd_8h_a1a25afec74c6238073a2be4d3896b722}
 
 
-Definition at line 495 of file ncd.\-c.
+Definition at line 886 of file ncd.\-c.
 
-\hypertarget{ncd_8h_a951a5d1c4d59b79654a5bb53a7eb65d0}{\index{ncd.\-h@{ncd.\-h}!send\-\_\-train@{send\-\_\-train}}
-\index{send\-\_\-train@{send\-\_\-train}!ncd.h@{ncd.\-h}}
-\subsubsection[{send\-\_\-train}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ send\-\_\-train (
+\hypertarget{ncd_8h_afd55a5cd2ac890d1ea9b629322c8ed92}{\index{ncd.\-h@{ncd.\-h}!send\-\_\-tcp@{send\-\_\-tcp}}
+\index{send\-\_\-tcp@{send\-\_\-tcp}!ncd.h@{ncd.\-h}}
+\subsubsection[{send\-\_\-tcp}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ send\-\_\-tcp (
 \begin{DoxyParamCaption}
-\item[{void $\ast$}]{num}
+\item[{void $\ast$}]{status}
 \end{DoxyParamCaption}
-)}}\label{ncd_8h_a951a5d1c4d59b79654a5bb53a7eb65d0}
+)}}\label{ncd_8h_afd55a5cd2ac890d1ea9b629322c8ed92}
 
 
-sends the udp data train with leading and trailing I\-C\-M\-P messages 
+sends a tcp data train with leading and trailing I\-C\-M\-P messages 
 
 \begin{DoxyReturn}{Returns}
-integer value cast to void$\ast$. 0 success, 1 error/failure 
+unsigned integer value cast to void$\ast$. 0 success, 1 error/failure 
 \end{DoxyReturn}
 
 \begin{DoxyParams}{Parameters}
-{\em num} & number of tail icmp messages to send \\
+{\em status} & returns the status/return code \\
 \hline
 \end{DoxyParams}
 
 
-Definition at line 339 of file ncd.\-c.
+Definition at line 543 of file ncd.\-c.
+
+\hypertarget{ncd_8h_a0c8bb5479a27edccf644f75c36f88a03}{\index{ncd.\-h@{ncd.\-h}!send\-\_\-udp@{send\-\_\-udp}}
+\index{send\-\_\-udp@{send\-\_\-udp}!ncd.h@{ncd.\-h}}
+\subsubsection[{send\-\_\-udp}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ send\-\_\-udp (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{status}
+\end{DoxyParamCaption}
+)}}\label{ncd_8h_a0c8bb5479a27edccf644f75c36f88a03}
+
+
+Sends the U\-D\-P data train with leading and trailing I\-C\-M\-P messages. 
+
+\begin{DoxyReturn}{Returns}
+An unsigned integer value cast to void$\ast$. 0 success, 1 error/failure 
+\end{DoxyReturn}
+
+\begin{DoxyParams}{Parameters}
+{\em status} & returns the status/return code \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 496 of file ncd.\-c.
+
+\hypertarget{ncd_8h_a95d03bf539922f9b644641a45bd7c836}{\index{ncd.\-h@{ncd.\-h}!setup\-\_\-tcp\-\_\-packets@{setup\-\_\-tcp\-\_\-packets}}
+\index{setup\-\_\-tcp\-\_\-packets@{setup\-\_\-tcp\-\_\-packets}!ncd.h@{ncd.\-h}}
+\subsubsection[{setup\-\_\-tcp\-\_\-packets}]{\setlength{\rightskip}{0pt plus 5cm}int setup\-\_\-tcp\-\_\-packets (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{ncd_8h_a95d03bf539922f9b644641a45bd7c836}
+
+
+sets up arrays of tcp packets. 
+
+Can be extended to udp if neccessary \begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Definition at line 658 of file ncd.\-c.
 

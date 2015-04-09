@@ -38,7 +38,6 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
     <ul class="tablist">
       <li><a href="../../index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="../../pages.html"><span>Related&#160;Pages</span></a></li>
-      <li><a href="../../annotated.html"><span>Data&#160;Structures</span></a></li>
       <li class="current"><a href="../../files.html"><span>Files</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -69,7 +68,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Data Structures</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Pages</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -104,20 +103,28 @@ Functions</h2></td></tr>
 <tr class="separator:a9c361136c836098ee919436b5edf77aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac35b8012c32dd6ff2fa7efa928f33692"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ac35b8012c32dd6ff2fa7efa928f33692">mkipv6</a> (void *buff, size_t size, struct addrinfo *<a class="el" href="../../df/dfe/ncd_8c.html#a8df42e4f21cb586ea4981025137520e0">res</a>, u_int8_t proto)</td></tr>
 <tr class="separator:ac35b8012c32dd6ff2fa7efa928f33692"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a749e5dcb5f2858945531a3ff94b11462"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a749e5dcb5f2858945531a3ff94b11462">mktcphdr</a> (void *buff, size_t data_len, u_int8_t proto)</td></tr>
+<tr class="separator:a749e5dcb5f2858945531a3ff94b11462"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3e68891fcccd5a71c8b12ed78943313"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ac3e68891fcccd5a71c8b12ed78943313">mkudphdr</a> (void *buff, size_t udp_data_len, u_int8_t proto)</td></tr>
-<tr class="memdesc:ac3e68891fcccd5a71c8b12ed78943313"><td class="mdescLeft">&#160;</td><td class="mdescRight">formats an udp header beginning at buff with a payload of length udp_data_len  <a href="#ac3e68891fcccd5a71c8b12ed78943313">More...</a><br/></td></tr>
+<tr class="memdesc:ac3e68891fcccd5a71c8b12ed78943313"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formats a UDP header beginning at buff with a payload of length udp_data_len.  <a href="#ac3e68891fcccd5a71c8b12ed78943313">More...</a><br/></td></tr>
 <tr class="separator:ac3e68891fcccd5a71c8b12ed78943313"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9248ef96d5f84b0a6fada680529a029c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a9248ef96d5f84b0a6fada680529a029c">mkicmpv4</a> (void *buff, size_t datalen)</td></tr>
-<tr class="memdesc:a9248ef96d5f84b0a6fada680529a029c"><td class="mdescLeft">&#160;</td><td class="mdescRight">formats an ICMP packet beginning at buff with a payload of length datalen  <a href="#a9248ef96d5f84b0a6fada680529a029c">More...</a><br/></td></tr>
+<tr class="memdesc:a9248ef96d5f84b0a6fada680529a029c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formats an ICMP packet beginning at buff with a payload of length datalen.  <a href="#a9248ef96d5f84b0a6fada680529a029c">More...</a><br/></td></tr>
 <tr class="separator:a9248ef96d5f84b0a6fada680529a029c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2eada3fc40a96989ac7e16e256f84240"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a2eada3fc40a96989ac7e16e256f84240">mkicmpv6</a> (void *buff, size_t datalen)</td></tr>
 <tr class="separator:a2eada3fc40a96989ac7e16e256f84240"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a951a5d1c4d59b79654a5bb53a7eb65d0"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a951a5d1c4d59b79654a5bb53a7eb65d0">send_train</a> (void *num)</td></tr>
-<tr class="memdesc:a951a5d1c4d59b79654a5bb53a7eb65d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">sends the udp data train with leading and trailing ICMP messages  <a href="#a951a5d1c4d59b79654a5bb53a7eb65d0">More...</a><br/></td></tr>
-<tr class="separator:a951a5d1c4d59b79654a5bb53a7eb65d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaee5a21ffe0066e3b4792a22169236af"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#aaee5a21ffe0066e3b4792a22169236af">send_udp</a> (void *arg)</td></tr>
+<tr class="memdesc:aaee5a21ffe0066e3b4792a22169236af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends the UDP data train with leading and trailing ICMP messages.  <a href="#aaee5a21ffe0066e3b4792a22169236af">More...</a><br/></td></tr>
+<tr class="separator:aaee5a21ffe0066e3b4792a22169236af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54483c78524b22139ad46b3df82649de"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a54483c78524b22139ad46b3df82649de">send_tcp</a> (void *arg)</td></tr>
+<tr class="memdesc:a54483c78524b22139ad46b3df82649de"><td class="mdescLeft">&#160;</td><td class="mdescRight">sends a tcp data train with leading and trailing ICMP messages  <a href="#a54483c78524b22139ad46b3df82649de">More...</a><br/></td></tr>
+<tr class="separator:a54483c78524b22139ad46b3df82649de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a115536db290a1c30ffbc2c07e0db5fbf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a115536db290a1c30ffbc2c07e0db5fbf">fill_data</a> (void *buff, size_t size)</td></tr>
-<tr class="memdesc:a115536db290a1c30ffbc2c07e0db5fbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">fills the data portion of a packet with the size data from a file char* file  <a href="#a115536db290a1c30ffbc2c07e0db5fbf">More...</a><br/></td></tr>
+<tr class="memdesc:a115536db290a1c30ffbc2c07e0db5fbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fills the data portion of a packet with the size data from a file (char* file)  <a href="#a115536db290a1c30ffbc2c07e0db5fbf">More...</a><br/></td></tr>
 <tr class="separator:a115536db290a1c30ffbc2c07e0db5fbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95d03bf539922f9b644641a45bd7c836"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a95d03bf539922f9b644641a45bd7c836">setup_tcp_packets</a> ()</td></tr>
+<tr class="memdesc:a95d03bf539922f9b644641a45bd7c836"><td class="mdescLeft">&#160;</td><td class="mdescRight">sets up arrays of tcp packets.  <a href="#a95d03bf539922f9b644641a45bd7c836">More...</a><br/></td></tr>
+<tr class="separator:a95d03bf539922f9b644641a45bd7c836"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa584eddd915ff9cc908280b49b5cc60"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#aaa584eddd915ff9cc908280b49b5cc60">recv4</a> (void *t)</td></tr>
 <tr class="memdesc:aaa584eddd915ff9cc908280b49b5cc60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receives ICMP responses from end host and records times.  <a href="#aaa584eddd915ff9cc908280b49b5cc60">More...</a><br/></td></tr>
 <tr class="separator:aaa584eddd915ff9cc908280b49b5cc60"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -134,46 +141,46 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:af69e180c878a9c8f4e45ec7dc25a062f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#af69e180c878a9c8f4e45ec7dc25a062f">data_size</a> = 996</td></tr>
+<tr class="memitem:af69e180c878a9c8f4e45ec7dc25a062f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#af69e180c878a9c8f4e45ec7dc25a062f">data_size</a></td></tr>
 <tr class="separator:af69e180c878a9c8f4e45ec7dc25a062f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a437716dca9e6cf8866668b853ab8f61b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a437716dca9e6cf8866668b853ab8f61b">num_packets</a> = 1000</td></tr>
+<tr class="memitem:a437716dca9e6cf8866668b853ab8f61b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a437716dca9e6cf8866668b853ab8f61b">num_packets</a></td></tr>
 <tr class="separator:a437716dca9e6cf8866668b853ab8f61b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a038f351872dc589c5fa05257e4d8ba69"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a038f351872dc589c5fa05257e4d8ba69">num_tail</a> = 20</td></tr>
+<tr class="memitem:a038f351872dc589c5fa05257e4d8ba69"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a038f351872dc589c5fa05257e4d8ba69">num_tail</a></td></tr>
 <tr class="separator:a038f351872dc589c5fa05257e4d8ba69"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afce17f4e9b9e870734147cb57c0aadad"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#afce17f4e9b9e870734147cb57c0aadad">tail_wait</a> = 10</td></tr>
+<tr class="memitem:afce17f4e9b9e870734147cb57c0aadad"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#afce17f4e9b9e870734147cb57c0aadad">tail_wait</a></td></tr>
 <tr class="separator:afce17f4e9b9e870734147cb57c0aadad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e26a4afe91a21810290057677a17a11"><td class="memItemLeft" align="right" valign="top">u_int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a9e26a4afe91a21810290057677a17a11">port</a> = 33434</td></tr>
-<tr class="separator:a9e26a4afe91a21810290057677a17a11"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0684734c5b6ef6dd888d43664c483d5"><td class="memItemLeft" align="right" valign="top">u_int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ae0684734c5b6ef6dd888d43664c483d5">ttl</a> = 255</td></tr>
+<tr class="memitem:a4647f4a35af9aa9e011992ef017afef7"><td class="memItemLeft" align="right" valign="top">u_int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a4647f4a35af9aa9e011992ef017afef7">dport</a></td></tr>
+<tr class="separator:a4647f4a35af9aa9e011992ef017afef7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92453d8d213cd398b8579327fb3bdd70"><td class="memItemLeft" align="right" valign="top">u_int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a92453d8d213cd398b8579327fb3bdd70">sport</a></td></tr>
+<tr class="separator:a92453d8d213cd398b8579327fb3bdd70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9995aedfbe2f5b8c0b61fd0e1edbe69a"><td class="memItemLeft" align="right" valign="top">u_int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a9995aedfbe2f5b8c0b61fd0e1edbe69a">syn_port</a></td></tr>
+<tr class="separator:a9995aedfbe2f5b8c0b61fd0e1edbe69a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0684734c5b6ef6dd888d43664c483d5"><td class="memItemLeft" align="right" valign="top">u_int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ae0684734c5b6ef6dd888d43664c483d5">ttl</a></td></tr>
 <tr class="separator:ae0684734c5b6ef6dd888d43664c483d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f3b78489f3a0d1fb75633bd2b14a5d2"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a3f3b78489f3a0d1fb75633bd2b14a5d2">entropy</a></td></tr>
+<tr class="separator:a3f3b78489f3a0d1fb75633bd2b14a5d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa600d86ba40a79af175750031d366976"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#aa600d86ba40a79af175750031d366976">dst_ip</a> = NULL</td></tr>
 <tr class="separator:aa600d86ba40a79af175750031d366976"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adf16cd437526a5c5e0e0af87745acbb8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#adf16cd437526a5c5e0e0af87745acbb8">file</a> = &quot;/dev/urandom&quot;</td></tr>
+<tr class="memitem:adf16cd437526a5c5e0e0af87745acbb8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#adf16cd437526a5c5e0e0af87745acbb8">file</a> = NULL</td></tr>
 <tr class="separator:adf16cd437526a5c5e0e0af87745acbb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4cc7e6867b564ffab9f569351d574a67"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a4cc7e6867b564ffab9f569351d574a67">lflag</a> = 1</td></tr>
-<tr class="separator:a4cc7e6867b564ffab9f569351d574a67"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6fe8b762116512ab777118cd3e043200"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a6fe8b762116512ab777118cd3e043200">hflag</a> = 1</td></tr>
-<tr class="separator:a6fe8b762116512ab777118cd3e043200"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aab9e30d72b4b6af02ce19b24422ad2ce"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#aab9e30d72b4b6af02ce19b24422ad2ce">fflag</a> = 0</td></tr>
-<tr class="separator:aab9e30d72b4b6af02ce19b24422ad2ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5992b274cfdcacdbc1fa8347fd01ebde"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a5992b274cfdcacdbc1fa8347fd01ebde">done</a> = 0</td></tr>
-<tr class="separator:a5992b274cfdcacdbc1fa8347fd01ebde"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ad953ed2e611a67994cda6b5ed36dcf"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a2ad953ed2e611a67994cda6b5ed36dcf">lflag</a> = 1</td></tr>
+<tr class="separator:a2ad953ed2e611a67994cda6b5ed36dcf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab5b3a61f47d3614938dd08e438d37fa4"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ab5b3a61f47d3614938dd08e438d37fa4">hflag</a> = 1</td></tr>
+<tr class="separator:ab5b3a61f47d3614938dd08e438d37fa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4cd79b2a131116dfb53c2f8fb00be545"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a4cd79b2a131116dfb53c2f8fb00be545">fflag</a> = 0</td></tr>
+<tr class="separator:a4cd79b2a131116dfb53c2f8fb00be545"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aab3ed3199bc18936386acca307bf5d5c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#aab3ed3199bc18936386acca307bf5d5c">icmp_fd</a></td></tr>
 <tr class="separator:aab3ed3199bc18936386acca307bf5d5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ccd8921f38d8d73068731023f739eac"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a4ccd8921f38d8d73068731023f739eac">send_fd</a></td></tr>
 <tr class="separator:a4ccd8921f38d8d73068731023f739eac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbd35ba49b28a4cd44185c0f3cb57d31"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#acbd35ba49b28a4cd44185c0f3cb57d31">recv_fd</a></td></tr>
 <tr class="separator:acbd35ba49b28a4cd44185c0f3cb57d31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a43587531405dea543232fa917b84de56"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a43587531405dea543232fa917b84de56">packet_send</a> [<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td></tr>
-<tr class="separator:a43587531405dea543232fa917b84de56"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a806e49f97606bb7dbd7046b2fe7f0f3a"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a806e49f97606bb7dbd7046b2fe7f0f3a">icmp_send</a> [128] = { 0 }</td></tr>
-<tr class="separator:a806e49f97606bb7dbd7046b2fe7f0f3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a863976a08e4f559d807feb999808fd04"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a863976a08e4f559d807feb999808fd04">packet_rcv</a> [<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td></tr>
-<tr class="separator:a863976a08e4f559d807feb999808fd04"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1619259258d48d4330333c75a93ec7a6"><td class="memItemLeft" align="right" valign="top">uint16_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a1619259258d48d4330333c75a93ec7a6">packet_id</a> = (uint16_t*) <a class="el" href="../../df/dfe/ncd_8c.html#a43587531405dea543232fa917b84de56">packet_send</a></td></tr>
-<tr class="separator:a1619259258d48d4330333c75a93ec7a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af4b5567ce4e42c0d3f03830d91170fd6"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#af4b5567ce4e42c0d3f03830d91170fd6">send_len</a></td></tr>
 <tr class="separator:af4b5567ce4e42c0d3f03830d91170fd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1fa51dcd575bef177eeed6f72525827a"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a1fa51dcd575bef177eeed6f72525827a">tcp_bool</a> = 0</td></tr>
+<tr class="separator:a1fa51dcd575bef177eeed6f72525827a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a939440403f49795947bd238a3b0c2deb"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a939440403f49795947bd238a3b0c2deb">seq</a> = 0</td></tr>
+<tr class="separator:a939440403f49795947bd238a3b0c2deb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86d35c3e67b1956a675d70490f38f09b"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a86d35c3e67b1956a675d70490f38f09b">icmp_ip_len</a></td></tr>
 <tr class="separator:a86d35c3e67b1956a675d70490f38f09b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2fe19f17b763c479d75d205ef579b7cc"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a2fe19f17b763c479d75d205ef579b7cc">icmp_len</a></td></tr>
@@ -186,6 +193,42 @@ Variables</h2></td></tr>
 <tr class="separator:a8df42e4f21cb586ea4981025137520e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e7246feab9bd6f3f5da6f698465c62a"><td class="memItemLeft" align="right" valign="top">void *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a6e7246feab9bd6f3f5da6f698465c62a">recv_data</a> )(void *) = NULL</td></tr>
 <tr class="separator:a6e7246feab9bd6f3f5da6f698465c62a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a915720bd1608e183b14479e206ecea46"><td class="memItemLeft" align="right" valign="top">void *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a915720bd1608e183b14479e206ecea46">send_train</a> )(void *) = NULL</td></tr>
+<tr class="separator:a915720bd1608e183b14479e206ecea46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a009f46a8434d3bd8e4a6794245377cb2"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a009f46a8434d3bd8e4a6794245377cb2">td</a></td></tr>
+<tr class="separator:a009f46a8434d3bd8e4a6794245377cb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a08ea9e66d47326adea607a3680c84bb9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a08ea9e66d47326adea607a3680c84bb9">syn_bool</a> = 0</td></tr>
+<tr class="separator:a08ea9e66d47326adea607a3680c84bb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a997358c3e5ab1070da66eb43ef43c389"><td class="memItemLeft" align="right" valign="top">volatile int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a997358c3e5ab1070da66eb43ef43c389">done</a> = 0</td></tr>
+<tr class="separator:a997358c3e5ab1070da66eb43ef43c389"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c5379ef6b9bce517a3f8cbb9af12d32"><td class="memItemLeft" align="right" valign="top">volatile int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a5c5379ef6b9bce517a3f8cbb9af12d32">rcv_bool</a> = 0</td></tr>
+<tr class="separator:a5c5379ef6b9bce517a3f8cbb9af12d32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0632770b0af5c7ed1c5e75a87d37bc13"><td class="memItemLeft" align="right" valign="top">volatile int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a0632770b0af5c7ed1c5e75a87d37bc13">second_train</a> = 0</td></tr>
+<tr class="separator:a0632770b0af5c7ed1c5e75a87d37bc13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab47c0369a44e17ff814fca2f5a7803d1"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ab47c0369a44e17ff814fca2f5a7803d1">pseudo</a> [1500] = { 0 }</td></tr>
+<tr class="separator:ab47c0369a44e17ff814fca2f5a7803d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94439982e7fc188dc12311c47568f5f9"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a94439982e7fc188dc12311c47568f5f9">packet_rcv</a> [1500] = { 0 }</td></tr>
+<tr class="separator:a94439982e7fc188dc12311c47568f5f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43587531405dea543232fa917b84de56"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a43587531405dea543232fa917b84de56">packet_send</a> [<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td></tr>
+<tr class="separator:a43587531405dea543232fa917b84de56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07bbe62971c75b96b799769279bd858c"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a07bbe62971c75b96b799769279bd858c">syn_packet_1</a> [<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td></tr>
+<tr class="separator:a07bbe62971c75b96b799769279bd858c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad0f1ceae60a80dbc6751cff4cf83ad6c"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ad0f1ceae60a80dbc6751cff4cf83ad6c">syn_packet_2</a> [<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td></tr>
+<tr class="separator:ad0f1ceae60a80dbc6751cff4cf83ad6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a806e49f97606bb7dbd7046b2fe7f0f3a"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a806e49f97606bb7dbd7046b2fe7f0f3a">icmp_send</a> [128] = { 0 }</td></tr>
+<tr class="separator:a806e49f97606bb7dbd7046b2fe7f0f3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d02a4ce56562a5dd244b87d52d694d4"><td class="memItemLeft" align="right" valign="top">struct pseudo_header *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a3d02a4ce56562a5dd244b87d52d694d4">ps</a> = (struct pseudo_header *) <a class="el" href="../../df/dfe/ncd_8c.html#ab47c0369a44e17ff814fca2f5a7803d1">pseudo</a></td></tr>
+<tr class="separator:a3d02a4ce56562a5dd244b87d52d694d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1619259258d48d4330333c75a93ec7a6"><td class="memItemLeft" align="right" valign="top">uint16_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a1619259258d48d4330333c75a93ec7a6">packet_id</a> = (uint16_t*) <a class="el" href="../../df/dfe/ncd_8c.html#a43587531405dea543232fa917b84de56">packet_send</a></td></tr>
+<tr class="separator:a1619259258d48d4330333c75a93ec7a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48e92478efee9e56a26e4ce75cd47a6e"><td class="memItemLeft" align="right" valign="top">struct sockaddr_in&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a48e92478efee9e56a26e4ce75cd47a6e">srcaddrs</a> = { 0 }</td></tr>
+<tr class="separator:a48e92478efee9e56a26e4ce75cd47a6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f3b94a4048f6fd566062cb98a2e4143"><td class="memItemLeft" align="right" valign="top">socklen_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a7f3b94a4048f6fd566062cb98a2e4143">sa_len</a> = sizeof(<a class="el" href="../../df/dfe/ncd_8c.html#a48e92478efee9e56a26e4ce75cd47a6e">srcaddrs</a>)</td></tr>
+<tr class="separator:a7f3b94a4048f6fd566062cb98a2e4143"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1231b405862fa498bb62b2d7ac40638"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#ae1231b405862fa498bb62b2d7ac40638">packets_e</a> = NULL</td></tr>
+<tr class="separator:ae1231b405862fa498bb62b2d7ac40638"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a992ffe562a51dd08098b04a399a932ff"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/dfe/ncd_8c.html#a992ffe562a51dd08098b04a399a932ff">packets_f</a> = NULL</td></tr>
+<tr class="separator:a992ffe562a51dd08098b04a399a932ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><dl class="section author"><dt>Author</dt><dd>: Paul Kirth </dd></dl>
@@ -226,7 +269,7 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>0 success, 1 Failure </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00621">621</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l01012">1012</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -244,11 +287,20 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Determines if compression occurs along the current transmission path to host by sending data to a remote location. </p>
-<p>Two data trains are sent each with leading and trailing ICMP timestamp messages.</p>
-<p>The first data train will be low entropy data, to encourage compression, while the second train will have high entropy data, which should not be compressed well. If the times are significantly different, we have reasonable evidence compression exists along this path.</p>
+<p>Two data trains are sent each with leading and trailing ICMP timestamp messages</p>
+<p>The first data train will be low entropy data, to encourage compression the second train will have high entropy data, which should not be compressed if the times are significantly different, we have reasonable evidence compression exists along this path.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">address</td><td>the address of the end host stored in a char array (cstring) </td></tr>
+    <tr><td class="paramname">port</td><td>the port number or service name </td></tr>
+    <tr><td class="paramname">num_packets</td><td>the number of packets in each data train </td></tr>
+    <tr><td class="paramname">time_wait</td><td>the wait between trains </td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="section return"><dt>Returns</dt><dd>0 success, 1 error/failure </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00059">59</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00096">96</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -276,7 +328,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>fills the data portion of a packet with the size data from a file char* file </p>
+<p>Fills the data portion of a packet with the size data from a file (char* file) </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">buff</td><td>Address of the starting location for the data </td></tr>
@@ -285,7 +337,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00384">384</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00641">641</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -303,7 +355,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00050">50</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00087">87</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -341,7 +393,7 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>the IP checksum of the buffer </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00560">560</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00951">951</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -369,7 +421,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>formats an ICMP packet beginning at buff with a payload of length datalen </p>
+<p>Formats an ICMP packet beginning at buff with a payload of length datalen. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">buff</td><td>Address of the starting location for the ICMP packet </td></tr>
@@ -379,7 +431,7 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00309">309</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00464">464</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -407,7 +459,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00324">324</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00481">481</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -459,7 +511,7 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00248">248</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00369">369</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -499,7 +551,41 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00266">266</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00387">387</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a749e5dcb5f2858945531a3ff94b11462"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mktcphdr </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>buff</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>data_len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">u_int8_t&#160;</td>
+          <td class="paramname"><em>proto</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00400">400</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -533,7 +619,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>formats an udp header beginning at buff with a payload of length udp_data_len </p>
+<p>Formats a UDP header beginning at buff with a payload of length udp_data_len. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">buff</td><td>Address of the starting location for the UDP packet </td></tr>
@@ -544,7 +630,7 @@ Variables</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00279">279</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00434">434</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -562,7 +648,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00614">614</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l01005">1005</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -583,13 +669,13 @@ Variables</h2></td></tr>
 <p>Receives ICMP responses from end host and records times. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">t</td><td>pointer to a double. returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10^-6 sec) </td></tr>
+    <tr><td class="paramname">t</td><td>Pointer to a double. Returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10^-6 sec) </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>0 success, 1 error/failure </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>0 success, 1 error/failure &ndash; pthreads </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00401">401</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00755">755</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -607,34 +693,82 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00495">495</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00886">886</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a951a5d1c4d59b79654a5bb53a7eb65d0"></a>
+<a class="anchor" id="a54483c78524b22139ad46b3df82649de"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void* send_train </td>
+          <td class="memname">void* send_tcp </td>
           <td>(</td>
           <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>num</em></td><td>)</td>
+          <td class="paramname"><em>status</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>sends the udp data train with leading and trailing ICMP messages </p>
-<dl class="section return"><dt>Returns</dt><dd>integer value cast to void*. 0 success, 1 error/failure </dd></dl>
+<p>sends a tcp data train with leading and trailing ICMP messages </p>
+<dl class="section return"><dt>Returns</dt><dd>unsigned integer value cast to void*. 0 success, 1 error/failure </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">num</td><td>number of tail icmp messages to send </td></tr>
+    <tr><td class="paramname">status</td><td>returns the status/return code </td></tr>
   </table>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00339">339</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00543">543</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="aaee5a21ffe0066e3b4792a22169236af"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void* send_udp </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>status</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sends the UDP data train with leading and trailing ICMP messages. </p>
+<dl class="section return"><dt>Returns</dt><dd>An unsigned integer value cast to void*. 0 success, 1 error/failure </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">status</td><td>returns the status/return code </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00496">496</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a95d03bf539922f9b644641a45bd7c836"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int setup_tcp_packets </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>sets up arrays of tcp packets. </p>
+<p>Can be extended to udp if neccessary </p>
+<dl class="section return"><dt>Returns</dt><dd></dd></dl>
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00658">658</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -644,26 +778,40 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int data_size = 996</td>
+          <td class="memname">int data_size</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00012">12</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00010">10</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a5992b274cfdcacdbc1fa8347fd01ebde"></a>
+<a class="anchor" id="a997358c3e5ab1070da66eb43ef43c389"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int done = 0</td>
+          <td class="memname">volatile int done = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00025">25</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00060">60</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a4647f4a35af9aa9e011992ef017afef7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int16_t dport</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00016">16</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -677,21 +825,35 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00018">18</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00023">23</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="aab9e30d72b4b6af02ce19b24422ad2ce"></a>
+<a class="anchor" id="a3f3b78489f3a0d1fb75633bd2b14a5d2"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int fflag = 0</td>
+          <td class="memname">char entropy</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00024">24</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00022">22</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a4cd79b2a131116dfb53c2f8fb00be545"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t fflag = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00030">30</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -700,26 +862,26 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">char* file = &quot;/dev/urandom&quot;</td>
+          <td class="memname">char* file = NULL</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00019">19</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00024">24</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a6fe8b762116512ab777118cd3e043200"></a>
+<a class="anchor" id="ab5b3a61f47d3614938dd08e438d37fa4"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int hflag = 1</td>
+          <td class="memname">uint8_t hflag = 1</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00023">23</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00029">29</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -733,7 +895,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00042">42</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00050">50</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -747,7 +909,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00028">28</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00035">35</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -761,7 +923,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00040">40</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00048">48</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -775,7 +937,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00041">41</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00049">49</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -789,21 +951,21 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00034">34</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00075">75</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a4cc7e6867b564ffab9f569351d574a67"></a>
+<a class="anchor" id="a2ad953ed2e611a67994cda6b5ed36dcf"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int lflag = 1</td>
+          <td class="memname">uint8_t lflag = 1</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00022">22</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00028">28</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -812,12 +974,12 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int num_packets = 1000</td>
+          <td class="memname">int num_packets</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00013">13</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00011">11</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -826,12 +988,12 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int num_tail = 20</td>
+          <td class="memname">int num_tail</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00014">14</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00012">12</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -845,21 +1007,21 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00036">36</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00078">78</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a863976a08e4f559d807feb999808fd04"></a>
+<a class="anchor" id="a94439982e7fc188dc12311c47568f5f9"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">char packet_rcv[<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td>
+          <td class="memname">char packet_rcv[1500] = { 0 }</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00035">35</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00071">71</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -873,21 +1035,77 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00033">33</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00072">72</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a9e26a4afe91a21810290057677a17a11"></a>
+<a class="anchor" id="ae1231b405862fa498bb62b2d7ac40638"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">u_int16_t port = 33434</td>
+          <td class="memname">char* packets_e = NULL</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00016">16</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00083">83</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a992ffe562a51dd08098b04a399a932ff"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* packets_f = NULL</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00084">84</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a3d02a4ce56562a5dd244b87d52d694d4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct pseudo_header* ps = (struct pseudo_header *) <a class="el" href="../../df/dfe/ncd_8c.html#ab47c0369a44e17ff814fca2f5a7803d1">pseudo</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00077">77</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ab47c0369a44e17ff814fca2f5a7803d1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char pseudo[1500] = { 0 }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00070">70</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a5c5379ef6b9bce517a3f8cbb9af12d32"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile int rcv_bool = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00061">61</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -901,7 +1119,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00043">43</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00051">51</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -915,7 +1133,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00047">47</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00053">53</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -929,7 +1147,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00030">30</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00037">37</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -943,7 +1161,35 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00046">46</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00052">52</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a7f3b94a4048f6fd566062cb98a2e4143"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">socklen_t sa_len = sizeof(<a class="el" href="../../df/dfe/ncd_8c.html#a48e92478efee9e56a26e4ce75cd47a6e">srcaddrs</a>)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00080">80</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a0632770b0af5c7ed1c5e75a87d37bc13"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">volatile int second_train = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00068">68</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -957,7 +1203,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00029">29</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00036">36</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -971,30 +1217,44 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00039">39</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00041">41</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="afce17f4e9b9e870734147cb57c0aadad"></a>
+<a class="anchor" id="a915720bd1608e183b14479e206ecea46"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int tail_wait = 10</td>
+          <td class="memname">void*(* send_train)(void *) = NULL</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00015">15</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00054">54</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="ae0684734c5b6ef6dd888d43664c483d5"></a>
+<a class="anchor" id="a939440403f49795947bd238a3b0c2deb"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">u_int8_t ttl = 255</td>
+          <td class="memname">size_t seq = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00047">47</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a92453d8d213cd398b8579327fb3bdd70"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int16_t sport</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1003,10 +1263,136 @@ Variables</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a48e92478efee9e56a26e4ce75cd47a6e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct sockaddr_in srcaddrs = { 0 }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00079">79</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a08ea9e66d47326adea607a3680c84bb9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int syn_bool = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00059">59</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a07bbe62971c75b96b799769279bd858c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char syn_packet_1[<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00073">73</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ad0f1ceae60a80dbc6751cff4cf83ad6c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char syn_packet_2[<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>] = { 0 }</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00074">74</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a9995aedfbe2f5b8c0b61fd0e1edbe69a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int16_t syn_port</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00018">18</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="afce17f4e9b9e870734147cb57c0aadad"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int tail_wait</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00013">13</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a1fa51dcd575bef177eeed6f72525827a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t tcp_bool = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00042">42</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a009f46a8434d3bd8e4a6794245377cb2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double td</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00058">58</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ae0684734c5b6ef6dd888d43664c483d5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">u_int8_t ttl</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00019">19</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Mar 7 2015 10:48:42 for Network Compression Detection by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 8 2015 17:01:46 for Network Compression Detection by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

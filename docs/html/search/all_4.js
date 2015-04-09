@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['fflag',['fflag',['../df/dfe/ncd_8c.html#aab9e30d72b4b6af02ce19b24422ad2ce',1,'ncd.c']]],
-  ['file',['file',['../df/dfe/ncd_8c.html#adf16cd437526a5c5e0e0af87745acbb8',1,'ncd.c']]],
-  ['fill_5fdata',['fill_data',['../df/dfe/ncd_8c.html#a115536db290a1c30ffbc2c07e0db5fbf',1,'fill_data(void *buff, size_t size):&#160;ncd.c'],['../dc/d68/ncd_8h.html#a115536db290a1c30ffbc2c07e0db5fbf',1,'fill_data(void *buff, size_t size):&#160;ncd.c']]]
+  ['entropy',['entropy',['../df/dfe/ncd_8c.html#a3f3b78489f3a0d1fb75633bd2b14a5d2',1,'ncd.c']]]
 ];
