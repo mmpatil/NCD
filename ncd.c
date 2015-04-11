@@ -608,6 +608,7 @@ void *send_tcp(void* arg)
 	int i = 0;
 	char *ptr = second_train ? packets_f : packets_e;
 
+	int fail = 0;
 	for(i = 0; i < num_packets; ++i, ptr += length){
 		//(*packet_id)++;
 		//tcp->seq = htonl(seq++);
@@ -615,16 +616,24 @@ void *send_tcp(void* arg)
 		n = sendto(send_fd, ptr, length, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
-			perror("Send error udp train");
+			if(errno == ENOBUFS && fail == 0){
+				i--;
+				ptr -= length;
+				fail = 1;
+			}
+
+			perror("Send error tcp train");
 			exit(EXIT_FAILURE);
+		}else{
+			fail = 0;
 		}		// end if
 	}		// end of
 
 	/*tcp->seq = ps_tcp->seq = htonl( ++seq);
-	tcp->syn = ps_tcp->syn = 1;
-	tcp->source = ps_tcp->source = htons(syn_port);
-	tcp->check = ip_checksum(ps, length + sizeof(struct pseudo_header));
-	*/
+	 tcp->syn = ps_tcp->syn = 1;
+	 tcp->source = ps_tcp->source = htons(syn_port);
+	 tcp->check = ip_checksum(ps, length + sizeof(struct pseudo_header));
+	 */
 	rcv_bool = 1;
 	for(i = 0; i < num_tail && done == 0; ++i){
 		n = sendto(send_fd, syn_packet_2, length, 0, res->ai_addr,
@@ -671,10 +680,10 @@ int setup_tcp_packets()
 
 	//int size = tcp_bool ? data_size : data_size + sizeof(struct tcphdr);
 
-	packets_e = (char *)calloc(num_packets, len);
+	packets_e = (char *) calloc(num_packets, len);
 	if(!packets_e)
 		return -1;
-	packets_f = (char *)calloc(num_packets, len);
+	packets_f = (char *) calloc(num_packets, len);
 	if(!packets_f)
 		return -1;
 	size_t pslen = len + sizeof(struct pseudo_header);
