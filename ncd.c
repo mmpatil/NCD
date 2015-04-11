@@ -620,10 +620,11 @@ void *send_tcp(void* arg)
 				i--;
 				ptr -= length;
 				fail = 1;
-			}
+			}else{
 
-			perror("Send error tcp train");
-			exit(EXIT_FAILURE);
+				perror("Send error tcp train");
+				exit(EXIT_FAILURE);
+			}
 		}else{
 			fail = 0;
 		}		// end if
