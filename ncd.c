@@ -172,6 +172,8 @@ int comp_det()
 	setsockopt(send_fd, r, IP_TTL, &ttl, sizeof(ttl));
 
 	socklen_t size = 1500 * num_packets;
+	printf("Buffer size requested %f\n", (double)size);
+
 	setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 
 	/* acquire socket for icmp messages*/
