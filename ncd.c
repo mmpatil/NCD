@@ -655,9 +655,9 @@ void *send_tcp(void* arg)
 		}else{
 			fail = 0;
 			usleep(tail_wait * 1000);
-		}		// end for
-		tcp->source = ps_tcp->source = htons(sport);
+		}		// end if
 	}		//end for
+	tcp->source = ps_tcp->source = htons(sport);
 	return NULL;
 }		// end send_tcp()
 
