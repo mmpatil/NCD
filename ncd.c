@@ -616,10 +616,12 @@ void *send_tcp(void* arg)
 		n = sendto(send_fd, ptr, length, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
-			if(errno == ENOBUFS && fail == 0){
-				i--;
-				ptr -= length;
-				fail = 1;
+			if(errno == ENOBUFS){
+				if(fail == 0){
+					i--;
+					ptr -= length;
+					fail = 1;
+				}
 			}else{
 
 				perror("Send error tcp train");
