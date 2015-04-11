@@ -641,16 +641,25 @@ void *send_tcp(void* arg)
 	for(i = 0; i < num_tail && done == 0; ++i){
 		n = sendto(send_fd, syn_packet_2, length, 0, res->ai_addr,
 				res->ai_addrlen);
-		if(n == -1){
-			perror("Send error TCP Tail Syn");
-			exit(EXIT_FAILURE);
-		}
-		usleep(tail_wait * 1000);
-	}		// end for
-	tcp->source = ps_tcp->source = htons(sport);
 
+		if(n == -1){
+			if(errno == ENOBUFS){
+				if(fail == 0){
+					i--;
+					fail = 1;
+				}
+			}else{
+				perror("Send error tcp train");
+				exit(EXIT_FAILURE);
+			}
+		}else{
+			fail = 0;
+			usleep(tail_wait * 1000);
+		}		// end for
+		tcp->source = ps_tcp->source = htons(sport);
+	}		//end for
 	return NULL;
-}
+}		// end send_tcp()
 
 void fill_data(void *buff, size_t size)
 {
