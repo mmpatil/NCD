@@ -85,6 +85,7 @@ struct __attribute__((__packed__))pseudo_header {
  * */
 int comp_det();
 
+int detect(char c);
 /**
  * Formats an ipv4 header beginning at buff of length size
  * @param buff Address of the starting location for the IP packet
