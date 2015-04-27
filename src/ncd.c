@@ -116,9 +116,8 @@ int comp_det()
 	else
 		hints.ai_protocol = IPPROTO_UDP;
 
-	/* FIX THIS !!!!!!!!!!!!!!!*/
-	char str[32] = { 0 };
-	snprintf(str, 32, "%d", dport);
+	char str[8] = { 0 };
+	snprintf(str, sizeof(str), "%d", dport);
 
 	int err = getaddrinfo(dst_ip, str, &hints, &res);
 
@@ -150,7 +149,7 @@ int comp_det()
 		exit(EXIT_FAILURE);
 	}
 
-	/* Setup TCP Socket to bypass filters*/
+	/* Setup TCP Socket to bypass filters, else use UDP*/
 	if(tcp_bool == 1)
 		send_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
 	else
@@ -340,9 +339,7 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 	ip->ip_hl = 5;
 	ip->ip_len = htons(size);
 	ip->ip_id = htons(getpid());
-
-	/* get a better way to assign my IP address!!!*/
-	//inet_pton(AF_INET, "127.0.0.1", &ip->ip_src.s_addr);
+	ip->ip_src.s_addr = srcaddrs.sin_addr.s_addr;
 	ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 	ip->ip_off |= ntohs(IP_DF);
 	ip->ip_ttl = ttl;
@@ -354,6 +351,7 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 {
 	struct ip6_hdr *ip = (struct ip6_hdr *) buff;
 	ip->ip6_dst = ((struct sockaddr_in6*) res->ai_addr)->sin6_addr;
+	//ip->ip6_src = ((struct sockaddr_in6*)srcaddrs)->sin6_addr;
 	//inet_pton(AF_INET6, "192.168.1.101", &ip->ip6_src);
 	ip->ip6_ctlun.ip6_un1.ip6_un1_flow = 0;
 	ip->ip6_ctlun.ip6_un1.ip6_un1_hlim = ttl;
@@ -365,10 +363,7 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 
 int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 {
-	//struct ip* ip = (struct ip *) buff;
-	//ip--;
 	int len = data_len + sizeof(struct tcphdr);
-
 	struct tcphdr *tcp = (struct tcphdr *) buff;
 
 	tcp->source = (syn_bool == 1) ? htons(syn_port) : htons(sport);
@@ -382,8 +377,7 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 	/* pseudo header for udp checksum */
 
 	ps->source = srcaddrs.sin_addr.s_addr;
-	//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
-	//inet_pton(AF_INET, dst_ip, &ps->dest);
+
 	ps->dest = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
 	ps->zero = 0;
 	ps->proto = proto;
@@ -715,7 +709,7 @@ void *recv4(void *t)
 		struct ip *ip = (struct ip*) packet_rcv;
 		struct tcphdr *tcp = (struct tcphdr *) (ip + 1);
 		do{
-			if((n = recvfrom(send_fd, packet_rcv, 1500, 0,
+			if((n = recvfrom(send_fd, packet_rcv, sizeof(packet_rcv), 0,
 					(struct sockaddr *) &addr, &adrlen))
 					< 0){
 				perror("recvfrom failed");
@@ -748,7 +742,7 @@ void *recv4(void *t)
 
 		for(;;){
 
-			if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
+			if((n = recvfrom(recv_fd, packet_rcv, sizeof(packet_rcv), 0,
 					(struct sockaddr *) &addr, &adrlen))
 					< 0){
 				if(errno == EINTR)
@@ -928,9 +922,9 @@ uint16_t ip_checksum(void* vdata, size_t length)
 
 void print_use(char* program_name)
 {
-	printf("%s IPAddress [-p PORT] [-H | -L] [-s DATA_SIZE] "
+	printf("%s IPAddress [-p PORT] [-T] [-H | -L] [-s DATA_SIZE] "
 			"[-n NUM_PACKETS] [-t TTL] [-w TAIL_INTERVAL] "
-			"[-t NUM_TAIL] [-f FILENAME_PAYLOAD]\n", program_name);
+			"[-t NUM_TAIL][-f FILENAME_PAYLOAD]\n", program_name);
 }
 
 int check_args(int argc, char* argv[])
