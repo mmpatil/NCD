@@ -8,7 +8,7 @@ echo "HOSTNAME: $(hostname)"
 echo "USER: $USER"
 echo "COMMAND: $@"
 echo "TEST INFO:
-Test run from $(hostname)
+Test run from $(hostname)"
 
 
 echo "ANALYSYS: \n"
