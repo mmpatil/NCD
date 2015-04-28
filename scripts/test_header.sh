@@ -1,15 +1,13 @@
 #!/bin/sh
 
 # script for adding Meta-data to test files
-
-NOW=date
-echo "DATE: $($NOW)"
+echo "DATE: $(date)"
 echo "HOSTNAME: $(hostname)"
 echo "USER: $USER"
 echo "COMMAND: $@"
 echo "TEST INFO:
-Test run from $(hostname)"
+Test run from $(hostname)\n"
 
-echo "\nANALYSYS: \n"
+echo "ANALYSYS: \n"
 
-echo "\nRAW DATA:\n"
+echo "RAW DATA:\n"
