@@ -10,7 +10,6 @@ echo "COMMAND: $@"
 echo "TEST INFO:
 Test run from $(hostname)"
 
+echo "\nANALYSYS: \n"
 
-echo "ANALYSYS: \n"
-
-echo "RAW DATA:\n"
+echo "\nRAW DATA:\n"
