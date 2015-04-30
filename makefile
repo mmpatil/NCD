@@ -2,10 +2,10 @@ IDIR=include
 SDIR=src
 ODIR=obj
 
-#CC=gcc
-#CPP=g++
+CC=gcc
+CPP=g++
 
-CC=clang
+#CC=clang
 LIBS=-lm
 CLINKFLAGS=-pthread 
 CFLAGS=-O2 -g -I$(IDIR)
@@ -22,7 +22,7 @@ $(echo $(OBJ))
 #CFLAGS+=-DDEBUG
 #CFLAGS+=-DNCD_NO_KILL
  
-CPP=clang++
+#CPP=clang++
 CPPFLAGS=-std=c++11 -stdlib=libc++ -O2
 CPPLINKFLAGS=-pthread -L/usr/lib -lgtest -lgtest_main
 
