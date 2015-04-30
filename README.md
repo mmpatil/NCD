@@ -27,7 +27,7 @@ a reliable way to detect compression. This work follows that of Vahab
 Pournaghshband in [End-to-End Detection of Compression of Traffic Flows by
 Intermediaries]
 (http://lasr.cs.ucla.edu/vahab/resources/compression_detection.pdf), who is my
-advisor on this project
+advisor on this project.
 
 Current Status
 --------------
