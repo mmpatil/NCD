@@ -22,6 +22,6 @@ nc 9876 -l&
 
 sudo iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 
-./test_runner.sh "sudo tcpdump -i any -v ip src or dst 131.179.192.201 -w $FILENAME" > ${FILENAME}_meta &
+./test_runner.sh "sudo tcpdump -i any -v ip host 131.179.192.201 -w $FILENAME" > ${FILENAME}_meta &
 
 wait

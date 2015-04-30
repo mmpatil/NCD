@@ -3,7 +3,7 @@ DATE="date +%F"
 DIRNAME=../test_data/$(hostname)/$($DATE)
 if [ -d "$DIRNAME" ]
 then
-	COUNT=`\ls -afq $DIRNAME | wc -l`
+	COUNT=`\ls -afq $DIRNAME | grep -v "_meta" | wc -l`
 	COUNT=`expr $COUNT - 1`
 else
 	COUNT=1
