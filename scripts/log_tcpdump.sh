@@ -3,6 +3,7 @@ cleanup()
 {
   kill %2
   kill %1
+  sudo iptables -D OUTPUT -p tcp --tcp-flags RST RST -j DROP
   return $?
 }
 
@@ -19,7 +20,7 @@ trap control_c SIGTERM
 FILENAME=`./make_log.sh tcpdump`
 nc 9876 -l&
 
-#sudo iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
+sudo iptables -A OUTPUT -p tcp --tcp-flags RST RST -j DROP
 
 ./test_runner.sh "sudo tcpdump -i any -v ip src or dst (131.179.192.201 || 131.179.192.59)" > $FILENAME&
 #./test_runner.sh "sudo tcpdump -i any -v -w $FILENAME" > ${FILENAME}_meta
