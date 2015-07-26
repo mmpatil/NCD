@@ -30,7 +30,6 @@ uint8_t hflag = 1;   		// default option for high entropy -- set to on
 uint8_t fflag = 0;        // file flag <------- do we need this or is this redundant?
 // 40+(3*1) = 40+3 = 43
 
-
 /* file descriptors */
 int icmp_fd; 			//icmp socket file descriptor
 int send_fd; 			//udp socket file descriptor
@@ -56,7 +55,7 @@ void* (*send_train)(void*) = NULL;        // function pointer to send data: UDP 
 
 //cacheline
 double td;
-int syn_bool = 0;        // bool, true(i.e. 1) if mktcphdr should use syn_port, else use sport
+
 volatile int done = 0;			// boolean for if the send can stop
 volatile int rcv_bool = 0;        // bool for recving SYN packets really a Condition variable, consider replacing
 /*pthread_mutex_t stop_mutex;
@@ -70,8 +69,8 @@ volatile int second_train = 0;
 char pseudo[1500] = { 0 }; /* buffer for pseudo header */
 char packet_rcv[1500] = { 0 };			// buffer for receiving replies
 char packet_send[SIZE] = { 0 };        		// buffer for sending data
-char syn_packet_1[SIZE] = { 0 };		// packet for initial SYN
-char syn_packet_2[SIZE] = { 0 };			// packet for tail SYN
+char syn_packet_1[20] = { 0 };			// packet for head SYN
+char syn_packet_2[20] = { 0 };			// packet for tail SYN
 char icmp_send[128] = { 0 };			// buffer for ICMP messages
 
 struct pseudo_header *ps = (struct pseudo_header *) pseudo;        //pseudo header
@@ -149,6 +148,12 @@ int comp_det()
 		exit(EXIT_FAILURE);
 	}
 
+	err = setuid(0);/*get root privileges */
+	if(err < 0){
+		perror("Elevated privileges not acquired...");
+		return EXIT_FAILURE;
+	}
+
 	/* Setup TCP Socket to bypass filters, else use UDP*/
 	if(tcp_bool == 1)
 		send_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
@@ -156,7 +161,7 @@ int comp_det()
 		send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
 
 	if(send_fd == -1){
-		perror("call to socket() failed");
+		perror("call to socket() failed for SEND");
 		exit(EXIT_FAILURE);
 	}
 
@@ -175,7 +180,7 @@ int comp_det()
 	icmp_fd = socket(res->ai_family, SOCK_RAW, l);
 
 	if(icmp_fd == -1){
-		perror("call to socket() failed");
+		perror("call to socket() failed for ICMP");
 		exit(EXIT_FAILURE);        // consider doing something better here
 	}
 
@@ -199,12 +204,16 @@ int comp_det()
 		recv_data = recv4;
 
 		if(tcp_bool == 1){
+			/*
 			mktcphdr(packet_send, send_len, IPPROTO_TCP);
 			memcpy(syn_packet_1, packet_send,
 					send_len + sizeof(struct tcphdr));
-			syn_bool = 1;
+
 			mktcphdr(syn_packet_2, send_len, IPPROTO_TCP);
-			syn_bool = 0;
+			*/
+
+			setup_syn_packets();
+
 			if((setup_tcp_packets()) == -1){
 				errno = ENOMEM;
 				perror("Packet setup failed...");
@@ -279,6 +288,11 @@ int detect(char c)
 	register int i;
 	pthread_t threads[2];
 	void *status[2];
+	int err = setuid(0);/*get root privileges */
+	if(err < 0){
+		perror("Elevated privileges not acquired...");
+		return EXIT_FAILURE;
+	}
 	/* Acquire raw socket to listen for ICMP replies */
 	if(tcp_bool == 1)
 		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
@@ -287,6 +301,12 @@ int detect(char c)
 		IPPROTO_ICMP);
 	if(recv_fd == -1){
 		perror("call to socket() failed");
+		return EXIT_FAILURE;
+	}
+
+	err = setuid(getuid());/*get root privileges */
+	if(err < 0){
+		perror("Elevated privileges not released...");
 		return EXIT_FAILURE;
 	}
 
@@ -366,7 +386,7 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 	int len = data_len + sizeof(struct tcphdr);
 	struct tcphdr *tcp = (struct tcphdr *) buff;
 
-	tcp->source = (syn_bool == 1) ? htons(syn_port) : htons(sport);
+	tcp->source = htons(sport);
 	tcp->dest = htons(dport);
 	tcp->seq = htonl(seq);
 	tcp->ack = 0;
@@ -377,7 +397,6 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 	/* pseudo header for udp checksum */
 
 	ps->source = srcaddrs.sin_addr.s_addr;
-
 	ps->dest = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
 	ps->zero = 0;
 	ps->proto = proto;
@@ -390,6 +409,136 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
 	tcp->check = ip_checksum(ps, len + sizeof(struct pseudo_header));
 	return 0;
 }
+
+void setup_syn_packet(void* buff, uint16_t port)
+{
+
+	//setup tcpheader for syn packets...
+	int len = sizeof(struct tcphdr);
+	struct tcphdr *tcp = (struct tcphdr *) buff;
+
+	tcp->source = htons(port);
+	tcp->dest = htons(dport);
+	tcp->seq = htonl(seq);
+	tcp->ack = 0;
+	tcp->doff = 5;
+	tcp->window = (1 << 15) - 1;
+	tcp->syn = 1;
+
+	/* pseudo header for udp checksum */
+
+	ps->source = srcaddrs.sin_addr.s_addr;
+	ps->dest = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+	ps->zero = 0;
+	ps->proto = IPPROTO_TCP;
+	ps->len = htons(len);
+
+	/*copy udp packet into pseudo header buffer to calculate checksum*/
+	memcpy(ps + 1, tcp, len);
+
+	/* set tcp checksum */
+	tcp->check = ip_checksum(ps, len + sizeof(struct pseudo_header));
+}
+
+void setup_syn_packets()
+{
+	setup_syn_packet(syn_packet_1, sport );
+	setup_syn_packet(syn_packet_2, syn_port);
+}
+
+
+int setup_tcp_packets()
+{
+	//packet_send is already set up;
+printf("sport: %d\n dport: %d\n", sport, dport);
+	size_t len = data_size + sizeof(uint8_t) + sizeof(struct tcphdr);
+	char buffer[1500];
+	struct tcphdr *tcp = NULL;
+
+	u_int32_t ack = 0;
+
+	packets_e = (char *) calloc(num_packets, len);
+	if(!packets_e)
+		return -1;
+	packets_f = (char *) calloc(num_packets, len);
+	if(!packets_f)
+		return -1;
+	size_t pslen = len + sizeof(struct pseudo_header);
+
+	char *ptr = packets_e;
+	register int i = 0;
+
+	//!!! we're moving this ptr wrong somehow we get 0 for ports and other errors
+	for(i = 0; i < num_packets; ++i, ptr += len){
+
+		tcp = (struct tcphdr *) ptr;
+
+		tcp->source = htons(sport);
+		tcp->dest = htons(dport);
+		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
+		tcp->ack = 1;
+		tcp->ack_seq = htonl(ack++);
+		tcp->doff = 5;
+		tcp->window = (1 << 15) - 1;
+		tcp->syn = 0;
+
+		/* pseudo header for udp checksum */
+
+		ps->source = srcaddrs.sin_addr.s_addr;
+		ps->dest =
+			((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+		ps->zero = 0;
+		ps->proto = IPPROTO_TCP;
+		ps->len = htons(len);
+
+		/*copy udp packet into pseudo header buffer to calculate checksum*/
+		memcpy(ps + 1, tcp, len);
+
+		/* set tcp checksum */
+		tcp->check = ip_checksum(ps, pslen);
+	}
+
+	seq = htonl(seq + data_size + sizeof(uint16_t));
+	ack = 0;
+	ptr = packets_f;
+	fill_data(buffer + sizeof(uint16_t), data_size);
+
+	for(i = 0; i < num_packets; ++i, ptr += len){
+
+		tcp = (struct tcphdr *) ptr;
+
+		tcp->source = htons(sport);
+		tcp->dest = htons(dport);
+		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
+		tcp->ack = 1;
+		tcp->ack_seq = htonl(ack++);
+		tcp->th_off = 5;
+		tcp->window = (1 << 15) - 1;
+		tcp->syn = 0;
+
+		/* pseudo header for udp checksum */
+
+		ps->source = srcaddrs.sin_addr.s_addr;
+		//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
+		//inet_pton(AF_INET, dst_ip, &ps->dest);
+		ps->dest =
+			((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+		ps->zero = 0;
+		ps->proto = IPPROTO_TCP;
+		ps->len = htons(len);
+
+		memcpy(ptr + sizeof(struct tcphdr) + sizeof(uint16_t), buffer,
+				data_size);
+
+		/*copy udp packet into pseudo header buffer to calculate checksum*/
+		memcpy(ps + 1, tcp, len);
+
+		/* set tcp checksum */
+		tcp->check = ip_checksum(ps, pslen);
+	}
+
+	return 0;
+}		// end setup_tcp_packets()
 
 int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 {
@@ -502,34 +651,45 @@ void *send_udp(void* arg)
 void *send_tcp(void* arg)
 {
 	int n;
-	int length = send_len;
+	int len = data_size + sizeof(uint8_t)+ sizeof(struct tcphdr);
 	char buff[1500] = { 0 };
+	//struct ip* ip = (struct ip*) packet_send;
 	struct tcphdr* tcp = (struct tcphdr*) packet_send;
 	struct tcphdr* ps_tcp = (struct tcphdr *) (ps + 1);
 
-	length = send_len + sizeof(struct tcphdr);
+	int length = send_len + sizeof(struct tcphdr) + sizeof(struct ip);
 	printf("send_len : %d\ndata Length: %d\n", (int) send_len, length);
 	printf("Send syn packet\n");
-	n = sendto(send_fd, syn_packet_1, length, 0, res->ai_addr,
+	n = sendto(send_fd, syn_packet_1, sizeof(syn_packet_1), 0, res->ai_addr,
 			res->ai_addrlen);
 	if(n == -1){
 		perror("Send error tcp syn");
 		exit(EXIT_FAILURE);
 	}
+	// set up the buffer to receive the reply into
 	struct ip *ip = (struct ip*) buff;
 	struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
-
+	struct sockaddr_in temp_res;
+	socklen_t temp_size = sizeof(temp_res);
+	//struct tcphdr *BAD = (struct tcphdr *) (ip);
+	//printf("size of buff = %d\n", (int) sizeof(buff));
+#if 1
 	do{
-		if((recvfrom(send_fd, buff, 1500, 0, 0, 0)) == -1){
+		if((recvfrom(send_fd, buff, sizeof(buff), 0, 0,
+				0 /*&temp_res, &temp_size*/)) == -1){
 			perror("rcv error tcp SYN-ACK");
 			exit(EXIT_FAILURE);
 		}
+		//printf("Port: %d\n", ntohs( tcp_reply->dest));
+		//printf("BAD Port: %d\n", ntohs( BAD->dest));
+
 	}while(((tcp_reply->dest != htons(sport)
 			|| (((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr
 					!= ip->ip_src.s_addr))));
+#endif
+	//sleep(1);
 
 	printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
-
 	printf("TCP SYN reply from port: %d to port: %d\n",
 			ntohs(tcp_reply->source), ntohs(tcp_reply->dest));
 
@@ -539,8 +699,8 @@ void *send_tcp(void* arg)
 	int i = 0;
 	char *ptr = second_train ? packets_f : packets_e;
 
-	for(i = 0; i < num_packets; ++i, ptr += length){
-		n = sendto(send_fd, ptr, length, 0, res->ai_addr,
+	for(i = 0; i < num_packets; ++i, ptr += len){
+		n = sendto(send_fd, ptr, len, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error tcp train");
@@ -550,7 +710,7 @@ void *send_tcp(void* arg)
 
 	rcv_bool = 1;
 	for(i = 0; i < num_tail && done == 0; ++i){
-		n = sendto(send_fd, syn_packet_2, length, 0, res->ai_addr,
+		n = sendto(send_fd, syn_packet_2, sizeof(syn_packet_2), 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error TCP Tail Syn");
@@ -579,96 +739,7 @@ void fill_data(void *buff, size_t size)
 	close(fd);
 }
 
-int setup_tcp_packets()
-{
-	//packet_send is already set up;
 
-	size_t len = data_size + sizeof(uint16_t) + sizeof(struct tcphdr);
-	char buffer[1500];
-	struct tcphdr *tcp;
-
-	u_int32_t ack = 0;
-
-	packets_e = (char *) calloc(num_packets, len);
-	if(!packets_e)
-		return -1;
-	packets_f = (char *) calloc(num_packets, len);
-	if(!packets_f)
-		return -1;
-	size_t pslen = len + sizeof(struct pseudo_header);
-
-	char *ptr = packets_e;
-	register int i = 0;
-	for(i = 0; i < num_packets; ++i, ptr += len){
-
-		tcp = (struct tcphdr *) ptr;
-
-		tcp->source = htons(sport);
-		tcp->dest = htons(dport);
-		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
-		tcp->ack = 1;
-		tcp->ack_seq = htonl(ack++);
-		tcp->doff = 5;
-		tcp->window = (1 << 15) - 1;
-		tcp->syn = 0;
-
-		/* pseudo header for udp checksum */
-
-		ps->source = srcaddrs.sin_addr.s_addr;
-		ps->dest =
-				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
-		ps->zero = 0;
-		ps->proto = IPPROTO_TCP;
-		ps->len = htons(len);
-
-		/*copy udp packet into pseudo header buffer to calculate checksum*/
-		memcpy(ps + 1, tcp, len);
-
-		/* set tcp checksum */
-		tcp->check = ip_checksum(ps, pslen);
-	}
-
-	seq = htonl(data_size + sizeof(uint16_t));
-	ack = 0;
-	ptr = packets_f;
-	fill_data(buffer + sizeof(uint16_t), data_size);
-
-	for(i = 0; i < num_packets; ++i, ptr += len){
-
-		tcp = (struct tcphdr *) ptr;
-
-		tcp->source = htons(sport);
-		tcp->dest = htons(dport);
-		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
-		tcp->ack = 1;
-		tcp->ack_seq = htonl(ack++);
-		tcp->doff = 5;
-		tcp->window = (1 << 15) - 1;
-		tcp->syn = 0;
-
-		/* pseudo header for udp checksum */
-
-		ps->source = srcaddrs.sin_addr.s_addr;
-		//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
-		//inet_pton(AF_INET, dst_ip, &ps->dest);
-		ps->dest =
-				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
-		ps->zero = 0;
-		ps->proto = IPPROTO_TCP;
-		ps->len = htons(len);
-
-		memcpy(ptr + sizeof(struct tcphdr) + sizeof(uint16_t), buffer,
-				data_size);
-
-		/*copy udp packet into pseudo header buffer to calculate checksum*/
-		memcpy(ps + 1, tcp, len);
-
-		/* set tcp checksum */
-		tcp->check = ip_checksum(ps, pslen);
-	}
-
-	return 0;
-}		// end setup_tcp_packets()
 
 void *recv4(void *t)
 {
@@ -709,7 +780,8 @@ void *recv4(void *t)
 		struct ip *ip = (struct ip*) packet_rcv;
 		struct tcphdr *tcp = (struct tcphdr *) (ip + 1);
 		do{
-			if((n = recvfrom(send_fd, packet_rcv, sizeof(packet_rcv), 0,
+			if((n = recvfrom(send_fd, packet_rcv,
+					sizeof(packet_rcv), 0,
 					(struct sockaddr *) &addr, &adrlen))
 					< 0){
 				perror("recvfrom failed");
@@ -742,7 +814,8 @@ void *recv4(void *t)
 
 		for(;;){
 
-			if((n = recvfrom(recv_fd, packet_rcv, sizeof(packet_rcv), 0,
+			if((n = recvfrom(recv_fd, packet_rcv,
+					sizeof(packet_rcv), 0,
 					(struct sockaddr *) &addr, &adrlen))
 					< 0){
 				if(errno == EINTR)
@@ -924,7 +997,7 @@ void print_use(char* program_name)
 {
 	printf("%s IPAddress [-p PORT] [-T] [-H | -L] [-s DATA_SIZE] "
 			"[-n NUM_PACKETS] [-t TTL] [-w TAIL_INTERVAL] "
-			"[-t NUM_TAIL][-f FILENAME_PAYLOAD]\n", program_name);
+			"[- NUM_TAIL][-f FILENAME_PAYLOAD]\n", program_name);
 }
 
 int check_args(int argc, char* argv[])
@@ -956,7 +1029,7 @@ int check_args(int argc, char* argv[])
 	int check;
 	int c = 0;
 	int err = 0;        // error flag for options
-	while((c = getopt(argc, argv, "HLTp:f:s:n:t:w:r:")) != -1){
+	while((c = getopt(argc, argv, "HLTp:f:s:n:t:w:r:h")) != -1){
 		switch(c){
 		case 'H':
 			lflag = 0;
@@ -1055,4 +1128,3 @@ int check_args(int argc, char* argv[])
 
 	return EXIT_SUCCESS;
 }
-
