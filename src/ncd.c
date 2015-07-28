@@ -6,6 +6,8 @@
 #include "ncd.h"
 #include "bitset.h"
 
+#define SUID
+
 /*  Global Variables  */
 int data_size; 			// size of udp data payload
 int num_packets;		// number of packets in udp data train
@@ -120,7 +122,7 @@ int comp_det()
 
 	int err = getaddrinfo(dst_ip, str, &hints, &res);
 
-	// get temp socket to obtain source IP -- its a hack
+	// get temp socket to obtain source IP -- its a hack but effective
 	{
 		int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		if(connect(s, res->ai_addr, res->ai_addrlen) == -1){
@@ -129,7 +131,9 @@ int comp_det()
 		}
 		if(getsockname(s, (struct sockaddr *) &srcaddrs, &sa_len)
 				== -1){
-			perror("getsockname() failed");
+			fprintf(stderr, "getsockname() failed: %s: %d\n%s",
+					__FUNCTION__, __LINE__,
+					strerror(errno));
 			return -1;
 		}
 		close(s);
@@ -147,13 +151,13 @@ int comp_det()
 					gai_strerror(err));
 		exit(EXIT_FAILURE);
 	}
-
+#ifdef SUID
 	err = setuid(0);/*get root privileges */
 	if(err < 0){
 		perror("Elevated privileges not acquired...");
 		return EXIT_FAILURE;
 	}
-
+#endif
 	/* Setup TCP Socket to bypass filters, else use UDP*/
 	if(tcp_bool == 1)
 		send_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
@@ -191,34 +195,35 @@ int comp_det()
 		perror("setsockopt() failed icmp");
 		exit(EXIT_FAILURE);
 	}
-
+#ifdef SUID
 	err = setuid(getuid());/*give up privileges */
 
 	if(err < 0){
 		perror("Elevated privileges not released");
 		return EXIT_FAILURE;
 	}
-
+#endif
 	//make ICMP packets
 	if(res->ai_family == AF_INET){
 		recv_data = recv4;
 
 		if(tcp_bool == 1){
 			/*
-			mktcphdr(packet_send, send_len, IPPROTO_TCP);
-			memcpy(syn_packet_1, packet_send,
-					send_len + sizeof(struct tcphdr));
+			 mktcphdr(packet_send, send_len, IPPROTO_TCP);
+			 memcpy(syn_packet_1, packet_send,
+			 send_len + sizeof(struct tcphdr));
 
-			mktcphdr(syn_packet_2, send_len, IPPROTO_TCP);
-			*/
+			 mktcphdr(syn_packet_2, send_len, IPPROTO_TCP);
+			 */
 
 			setup_syn_packets();
-
-			if((setup_tcp_packets()) == -1){
-				errno = ENOMEM;
-				perror("Packet setup failed...");
-				return EXIT_FAILURE;
-			}
+			/*
+			 if((setup_tcp_packets()) == -1){
+			 errno = ENOMEM;
+			 perror("Packet setup failed...");
+			 return EXIT_FAILURE;
+			 }
+			 */
 		}else{
 			mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
 			mkicmpv4(icmp_send + sizeof(struct ip), icmp_data_len);
@@ -272,6 +277,7 @@ int comp_det()
 	if(res)
 		freeaddrinfo(res);
 	res = NULL;
+
 	if(packets_e)
 		free(packets_e);
 	packets_e = NULL;
@@ -279,6 +285,7 @@ int comp_det()
 	if(packets_f)
 		free(packets_f);
 	packets_f = NULL;
+
 	return EXIT_SUCCESS;
 }
 
@@ -288,11 +295,13 @@ int detect(char c)
 	register int i;
 	pthread_t threads[2];
 	void *status[2];
+#ifdef SUID
 	int err = setuid(0);/*get root privileges */
 	if(err < 0){
 		perror("Elevated privileges not acquired...");
 		return EXIT_FAILURE;
 	}
+#endif
 	/* Acquire raw socket to listen for ICMP replies */
 	if(tcp_bool == 1)
 		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
@@ -304,11 +313,13 @@ int detect(char c)
 		return EXIT_FAILURE;
 	}
 
+#ifdef SUID
 	err = setuid(getuid());/*get root privileges */
 	if(err < 0){
 		perror("Elevated privileges not released...");
 		return EXIT_FAILURE;
 	}
+#endif
 
 	/*increase size of receive buffer*/
 	int buffsize;
@@ -440,20 +451,50 @@ void setup_syn_packet(void* buff, uint16_t port)
 	tcp->check = ip_checksum(ps, len + sizeof(struct pseudo_header));
 }
 
-void setup_syn_packets()
+void setup_fin_packet(void* buff, uint16_t port)
 {
-	setup_syn_packet(syn_packet_1, sport );
-	setup_syn_packet(syn_packet_2, syn_port);
+	//setup tcpheader for syn packets...
+	int len = sizeof(struct tcphdr);
+	struct tcphdr *tcp = (struct tcphdr *) buff;
+
+	tcp->source = htons(port);
+	tcp->dest = htons(dport);
+	tcp->seq = htonl(seq);
+	tcp->ack = 0;
+	tcp->doff = 5;
+	tcp->window = (1 << 15) - 1;
+	tcp->syn = 0;
+	tcp->fin = 1;
+
+	/* pseudo header for udp checksum */
+
+	ps->source = srcaddrs.sin_addr.s_addr;
+	ps->dest = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+	ps->zero = 0;
+	ps->proto = IPPROTO_TCP;
+	ps->len = htons(len);
+
+	/*copy udp packet into pseudo header buffer to calculate checksum*/
+	memcpy(ps + 1, tcp, len);
+
+	/* set tcp checksum */
+	tcp->check = ip_checksum(ps, len + sizeof(struct pseudo_header));
+
 }
 
+void setup_syn_packets()
+{
+	setup_syn_packet(syn_packet_1, sport);
+	setup_syn_packet(syn_packet_2, syn_port);
+}
 
 int setup_tcp_packets()
 {
 	//packet_send is already set up;
-printf("sport: %d\n dport: %d\n", sport, dport);
+	printf("sport: %d\n dport: %d\n", sport, dport);
 	size_t len = data_size + sizeof(uint8_t) + sizeof(struct tcphdr);
 	char buffer[1500];
-	struct tcphdr *tcp = NULL;
+	struct tcphdr* tcp = NULL;
 
 	u_int32_t ack = 0;
 
@@ -466,9 +507,9 @@ printf("sport: %d\n dport: %d\n", sport, dport);
 	size_t pslen = len + sizeof(struct pseudo_header);
 
 	char *ptr = packets_e;
+	uint16_t* id;
 	register int i = 0;
 
-	//!!! we're moving this ptr wrong somehow we get 0 for ports and other errors
 	for(i = 0; i < num_packets; ++i, ptr += len){
 
 		tcp = (struct tcphdr *) ptr;
@@ -482,11 +523,14 @@ printf("sport: %d\n dport: %d\n", sport, dport);
 		tcp->window = (1 << 15) - 1;
 		tcp->syn = 0;
 
+		id = (uint16_t*) (tcp + 1);
+		*id = (uint16_t) i;
+
 		/* pseudo header for udp checksum */
 
 		ps->source = srcaddrs.sin_addr.s_addr;
 		ps->dest =
-			((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
 		ps->zero = 0;
 		ps->proto = IPPROTO_TCP;
 		ps->len = htons(len);
@@ -516,13 +560,16 @@ printf("sport: %d\n dport: %d\n", sport, dport);
 		tcp->window = (1 << 15) - 1;
 		tcp->syn = 0;
 
+		id = (uint16_t*) (tcp + 1);
+		*id = (uint16_t) i;
+
 		/* pseudo header for udp checksum */
 
 		ps->source = srcaddrs.sin_addr.s_addr;
 		//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
 		//inet_pton(AF_INET, dst_ip, &ps->dest);
 		ps->dest =
-			((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
 		ps->zero = 0;
 		ps->proto = IPPROTO_TCP;
 		ps->len = htons(len);
@@ -539,6 +586,73 @@ printf("sport: %d\n dport: %d\n", sport, dport);
 
 	return 0;
 }		// end setup_tcp_packets()
+
+int setup_tcp_train(uint32_t ack)
+{
+	//packet_send is already set up;
+	size_t len = data_size + sizeof(uint8_t) + sizeof(struct tcphdr);
+	char buffer[1500] = { 0 };
+	struct tcphdr* tcp = NULL;
+
+	char* ptr = (char *) calloc(num_packets, len);
+	if(!ptr){
+		perror("failure to allocate packet train during setup!");
+		return -1;
+	}
+	size_t pslen = len + sizeof(struct pseudo_header);
+
+	if(second_train){
+		if(packets_f)
+			free(packets_f);
+		packets_f = ptr;
+		fill_data(buffer, data_size);
+	}else{
+		if(packets_e)
+			free(packets_e);
+		packets_e = ptr;
+	}
+
+	uint16_t* id;
+	register int i = 0;
+	for(i = 0; i < num_packets; ++i, ptr += len){
+
+		tcp = (struct tcphdr *) ptr;
+
+		tcp->source = htons(sport);
+		tcp->dest = htons(dport);
+		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
+		tcp->ack = 1;
+		tcp->ack_seq = ack;        // already in network order //htonl(ack++);
+		tcp->th_off = 5;
+		tcp->window = (1 << 15) - 1;
+		tcp->syn = 0;
+
+		id = (uint16_t*) (tcp + 1);
+		*id = (uint16_t) i;
+
+		/* pseudo header for udp checksum */
+		ps->source = srcaddrs.sin_addr.s_addr;
+		ps->dest =
+				((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+		ps->zero = 0;
+		ps->proto = IPPROTO_TCP;
+		ps->len = htons(len);
+
+		//fill the data portion if its high entropy
+		// !!!! consider using second train boolean instead
+		if(second_train)
+			memcpy(ptr + sizeof(struct tcphdr) + sizeof(uint16_t),
+					buffer, data_size);
+
+		/*copy udp packet into pseudo header buffer to calculate checksum*/
+		memcpy(ps + 1, tcp, len);
+
+		/* set tcp checksum */
+		tcp->check = ip_checksum(ps, pslen);
+	}
+
+	return 0;
+}
 
 int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
 {
@@ -651,7 +765,7 @@ void *send_udp(void* arg)
 void *send_tcp(void* arg)
 {
 	int n;
-	int len = data_size + sizeof(uint8_t)+ sizeof(struct tcphdr);
+	int len = data_size + sizeof(uint8_t) + sizeof(struct tcphdr);
 	char buff[1500] = { 0 };
 	//struct ip* ip = (struct ip*) packet_send;
 	struct tcphdr* tcp = (struct tcphdr*) packet_send;
@@ -671,36 +785,31 @@ void *send_tcp(void* arg)
 	struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
 	struct sockaddr_in temp_res;
 	socklen_t temp_size = sizeof(temp_res);
-	//struct tcphdr *BAD = (struct tcphdr *) (ip);
-	//printf("size of buff = %d\n", (int) sizeof(buff));
-#if 1
+
 	do{
 		if((recvfrom(send_fd, buff, sizeof(buff), 0, 0,
 				0 /*&temp_res, &temp_size*/)) == -1){
 			perror("rcv error tcp SYN-ACK");
 			exit(EXIT_FAILURE);
 		}
-		//printf("Port: %d\n", ntohs( tcp_reply->dest));
-		//printf("BAD Port: %d\n", ntohs( BAD->dest));
 
 	}while(((tcp_reply->dest != htons(sport)
 			|| (((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr
 					!= ip->ip_src.s_addr))));
-#endif
-	//sleep(1);
 
 	printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
 	printf("TCP SYN reply from port: %d to port: %d\n",
 			ntohs(tcp_reply->source), ntohs(tcp_reply->dest));
 
-	td = get_time();	//time stamp just before we begin sending
-
 	/*send data train*/
 	int i = 0;
-	char *ptr = second_train ? packets_f : packets_e;
+	setup_tcp_train(tcp_reply->ack_seq);
+	char* packet_train = second_train ? packets_f : packets_e;
 
-	for(i = 0; i < num_packets; ++i, ptr += len){
-		n = sendto(send_fd, ptr, len, 0, res->ai_addr,
+	//time stamp just before we begin sending
+	td = get_time();
+	for(i = 0; i < num_packets; ++i, packet_train += len){
+		n = sendto(send_fd, packet_train, len, 0, res->ai_addr,
 				res->ai_addrlen);
 		if(n == -1){
 			perror("Send error tcp train");
@@ -710,14 +819,30 @@ void *send_tcp(void* arg)
 
 	rcv_bool = 1;
 	for(i = 0; i < num_tail && done == 0; ++i){
-		n = sendto(send_fd, syn_packet_2, sizeof(syn_packet_2), 0, res->ai_addr,
-				res->ai_addrlen);
+		n = sendto(send_fd, syn_packet_2, sizeof(syn_packet_2), 0,
+				res->ai_addr, res->ai_addrlen);
 		if(n == -1){
 			perror("Send error TCP Tail Syn");
 			exit(EXIT_FAILURE);
 		}
 		usleep(tail_wait * 1000);
 	}		// end for
+
+	/* close the connections with fin packets */
+	char fin[21] = { 0 };
+	setup_fin_packet(fin, sport);
+	n = sendto(send_fd, fin, sizeof(fin), 0, res->ai_addr, res->ai_addrlen);
+	if(n == -1){
+		perror("Send error FIN packet for train port");
+		exit(EXIT_FAILURE);
+	}
+	setup_fin_packet(fin, syn_port);
+	n = sendto(send_fd, fin, sizeof(fin), 0, res->ai_addr, res->ai_addrlen);
+	if(n == -1){
+		perror("Send error FIN packet for SYN port");
+		exit(EXIT_FAILURE);
+	}
+
 	tcp->source = ps_tcp->source = htons(sport);
 	return NULL;
 }
@@ -738,8 +863,6 @@ void fill_data(void *buff, size_t size)
 	}
 	close(fd);
 }
-
-
 
 void *recv4(void *t)
 {
