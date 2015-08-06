@@ -451,7 +451,7 @@ void setup_syn_packet(void* buff, uint16_t port)
 	tcp->check = ip_checksum(ps, len + sizeof(struct pseudo_header));
 }
 
-void setup_fin_packet(void* buff, uint16_t port)
+void setup_fin_packet(void* buff, uint16_t port, int fin)
 {
 	//setup tcpheader for syn packets...
 	int len = sizeof(struct tcphdr);
@@ -464,7 +464,9 @@ void setup_fin_packet(void* buff, uint16_t port)
 	tcp->doff = 5;
 	tcp->window = (1 << 15) - 1;
 	tcp->syn = 0;
-	tcp->fin = 1;
+	tcp->fin = fin;
+	if(fin == 0)
+		tcp->ack = 1;
 
 	/* pseudo header for udp checksum */
 
@@ -830,16 +832,52 @@ void *send_tcp(void* arg)
 
 	/* close the connections with fin packets */
 	char fin[21] = { 0 };
-	setup_fin_packet(fin, sport);
+	setup_fin_packet(fin, sport, 1);
 	n = sendto(send_fd, fin, sizeof(fin), 0, res->ai_addr, res->ai_addrlen);
 	if(n == -1){
 		perror("Send error FIN packet for train port");
 		exit(EXIT_FAILURE);
 	}
-	setup_fin_packet(fin, syn_port);
+
+	do{
+		if((recvfrom(send_fd, buff, sizeof(buff), 0, 0, 0)) == -1){
+			perror("rcv error tcp FIN-ACK");
+			exit(EXIT_FAILURE);
+		}
+
+	}while(((tcp_reply->dest != htons(sport)
+			|| (((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr
+					!= ip->ip_src.s_addr)))
+			&& !tcp_reply->fin);
+	setup_fin_packet(fin, sport, 0);
+	n = sendto(send_fd, fin, sizeof(fin), 0, res->ai_addr, res->ai_addrlen);
+	if(n == -1){
+		perror("Send error FIN-ACK packet for SYN port");
+		exit(EXIT_FAILURE);
+	}
+
+	setup_fin_packet(fin, syn_port, 1);
+
 	n = sendto(send_fd, fin, sizeof(fin), 0, res->ai_addr, res->ai_addrlen);
 	if(n == -1){
 		perror("Send error FIN packet for SYN port");
+		exit(EXIT_FAILURE);
+	}
+	do{
+		if((recvfrom(send_fd, buff, sizeof(buff), 0, 0, 0)) == -1){
+			perror("rcv error tcp FIN-ACK");
+			exit(EXIT_FAILURE);
+		}
+
+	}while(((tcp_reply->dest != htons(syn_port)
+			|| (((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr
+					!= ip->ip_src.s_addr)))
+			&& !tcp_reply->fin);
+
+	setup_fin_packet(fin, syn_port, 0);
+	n = sendto(send_fd, fin, sizeof(fin), 0, res->ai_addr, res->ai_addrlen);
+	if(n == -1){
+		perror("Send error FIN-ACK packet for SYN port");
 		exit(EXIT_FAILURE);
 	}
 
