@@ -1011,7 +1011,7 @@ int check_args(int argc, char* argv[])
 	dst_ip = NULL;
 
 	/* probably change default port from traceroute port */
-	dport = 80;        //33434;
+	dport = 33434; //80;
 	sport = 13333;
 	syn_port = 14444;
 	entropy = 'B';        // default to 2 data trains
