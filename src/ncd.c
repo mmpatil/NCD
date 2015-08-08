@@ -205,12 +205,12 @@ int comp_det()
 
 		if(tcp_bool == 1){
 			/*
-			mktcphdr(packet_send, send_len, IPPROTO_TCP);
-			memcpy(syn_packet_1, packet_send,
-					send_len + sizeof(struct tcphdr));
+			 mktcphdr(packet_send, send_len, IPPROTO_TCP);
+			 memcpy(syn_packet_1, packet_send,
+			 send_len + sizeof(struct tcphdr));
 
-			mktcphdr(syn_packet_2, send_len, IPPROTO_TCP);
-			*/
+			 mktcphdr(syn_packet_2, send_len, IPPROTO_TCP);
+			 */
 
 			setup_syn_packets();
 
@@ -442,17 +442,16 @@ void setup_syn_packet(void* buff, uint16_t port)
 
 void setup_syn_packets()
 {
-	setup_syn_packet(syn_packet_1, sport );
+	setup_syn_packet(syn_packet_1, sport);
 	setup_syn_packet(syn_packet_2, syn_port);
 }
-
 
 int setup_tcp_packets()
 {
 	//packet_send is already set up;
-printf("sport: %d\n dport: %d\n", sport, dport);
-	size_t len = data_size + sizeof(uint8_t) + sizeof(struct tcphdr);
-	char buffer[1500];
+	printf("sport: %d\ndport: %d\n", sport, dport);
+	size_t len = send_len + sizeof(struct tcphdr);
+	char buffer[1500]= {0};
 	struct tcphdr *tcp = NULL;
 
 	u_int32_t ack = 0;
@@ -465,6 +464,14 @@ printf("sport: %d\n dport: %d\n", sport, dport);
 		return -1;
 	size_t pslen = len + sizeof(struct pseudo_header);
 
+	/* pseudo header for udp checksum */
+
+	ps->source = srcaddrs.sin_addr.s_addr;
+	ps->dest = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+	ps->zero = 0;
+	ps->proto = IPPROTO_TCP;
+	ps->len = htons(len);
+
 	char *ptr = packets_e;
 	register int i = 0;
 
@@ -475,33 +482,26 @@ printf("sport: %d\n dport: %d\n", sport, dport);
 
 		tcp->source = htons(sport);
 		tcp->dest = htons(dport);
-		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
+		tcp->seq = htonl(seq += send_len);
 		tcp->ack = 1;
 		tcp->ack_seq = htonl(ack++);
 		tcp->doff = 5;
 		tcp->window = (1 << 15) - 1;
 		tcp->syn = 0;
 
-		/* pseudo header for udp checksum */
-
-		ps->source = srcaddrs.sin_addr.s_addr;
-		ps->dest =
-			((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
-		ps->zero = 0;
-		ps->proto = IPPROTO_TCP;
-		ps->len = htons(len);
-
 		/*copy udp packet into pseudo header buffer to calculate checksum*/
-		memcpy(ps + 1, tcp, len);
+		memcpy((ps + 1), tcp, len);
 
 		/* set tcp checksum */
 		tcp->check = ip_checksum(ps, pslen);
 	}
 
-	seq = htonl(seq + data_size + sizeof(uint16_t));
+	seq = htonl(seq + send_len);
 	ack = 0;
 	ptr = packets_f;
 	fill_data(buffer + sizeof(uint16_t), data_size);
+
+	size_t offset = sizeof(struct tcphdr) + sizeof(uint16_t);
 
 	for(i = 0; i < num_packets; ++i, ptr += len){
 
@@ -509,26 +509,14 @@ printf("sport: %d\n dport: %d\n", sport, dport);
 
 		tcp->source = htons(sport);
 		tcp->dest = htons(dport);
-		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
+		tcp->seq = htonl(seq += send_len);
 		tcp->ack = 1;
 		tcp->ack_seq = htonl(ack++);
 		tcp->doff = 5;
 		tcp->window = (1 << 15) - 1;
 		tcp->syn = 0;
 
-		/* pseudo header for udp checksum */
-
-		ps->source = srcaddrs.sin_addr.s_addr;
-		//inet_pton(AF_INET,/*"127.0.0.1"*/"192.168.1.100", &ps->source);
-		//inet_pton(AF_INET, dst_ip, &ps->dest);
-		ps->dest =
-			((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
-		ps->zero = 0;
-		ps->proto = IPPROTO_TCP;
-		ps->len = htons(len);
-
-		memcpy(ptr + sizeof(struct tcphdr) + sizeof(uint16_t), buffer,
-				data_size);
+		memcpy(ptr + offset, buffer, data_size);
 
 		/*copy udp packet into pseudo header buffer to calculate checksum*/
 		memcpy(ps + 1, tcp, len);
@@ -651,14 +639,14 @@ void *send_udp(void* arg)
 void *send_tcp(void* arg)
 {
 	int n;
-	int len = data_size + sizeof(uint8_t)+ sizeof(struct tcphdr);
+	int len = send_len + sizeof(struct tcphdr);
 	char buff[1500] = { 0 };
 	//struct ip* ip = (struct ip*) packet_send;
 	struct tcphdr* tcp = (struct tcphdr*) packet_send;
 	struct tcphdr* ps_tcp = (struct tcphdr *) (ps + 1);
 
-	int length = send_len + sizeof(struct tcphdr) + sizeof(struct ip);
-	printf("send_len : %d\ndata Length: %d\n", (int) send_len, length);
+	//int length = send_len + sizeof(struct tcphdr) + sizeof(struct ip);
+	printf("send_len : %d\n", (int) send_len);
 	printf("Send syn packet\n");
 	n = sendto(send_fd, syn_packet_1, sizeof(syn_packet_1), 0, res->ai_addr,
 			res->ai_addrlen);
@@ -700,8 +688,7 @@ void *send_tcp(void* arg)
 	char *ptr = second_train ? packets_f : packets_e;
 
 	for(i = 0; i < num_packets; ++i, ptr += len){
-		n = sendto(send_fd, ptr, len, 0, res->ai_addr,
-				res->ai_addrlen);
+		n = sendto(send_fd, ptr, len, 0, res->ai_addr, res->ai_addrlen);
 		if(n == -1){
 			perror("Send error tcp train");
 			exit(EXIT_FAILURE);
@@ -710,8 +697,8 @@ void *send_tcp(void* arg)
 
 	rcv_bool = 1;
 	for(i = 0; i < num_tail && done == 0; ++i){
-		n = sendto(send_fd, syn_packet_2, sizeof(syn_packet_2), 0, res->ai_addr,
-				res->ai_addrlen);
+		n = sendto(send_fd, syn_packet_2, sizeof(syn_packet_2), 0,
+				res->ai_addr, res->ai_addrlen);
 		if(n == -1){
 			perror("Send error TCP Tail Syn");
 			exit(EXIT_FAILURE);
@@ -738,8 +725,6 @@ void fill_data(void *buff, size_t size)
 	}
 	close(fd);
 }
-
-
 
 void *recv4(void *t)
 {
@@ -1011,7 +996,7 @@ int check_args(int argc, char* argv[])
 	dst_ip = NULL;
 
 	/* probably change default port from traceroute port */
-	dport = 33434; //80;
+	dport = 33434;        //80;
 	sport = 13333;
 	syn_port = 14444;
 	entropy = 'B';        // default to 2 data trains
