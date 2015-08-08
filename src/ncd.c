@@ -512,7 +512,7 @@ printf("sport: %d\n dport: %d\n", sport, dport);
 		tcp->seq = htonl(seq += (data_size + sizeof(uint16_t)));
 		tcp->ack = 1;
 		tcp->ack_seq = htonl(ack++);
-		tcp->th_off = 5;
+		tcp->doff = 5;
 		tcp->window = (1 << 15) - 1;
 		tcp->syn = 0;
 

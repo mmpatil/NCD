@@ -8,7 +8,7 @@ CPP=g++
 #CC=clang
 LIBS=-lm
 CLINKFLAGS=-pthread
-CFLAGS=-O2 -g -I$(IDIR)
+CFLAGS=-O2 -g -I$(IDIR) 
 
 _DEPS=ncd.h bitset.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
@@ -18,7 +18,7 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(echo $(OBJ))
 
-#CFLAGS+=-fsanitize=thread #-fPIE -fsanitize-memory-track-origins -fno-omit-frame-pointer
+#CFLAGS+=-fsanitize=address -fno-omit-frame-pointer #-fsanitize-memory-track-origins -fPIE 
 #CFLAGS+=-DDEBUG
 #CFLAGS+=-DNCD_NO_KILL
 
@@ -30,7 +30,7 @@ CPPLINKFLAGS=-pthread -L/usr/lib -lgtest -lgtest_main
 all: ncd_main #test
 
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS) $(CLINKFLAGS)
+	$(CC)  $(CFLAGS) $(CLINKFLAGS) -c -o $@ $<
 
 ncd_main: $(OBJ)
 	$(CC) -o $@  $(OBJ) $(CFLAGS) $(CLINKFLAGS) $(LIBS)
