@@ -97,24 +97,6 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 
 /**
- * @brief Formats a UDP header beginning at buff with a payload of length udp_data_len
- * @param buff Address of the starting location for the UDP packet
- * @param udp_data_len The length of the UDP payload
- * @param proto The 8-bit protocol
- * @return Returns an integer value for success(0), failure(1), or error(-1)
- */
-int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto);
-
-/**
- * @brief Formats a TCP header beginning at buff with a payload of length udp_data_len
- * @param buff Address of the starting location for the UDP packet
- * @param data_len The length of the TCP payload
- * @param proto The 8-bit protocol
- * @return Returns an integer value for success(0), failure(1), or error(-1)
- */
-int mktcphdr(void* buff, size_t data_len, u_int8_t proto);
-
-/**
  * @brief Formats an ICMP packet beginning at buff with a payload of length datalen
  * @param buff Address of the starting location for the ICMP packet
  * @param datalen The length of the ICMP payload

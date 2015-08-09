@@ -418,35 +418,6 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
         return 0;
 }
 
-int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
-{
-        int len = data_len + sizeof(struct tcphdr);
-        struct tcphdr *tcp = (struct tcphdr *) buff;
-
-        tcp->source = htons(sport);
-        tcp->dest = htons(dport);
-        tcp->seq = htonl(seq);
-        tcp->ack = 0;
-        tcp->doff = 5;
-        tcp->window = (1 << 15) - 1;
-        tcp->syn = 1;
-
-        /* pseudo header for udp checksum */
-
-        ps->source = srcaddrs.sin_addr.s_addr;
-        ps->dest = destip.s_addr;
-        ps->zero = 0;
-        ps->proto = proto;
-        ps->len = htons(len);
-
-        /*copy udp packet into pseudo header buffer to calculate checksum*/
-        memcpy(ps + 1, tcp, len);
-
-        /* set tcp checksum */
-        tcp->check = ip_checksum(ps, len + sizeof(struct pseudo_header));
-        return 0;
-}
-
 void setup_syn_packet(void* buff, uint16_t port)
 {
 
@@ -570,35 +541,6 @@ int setup_tcp_packets()
 
         return 0;
 }		// end setup_tcp_packets()
-
-int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto)
-{
-        struct ip* ip = (struct ip *) buff;
-        ip--;
-        int udp_len = udp_data_len + sizeof(struct udphdr);
-        char pseudo[SIZE] = { 0 }; /* buffer for pseudo header */
-        struct udphdr *udp = (struct udphdr *) buff;
-        udp->source = htons(sport); /* set source port*/
-        udp->dest = htons(dport); /* set destination port */
-        udp->len = htons(udp_len); /* set udp length */
-        udp->check = 0;/* zero out the udp checksum */
-
-        /* pseudo header for udp checksum */
-        struct pseudo_header *ps = (struct pseudo_header *) pseudo;
-        ps->source = ip->ip_src.s_addr;
-        ps->dest = ip->ip_dst.s_addr;
-        ps->zero = 0;
-        ps->proto = proto;
-        ps->len = htons(udp_len);
-
-        /*copy udp packet into pseudo header buffer to calculate checksum*/
-        memcpy(ps + 1, udp, udp_len);
-
-        /* set udp checksum */
-        udp->check = ip_checksum(ps, udp_len + sizeof(struct pseudo_header));
-
-        return 0;
-}
 
 int mkicmpv4(void *buff, size_t datalen)
 {
