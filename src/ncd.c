@@ -67,10 +67,13 @@ struct pseudo_header *ps = (struct pseudo_header *) pseudo;        //pseudo head
 uint16_t* packet_id = (uint16_t*) packet_send;        //sequence/ID number of udp msg
 struct sockaddr_in srcaddrs = { 0 };
 socklen_t sa_len = sizeof(srcaddrs);
+struct in_addr destip;
 
 //union packet *packet_ary;
 char * packets_e = NULL;        //empty packets
 char *packets_f = NULL;        //filled packets
+
+int verbose = 0;
 
 double time_val;
 
@@ -126,8 +129,23 @@ int comp_det()
                 }
                 close(s);
         }
+        destip = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
 
-        printf("Local IP address is: %s\n", inet_ntoa(srcaddrs.sin_addr));
+        tcp_bool ? printf("TCP NCD\n") : printf("UDP NCD\n");
+        if(verbose){
+                printf("Local IP: %s\n", inet_ntoa(srcaddrs.sin_addr));
+                printf("Target IP: %s\n", inet_ntoa(destip));
+                printf("Source port: %d\n", sport);
+                printf("Destination port: %d\n", dport);
+                if(tcp_bool)
+                        printf("SYN Port: %d", syn_port);
+                printf("Data Train length: %d\n", num_packets);
+                printf("Tail length: %d\n", num_tail);
+                printf("Packet Size: %d\n", data_size);
+                printf("Tail wait: %d\n", tail_wait);
+                printf("TTL: %d\n", ttl);
+                printf("\n");
+        }
 
         /*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
         if(err != 0){
@@ -163,7 +181,8 @@ int comp_det()
         setsockopt(send_fd, r, IP_TTL, &ttl, sizeof(ttl));
 
         socklen_t size = 1500 * num_packets;
-        printf("Buffer size requested %u\n", size);
+        if(verbose)
+                printf("Buffer size requested %u\n", size);
 
         setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 
@@ -224,7 +243,10 @@ int comp_det()
 
         if(lflag && hflag){
                 sleep(5);        // sloppy replace with better metric
-                printf("\nClearing buffer...");
+
+                if(verbose)
+                        printf("\nClearing buffer...");
+
                 //clear out rcvbuffer
                 char buff[1500] = { 0 };
                 if(tcp_bool == 1)
@@ -235,7 +257,8 @@ int comp_det()
                         while(recvfrom(recv_fd, buff, 1500, MSG_DONTWAIT, NULL,
                         NULL) != -1){
                         }
-                printf("Done\n\n");
+                if(verbose)
+                        printf("Done\n\n");
         }
 
         if(hflag == 1){
@@ -306,10 +329,15 @@ int detect()
         int opts = 1500 * num_packets;
         socklen_t bufflen = sizeof(buffsize);
         setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &opts, sizeof(opts));
-        getsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, (void*) &buffsize, &bufflen);
-        printf("Send Buffer size: %d\n", buffsize);
-        getsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, (void*) &buffsize, &bufflen);
-        printf("Receive Buffer size: %d\n", buffsize);
+
+        if(verbose){
+                getsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, (void*) &buffsize,
+                                &bufflen);
+                printf("Send Buffer size: %d\n", buffsize);
+                getsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, (void*) &buffsize,
+                                &bufflen);
+                printf("Receive Buffer size: %d\n", buffsize);
+        }
 
         pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -363,7 +391,7 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
         ip->ip_len = htons(size);
         ip->ip_id = htons(getpid());
         ip->ip_src.s_addr = srcaddrs.sin_addr.s_addr;
-        ip->ip_dst = ((struct sockaddr_in*) res->ai_addr)->sin_addr;
+        ip->ip_dst = destip;
         ip->ip_off |= ntohs(IP_DF);
         ip->ip_ttl = ttl;
         ip->ip_p = proto;
@@ -400,7 +428,7 @@ int mktcphdr(void* buff, size_t data_len, u_int8_t proto)
         /* pseudo header for udp checksum */
 
         ps->source = srcaddrs.sin_addr.s_addr;
-        ps->dest = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+        ps->dest = destip.s_addr;
         ps->zero = 0;
         ps->proto = proto;
         ps->len = htons(len);
@@ -431,7 +459,7 @@ void setup_syn_packet(void* buff, uint16_t port)
         /* pseudo header for udp checksum */
 
         ps->source = srcaddrs.sin_addr.s_addr;
-        ps->dest = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+        ps->dest = destip.s_addr;
         ps->zero = 0;
         ps->proto = IPPROTO_TCP;
         ps->len = htons(len);
@@ -452,11 +480,9 @@ void setup_syn_packets()
 int setup_tcp_packets()
 {
         //packet_send is already set up;
-        printf("sport: %d\ndport: %d\n", sport, dport);
         size_t len = send_len + sizeof(struct tcphdr);
         char buffer[1500] = { 0 };
         struct tcphdr *tcp = NULL;
-
 
         u_int32_t ack = 0;
 
@@ -471,7 +497,7 @@ int setup_tcp_packets()
         /* pseudo header for udp checksum */
 
         ps->source = srcaddrs.sin_addr.s_addr;
-        ps->dest = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+        ps->dest = destip.s_addr;
         ps->zero = 0;
         ps->proto = IPPROTO_TCP;
         ps->len = htons(len);
@@ -484,7 +510,7 @@ int setup_tcp_packets()
         for(i = 0; i < num_packets; ++i, ptr += len){
 
                 tcp = (struct tcphdr *) ptr;
-                pk_num = (uint16_t*)(tcp+1);
+                pk_num = (uint16_t*) (tcp + 1);
 
                 tcp->source = htons(sport);
                 tcp->dest = htons(dport);
@@ -495,7 +521,7 @@ int setup_tcp_packets()
                 tcp->window = (1 << 15) - 1;
                 tcp->syn = 0;
 
-                *pk_num = (uint16_t)i;
+                *pk_num = (uint16_t) i;
 
                 /*copy udp packet into pseudo header buffer to calculate checksum*/
                 memcpy((ps + 1), tcp, len);
@@ -514,7 +540,7 @@ int setup_tcp_packets()
         for(i = 0; i < num_packets; ++i, ptr += len){
 
                 tcp = (struct tcphdr *) ptr;
-                pk_num = (uint16_t*)(tcp+1);
+                pk_num = (uint16_t*) (tcp + 1);
 
                 tcp->source = htons(sport);
                 tcp->dest = htons(dport);
@@ -525,7 +551,7 @@ int setup_tcp_packets()
                 tcp->window = (1 << 15) - 1;
                 tcp->syn = 0;
 
-                *pk_num = (uint16_t)i;
+                *pk_num = (uint16_t) i;
 
                 memcpy(ptr + offset, buffer, data_size);
 
@@ -670,8 +696,8 @@ void *send_tcp(void* arg)
         struct tcphdr* ps_tcp = (struct tcphdr *) (ps + 1);
 
         //int length = send_len + sizeof(struct tcphdr) + sizeof(struct ip);
-        printf("send_len : %d\n", (int) send_len);
-        printf("Send syn packet\n");
+        //printf("send_len : %d\n", (int) send_len);
+        //printf("Send syn packet\n");
         n = sendto(send_fd, syn_packet_1, sizeof(syn_packet_1), 0, res->ai_addr,
                         res->ai_addrlen);
         if(n == -1){
@@ -681,34 +707,26 @@ void *send_tcp(void* arg)
         // set up the buffer to receive the reply into
         struct ip *ip = (struct ip*) buff;
         struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
-        struct sockaddr_in temp_res;
-        socklen_t temp_size = sizeof(temp_res);
-        //struct tcphdr *BAD = (struct tcphdr *) (ip);
-        //printf("size of buff = %d\n", (int) sizeof(buff));
-#if 1
+
         do{
-                if((recvfrom(send_fd, buff, sizeof(buff), 0, 0,
-                                0 /*&temp_res, &temp_size*/)) == -1){
+                if((recvfrom(send_fd, buff, sizeof(buff), 0, 0, 0)) == -1){
                         perror("rcv error tcp SYN-ACK");
                         exit(EXIT_FAILURE);
                 }
-                //printf("Port: %d\n", ntohs( tcp_reply->dest));
-                //printf("BAD Port: %d\n", ntohs( BAD->dest));
 
-        }while(((tcp_reply->dest != htons(sport)
-                        || (((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr
-                                        != ip->ip_src.s_addr))));
-#endif
-        //sleep(1);
+        }while((tcp_reply->dest != htons(sport))
+                        || (destip.s_addr != ip->ip_src.s_addr));
 
-        printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
-        printf("TCP SYN reply from port: %d to port: %d\n",
-                        ntohs(tcp_reply->source), ntohs(tcp_reply->dest));
-
+        if(verbose){
+                printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
+                printf("TCP SYN reply from port: %d to port: %d\n",
+                                ntohs(tcp_reply->source),
+                                ntohs(tcp_reply->dest));
+        }
         td = get_time();	//time stamp just before we begin sending
 
         /*send data train*/
-        int i = 0;
+        register int i = 0;
         char *ptr = second_train ? packets_f : packets_e;
 
         for(i = 0; i < num_packets; ++i, ptr += len){
@@ -771,22 +789,11 @@ void *recv4(void *t)
         /*number of port unreachable replies processed and ignored*/
         int ack = 0;
 
-        /* data for ICMP msg */
-        size_t datalen = 56;
-
-        /*size of icmp packet*/
-        size_t len = sizeof(struct icmp) + datalen;
-
-        /* size of ICMP reply + ip header */
-        size_t icmp_len = sizeof(struct ip) + len;
-
         /* ICMP header */
         struct icmp *icmp;
 
         /* to receive data with*/
         struct sockaddr_in addr;
-        //addr.sin_port = htons(syn_port);
-        //inet_pton(AF_INET, dst_ip, &addr.sin_addr);
 
         /* length of address */
         socklen_t adrlen = sizeof(addr);
@@ -808,9 +815,8 @@ void *recv4(void *t)
                                 perror("recvfrom failed");
                         }
 
-                }while(tcp->dest != htons(syn_port)
-                                || (ip->ip_src.s_addr
-                                                != ((struct sockaddr_in*) res->ai_addr)->sin_addr.s_addr));
+                }while((tcp->dest != htons(syn_port))
+                                || (ip->ip_src.s_addr != destip.s_addr));
                 *time = get_time() - td;
 
                 pthread_mutex_lock(&recv_ready_mutex);        // release lock
@@ -822,10 +828,13 @@ void *recv4(void *t)
                 pthread_cond_signal(&stop_cv);
                 pthread_mutex_unlock(&stop_mutex);        // release lock
 
-                printf("TCP reply from IP: %s\n", inet_ntoa(ip->ip_src));
+                if(verbose){
+                        printf("TCP reply from IP: %s\n",
+                                        inet_ntoa(ip->ip_src));
 
-                printf("TCP reply from port: %d to port: %d\n",
-                                ntohs(tcp->source), ntohs(tcp->dest));
+                        printf("TCP reply from port: %d to port: %d\n",
+                                        ntohs(tcp->source), ntohs(tcp->dest));
+                }
 
         }else{
 
@@ -851,12 +860,9 @@ void *recv4(void *t)
                                 perror("recvfrom failed");
                                 continue;
                         }else if(ip->ip_src.s_addr != dest.s_addr){
-                                //printf("Echo sent to IP: %s\n", dst_ip);
-                                //printf("Echo reply from IP: %s\n", inet_ntoa(ip_rcv->ip_src));
                                 continue;
                         }else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
                                 ack++;
-                                //printf("Received packet#: %d\n", *id);
                                 set_bs_32(bitset, *id, num_packets);
                                 continue;
                         }else if(icmp->icmp_type == 0){
@@ -879,25 +885,32 @@ void *recv4(void *t)
 
                 }        // end for
                 printf("UDP Packets received: %d/%d\n", ack, num_packets);
-                printf("Missing Packets:  ");
-                register int i = 0;
-                for(i = 0; i < num_packets; ++i){
-                        if(get_bs_32(bitset, i, num_packets) == 0){
-                                int start = i;
-                                while(i < num_packets
-                                                && (get_bs_32(bitset, i + 1,
-                                                                num_packets)
-                                                                == 0))
-                                        i++;
-                                int end = i;
-                                if(end - start == 0)
-                                        printf("%d, ", start + 1);
-                                else
-                                        printf("%d-%d, ", start + 1, end + 1);
+
+                if(verbose){
+                        printf("Missing Packets:  ");
+                        register int i = 0;
+                        for(i = 0; i < num_packets; ++i){
+                                if(get_bs_32(bitset, i, num_packets) == 0){
+                                        int start = i;
+                                        while(i < num_packets
+                                                        && (get_bs_32(bitset,
+                                                                        i + 1,
+                                                                        num_packets)
+                                                                        == 0))
+                                                i++;
+                                        int end = i;
+                                        if(end - start == 0)
+                                                printf("%d, ", start + 1);
+                                        else
+                                                printf("%d-%d, ", start + 1,
+                                                                end + 1);
+                                }
                         }
+                        printf("\b\b \n");
                 }
-                printf("\b\b \n");
-                printf("Echo reply from IP: %s\n", inet_ntoa(ip->ip_src));
+                if(verbose)
+                        printf("Echo reply from IP: %s\n",
+                                        inet_ntoa(ip->ip_src));
                 if(bitset)
                         free(bitset);
         }        // end if
@@ -1059,11 +1072,10 @@ int check_args(int argc, char* argv[])
 
         send_train = send_udp;
 
-        register int i;
         int check;
         int c = 0;
         int err = 0;        // error flag for options
-        while((c = getopt(argc, argv, "HLTp:f:s:n:t:w:r:h")) != -1){
+        while((c = getopt(argc, argv, "HLTvp:f:s:n:t:w:r:h")) != -1){
                 switch(c){
                 case 'H':
                         lflag = 0;
@@ -1083,9 +1095,12 @@ int check_args(int argc, char* argv[])
                         break;
                 case 's':
                         data_size = atoi(optarg);
-                        if(data_size < 1 || data_size > SIZE){
+                        if(data_size < 1 || data_size > TCP_DATA_SIZE){
                                 errno = ERANGE;
-                                perror("Valid UDP data size: 1-1460");
+                                char str[256] = { 0 };
+                                snprintf(str, 256, "Valid UDP data size: 1-%lu",
+                                TCP_DATA_SIZE);
+                                perror(str);
                                 return EXIT_FAILURE;
                         }
                         break;
@@ -1148,6 +1163,9 @@ int check_args(int argc, char* argv[])
                 case 'T':
                         tcp_bool = 1;
                         send_train = send_tcp;
+                        break;
+                case 'v':
+                        verbose = 1;
                         break;
                 default:
                         errno = ERANGE;

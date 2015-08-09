@@ -28,18 +28,10 @@
 #include <ctype.h>		/* for inet_pton() */
 #include <pthread.h>		/* for pthreads */
 
-
 /**
  * Favor the BSD style UDP & IP headers
  */
-/*
-#ifndef __USE_BSD
-#define __USE_BSD
-#endif
-#ifndef __FAVOR_BSD
-#define __FAVOR_BSD
-#endif
-*/
+
 /**
  *  maximum ip packet size
  *  1500 bytes Ethernet max size
@@ -48,51 +40,48 @@
  *  2 16-bit packet ID
  *
  */
+
 #define SIZE (1500 - sizeof(struct ip))
 #define UDP_DATA_SIZE (SIZE-sizeof(struct udphdr)-sizeof(uint16_t))
 #define TCP_DATA_SIZE (SIZE-sizeof(struct tcphdr)-sizeof(uint16_t))
 
-
-
 /**
  * struct for udp pseudo header
  */
-struct __attribute__((__packed__))pseudo_header {
-	u_int32_t source;
-	u_int32_t dest;
-	u_int8_t zero;
-	u_int8_t proto;
-	uint16_t len;
+struct __attribute__((__packed__))pseudo_header
+{
+        u_int32_t source;
+        u_int32_t dest;
+        u_int8_t zero;
+        u_int8_t proto;
+        uint16_t len;
 };
 
 /**
- * Determines if compression occurs along the current transmission path to host
- * by sending data to a remote location.
+ * @brief Determines if compression occurs along the current transmission path
+ * to host by sending data to a remote location.
  *
+ * @details Determines if compression occurs along the current transmission path
+ * to host by sending data to a remote location.
  * Two data trains are sent each with leading and trailing ICMP timestamp
- * messages
- *
- * The first data train will be low entropy data, to encourage compression
+ * messages The first data train will be low entropy data, to encourage compression
  * the second train will have high entropy data, which should not be compressed
  * if the times are significantly different, we have reasonable evidence
  * compression exists along this path.
  *
- * @param address the address of the end host stored in a char array (cstring)
- * @param port the port number or service name
- * @param num_packets the number of packets in each data train
- * @param time_wait the wait between trains
  * @return 0 success, 1 error/failure
  * */
 int comp_det();
 
-
 /**
- * @brief
- * @param c Character flag for determining which set of packet trains ncd
- * should send
- * @return
+ * @brief Sends and measures a single data train, setup and called from
+ * comp_det()
+ *
+ * @details This function does most fo the work in NCD. It
+ * @return 0 success, 1 error/failure
  */
 int detect();
+
 /**
  * Formats an ipv4 header beginning at buff of length size
  * @param buff Address of the starting location for the IP packet
@@ -171,7 +160,6 @@ uint16_t ip_checksum(void* vdata, size_t length);
  * @return 0 success, 1 Failure
  */
 int check_args(int argc, char* argv[]);
-
 
 /**
  * sets up arrays of tcp packets. Can be extended to udp if neccessary
