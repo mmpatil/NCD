@@ -85,7 +85,14 @@ struct __attribute__((__packed__))pseudo_header {
  * */
 int comp_det();
 
-int detect(char c);
+
+/**
+ * @brief
+ * @param c Character flag for determining which set of packet trains ncd
+ * should send
+ * @return
+ */
+int detect();
 /**
  * Formats an ipv4 header beginning at buff of length size
  * @param buff Address of the starting location for the IP packet

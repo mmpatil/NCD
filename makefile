@@ -2,10 +2,10 @@ IDIR=include
 SDIR=src
 ODIR=obj
 
-#CC=gcc
+CC=gcc
 #CPP=g++
 
-CC=clang
+#CC=clang
 LIBS=-lm
 CLINKFLAGS=-pthread
 CFLAGS=-O2 -g -I$(IDIR) 
@@ -18,7 +18,7 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 $(echo $(OBJ))
 
-#CFLAGS+=-fsanitize=address -fno-omit-frame-pointer 
+#CFLAGS+=-fsanitize=address -fno-omit-frame-pointer
 #CFLAGS+=-fsanitize=memory -fsanitize-memory-track-origins  -fno-omit-frame-pointer -fPIE
 #CFLAGS+=-fsanitize=thread
 #CFLAGS+=-DDEBUG
