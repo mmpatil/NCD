@@ -78,7 +78,7 @@ int verbose = 0;
 double time_val;
 
 const int num_threads = 2;
-
+int cooldown = 5;        // time in seconds to wait between data trains
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
 {
@@ -242,7 +242,13 @@ int comp_det()
         }
 
         if(lflag && hflag){
-                sleep(5);        // sloppy replace with better metric
+                if(verbose)
+                        printf("Waiting between data trains ...");
+
+                sleep(cooldown);        // sloppy replace with better metric
+
+                if(verbose)
+                        printf("Done.\n");
 
                 if(verbose)
                         printf("\nClearing buffer...");
@@ -1075,7 +1081,7 @@ int check_args(int argc, char* argv[])
         int check;
         int c = 0;
         int err = 0;        // error flag for options
-        while((c = getopt(argc, argv, "HLTvp:f:s:n:t:w:r:h")) != -1){
+        while((c = getopt(argc, argv, "HLTvp:c:f:s:n:t:w:r:h")) != -1){
                 switch(c){
                 case 'H':
                         lflag = 0;
@@ -1166,6 +1172,14 @@ int check_args(int argc, char* argv[])
                         break;
                 case 'v':
                         verbose = 1;
+                        break;
+                case 'c':
+                        cooldown = atoi(optarg);
+                        if(cooldown < 0 || cooldown > 1000){
+                                errno = ERANGE;
+                                perror("Cooldown Range: 1 - 1,000 Seconds");
+                                return EXIT_FAILURE;
+                        }
                         break;
                 default:
                         errno = ERANGE;
