@@ -69,7 +69,7 @@ struct __attribute__((__packed__))pseudo_header
  * if the times are significantly different, we have reasonable evidence
  * compression exists along this path.
  *
- * @return 0 success, 1 error/failure
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
  * */
 int comp_det();
 
@@ -77,8 +77,10 @@ int comp_det();
  * @brief Sends and measures a single data train, setup and called from
  * comp_det()
  *
- * @details This function does most fo the work in NCD. It
- * @return 0 success, 1 error/failure
+ * @details Sends and measures a single data train, setup and called from
+ * comp_det(). It does most of the work in NCD, by sending a single data
+ * train and taking all relevant measurements.
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int detect();
 
@@ -95,16 +97,25 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
 
 /**
- * Formats a UDP header beginning at buff with a payload of length udp_data_len
+ * @brief Formats a UDP header beginning at buff with a payload of length udp_data_len
  * @param buff Address of the starting location for the UDP packet
  * @param udp_data_len The length of the UDP payload
  * @param proto The 8-bit protocol
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int mkudphdr(void* buff, size_t udp_data_len, u_int8_t proto);
-int mktcphdr(void* buff, size_t data_len, u_int8_t proto);
+
 /**
- * Formats an ICMP packet beginning at buff with a payload of length datalen
+ * @brief Formats a TCP header beginning at buff with a payload of length udp_data_len
+ * @param buff Address of the starting location for the UDP packet
+ * @param data_len The length of the TCP payload
+ * @param proto The 8-bit protocol
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
+ */
+int mktcphdr(void* buff, size_t data_len, u_int8_t proto);
+
+/**
+ * @brief Formats an ICMP packet beginning at buff with a payload of length datalen
  * @param buff Address of the starting location for the ICMP packet
  * @param datalen The length of the ICMP payload
  * @return Returns an integer value for success(0), failure(1), or error(-1)
@@ -114,39 +125,39 @@ int mkicmpv4(void *buff, size_t datalen);
 int mkicmpv6(void *buff, size_t datalen);
 
 /**
- * Fills the data portion of a packet with the size data from a file (char* file)
- * @param buff Address of the starting location for the data
- * @param size The length of the data region
+ * @brief Fills the data portion of a packet with size bytes data from a file (char* file)
+ * @param[out] buff Address of the starting location for the data to be filled
+ * @param[in] size The length of the data region to be filled
  */
 void fill_data(void *buff, size_t size);
 
 /**
- * Sends the UDP data train with leading and trailing ICMP messages
+ * @brief Sends the UDP data train with leading and trailing ICMP messages
  * @return An unsigned integer value cast to void*. 0 success, 1 error/failure
- * @param status returns the status/return code
+ * @param[out] status returns the status/return code
  */
 void *send_udp(void* status);
 
 /**
- * sends a tcp data train with leading and trailing ICMP messages
+ * @brief Sends a tcp data train with leading and trailing ICMP messages
  * @return unsigned integer value cast to void*. 0 success, 1 error/failure
- * @param status returns the status/return code
+ * @param[out] status returns the status/return code
  */
 void *send_tcp(void* status);
 
 /**
- * Receives ICMP responses from end host and records times
- * @param t Pointer to a double. Returns the time in ms between head echo response and first
- * processed tail echo response to a resolution of 
+ * @brief Receives ICMP responses from end host and records times
+ * @param[out] t Pointer to a double. Returns the time in ms between head echo
+ * response and first processed tail echo response to a resolution of
  * microseconds (10^-6 sec)
- * @return 0 success, 1 error/failure -- pthreads
+ * @return Returns an integer value for success(0), failure(1), or error(-1) -- pthreads
  */
 void *recv4(void *t);
 
 void *recv6(void *t);
 
 /**
- * calculates the ip cheksum for some buffer of size length
+ * @brief Calculates the ip cheksum for some buffer of size length
  * @param vdata a pointer to the buffer to be checksummed
  * @param length the length in bytes of the data to be checksummed
  * @return the IP checksum of the buffer
@@ -154,19 +165,29 @@ void *recv6(void *t);
 uint16_t ip_checksum(void* vdata, size_t length);
 
 /**
- * Checks arguments given on command line and stores values in global variables
+ * @brief Checks arguments given on command line and stores values in global variables
  * @param argc number of command line args
  * @param argv array of commandline args
- * @return 0 success, 1 Failure
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int check_args(int argc, char* argv[]);
 
 /**
- * sets up arrays of tcp packets. Can be extended to udp if neccessary
- * @return
+ * @brief sets up arrays of TCP packets. Can be extended to UDP if necessary
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int setup_tcp_packets();
 
+/**
+ * @brief Sets up syn packets for use in tcp_send
+ */
 void setup_syn_packets();
+
+/**
+ * @brief Sets up a single syn packet for use in tcp_send.
+ * @param buff address of tcp header start for syn packet
+ * @param port the source port the syn packet should use.
+ */
 void setup_syn_packet(void* buff, uint16_t port);
-#endif
+
+#endif// end ncd.h
