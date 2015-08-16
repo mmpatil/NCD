@@ -1027,8 +1027,7 @@ int check_args(int argc, char* argv[])
         send_train = send_udp;
 
         int check;
-        int c = 0;
-        int err = 0;        // error flag for options
+        char c = 0;
         while((c = getopt(argc, argv, "HLTvp:c:f:s:n:t:w:r:h")) != -1){
                 switch(c){
                 case 'H':
@@ -1105,12 +1104,7 @@ int check_args(int argc, char* argv[])
                         close(fd);
                         break;
                 }
-                case '?':
-                        err = 1;        // hmm we don't even use this ...
-                        printf("Arguments errors ...\n");
-                        return EXIT_FAILURE;
-                        break;
-                case 'h':
+               case 'h':
                         print_use(argv[0]);
                         return EXIT_FAILURE;
                         break;
