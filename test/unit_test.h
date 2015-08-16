@@ -15,6 +15,8 @@ int test_get_time();
 
 int test_comp_det();
 
+int test_detect();
+
 //int test_mkipv4();
 
 int test_mkipv6();

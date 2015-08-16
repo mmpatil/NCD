@@ -6,9 +6,15 @@
 #include "unit_test.h"
 #include "ncd.c"
 
-int test_get_time()
+TEST(get_time_test, get_time_correct)
 {
-	return 0;
+       struct timeval tv;
+       double d,r;
+       d = get_time();
+       gettimeofday(&tv,NULL);
+       r = tv.tv_sec;
+       r += tv.tv_usec/1000000;
+       EXPECT_FLOAT_EQ(d,r);
 }
 
 int test_comp_det()

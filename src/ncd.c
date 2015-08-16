@@ -79,6 +79,7 @@ double time_val;
 
 const int num_threads = 2;
 int cooldown = 5;        // time in seconds to wait between data trains
+
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
 {
@@ -420,7 +421,6 @@ int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
 
 void setup_syn_packet(void* buff, uint16_t port)
 {
-
         //setup tcpheader for syn packets...
         int len = sizeof(struct tcphdr);
         struct tcphdr *tcp = (struct tcphdr *) buff;
@@ -464,11 +464,17 @@ int setup_tcp_packets()
         u_int32_t ack = 0;
 
         packets_e = (char *) calloc(num_packets, len);
-        if(!packets_e)
+        if(!packets_e){
+                perror("Failure allocating memory durring TCP packet creation,"
+                                " consider sending less data...\n");
                 return -1;
+        }
         packets_f = (char *) calloc(num_packets, len);
-        if(!packets_f)
+        if(!packets_f){
+                perror("Failure allocating memory durring TCP packet creation,"
+                                " consider sending less data...\n");
                 return -1;
+        }
         size_t pslen = len + sizeof(struct pseudo_header);
 
         /* pseudo header for udp checksum */
@@ -1033,7 +1039,7 @@ int check_args(int argc, char* argv[])
                         break;
                 case 'p':
                         check = atoi(optarg);
-                        if(check < (1 << 16) & check > 0){
+                        if(check < (1 << 16) && check > 0){
                                 dport = check;
                         }else{
                                 errno = ERANGE;
