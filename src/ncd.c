@@ -46,13 +46,13 @@ void* (*send_train)(void*) = NULL;        // function pointer to send data: UDP 
 
 double td;
 
-int stop = 0;			// boolean for if the send can stop
-pthread_mutex_t stop_mutex;
-pthread_cond_t stop_cv;
+int stop = 0;	// boolean for if the send thread can stop (receive thread has received second response.
+pthread_mutex_t stop_mutex;        //mutex for stop
+pthread_cond_t stop_cv;         // condition variabl for stop -- denotes
 
-int recv_ready = 0;        // bool for recving SYN packets really a Condition variable, consider replacing
-pthread_mutex_t recv_ready_mutex;
-pthread_cond_t recv_ready_cv;
+int recv_ready = 0;        // bool for receiving SYN packets -- denotes if the program is ready to receive traffic
+pthread_mutex_t recv_ready_mutex;        //mutex for recv_ready
+pthread_cond_t recv_ready_cv;          //condition variable for recv_ready mutex
 
 int second_train = 0;
 
@@ -182,9 +182,10 @@ int comp_det()
         setsockopt(send_fd, r, IP_TTL, &ttl, sizeof(ttl));
 
         socklen_t size = 1500 * num_packets;
+#if DEBUG
         if(verbose)
                 printf("Buffer size requested %u\n", size);
-
+#endif
         setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 
         /* acquire socket for icmp messages*/
@@ -292,7 +293,7 @@ int comp_det()
 
 int detect()
 {
-        // initialize synchonization variables
+        // initialize synchronization variables
         stop = 0;        //boolean false
         recv_ready = 0;
 
@@ -332,19 +333,25 @@ int detect()
         }
 
         /*increase size of receive buffer*/
-        int buffsize;
+
         int opts = 1500 * num_packets;
-        socklen_t bufflen = sizeof(buffsize);
+
         setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &opts, sizeof(opts));
 
+#if DEBUG
         if(verbose){
+                int buffsize;
+                socklen_t bufflen = sizeof(buffsize);
+
                 getsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, (void*) &buffsize,
                                 &bufflen);
+
                 printf("Send Buffer size: %d\n", buffsize);
                 getsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, (void*) &buffsize,
                                 &bufflen);
                 printf("Receive Buffer size: %d\n", buffsize);
         }
+#endif
 
         pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -379,7 +386,7 @@ int detect()
         printf("%c %f sec\n", c, time_val);
         close(recv_fd);
 
-        //cleanup synchonization variables
+        //cleanup synchronization variables
         pthread_attr_destroy(&attr);
         pthread_mutex_destroy(&stop_mutex);
         pthread_cond_destroy(&stop_cv);
