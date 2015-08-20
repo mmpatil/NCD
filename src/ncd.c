@@ -672,7 +672,7 @@ void *send_tcp()
 
         do{
                 if((recvfrom(send_fd, buff, sizeof(buff), 0, 0, 0)) == -1){
-                        perror("call to recvfrom()  tcp SYN-ACK");
+                        perror("call to recvfrom() tcp SYN-ACK");
                         exit(EXIT_FAILURE);
                 }
 
