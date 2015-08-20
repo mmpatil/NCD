@@ -46,7 +46,7 @@ void* (*send_train)(void*) = NULL;        // function pointer to send data: UDP 
 
 double td;
 
-int stop = 0;	// boolean for if the send thread can stop (receive thread has received second response.
+int stop = 0;        // boolean for if the send thread can stop (receive thread has received second response.
 pthread_mutex_t stop_mutex;        //mutex for stop
 pthread_cond_t stop_cv;         // condition variabl for stop -- denotes
 
@@ -184,7 +184,7 @@ int comp_det()
         socklen_t size = 1500 * num_packets;
 #if DEBUG
         if(verbose)
-                printf("Buffer size requested %u\n", size);
+        printf("Buffer size requested %u\n", size);
 #endif
         setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 
@@ -295,7 +295,7 @@ int detect()
 {
         // initialize synchronization variables
         stop = 0;        //boolean false
-        recv_ready = 0;
+        recv_ready = 0;        //boolean false
 
         pthread_mutex_init(&stop_mutex, NULL);
         pthread_cond_init(&stop_cv, NULL);
@@ -310,7 +310,9 @@ int detect()
         register int i;
 
         void *status[2];
-        int err = setuid(0);/*get root privileges */
+
+        /*get root privileges */
+        int err = setuid(0);
         if(err < 0){
                 perror("Elevated privileges not acquired...");
                 return EXIT_FAILURE;
@@ -319,8 +321,7 @@ int detect()
         if(tcp_bool == 1)
                 recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
         else
-                recv_fd = socket(res->ai_family, SOCK_RAW,
-                IPPROTO_ICMP);
+                recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
         if(recv_fd == -1){
                 perror("call to socket() failed");
                 return EXIT_FAILURE;
@@ -650,18 +651,15 @@ void *send_tcp()
 {
         int n;
         struct timespec tail_wait_tv;
-        //tail wait is in milli, so multiply by 10^6 to convert to nano seconds
+
+        //tail wait is in milliseconds, so multiply by 10^6 to convert to nanoseconds
         tail_wait_tv.tv_nsec = tail_wait * 1000000;
 
         int len = send_len + sizeof(struct tcphdr);
         char buff[1500] = { 0 };
-        //struct ip* ip = (struct ip*) packet_send;
         struct tcphdr* tcp = (struct tcphdr*) packet_send;
         struct tcphdr* ps_tcp = (struct tcphdr *) (ps + 1);
 
-        //int length = send_len + sizeof(struct tcphdr) + sizeof(struct ip);
-        //printf("send_len : %d\n", (int) send_len);
-        //printf("Send syn packet\n");
         n = sendto(send_fd, syn_packet_1, sizeof(syn_packet_1), 0, res->ai_addr,
                         res->ai_addrlen);
         if(n == -1){
@@ -674,7 +672,7 @@ void *send_tcp()
 
         do{
                 if((recvfrom(send_fd, buff, sizeof(buff), 0, 0, 0)) == -1){
-                        perror("rcv error tcp SYN-ACK");
+                        perror("call to recvfrom()  tcp SYN-ACK");
                         exit(EXIT_FAILURE);
                 }
 
