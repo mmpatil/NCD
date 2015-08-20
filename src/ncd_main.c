@@ -23,8 +23,8 @@
  */
 int main(int argc, char *argv[])
 {
-	/* Check ARGs */
-	if(check_args(argc, argv) != EXIT_SUCCESS)
-		return EXIT_FAILURE;
-	return comp_det();
+        /* Check ARGs */
+        if(check_args(argc, argv) != EXIT_SUCCESS)
+                return EXIT_FAILURE;
+        return comp_det();
 }

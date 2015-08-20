@@ -224,12 +224,12 @@ int comp_det()
                                 return EXIT_FAILURE;
                         }
                 }else{
-                        mkipv4(icmp_send, icmp_len, res, IPPROTO_ICMP);
+                        mkipv4(icmp_send, icmp_len, IPPROTO_ICMP);
                         mkicmpv4(icmp_send + sizeof(struct ip), icmp_data_len);
                 }
 
         }else if(res->ai_family == AF_INET6){
-                mkipv6(icmp_send, icmp_len, res, IPPROTO_ICMPV6);
+                mkipv6(icmp_send, icmp_len, IPPROTO_ICMPV6);
                 mkicmpv6(icmp_send + (sizeof(struct ip6_hdr)), icmp_data_len);
                 recv_data = recv6;
         }else{
@@ -389,7 +389,7 @@ int detect()
         return EXIT_SUCCESS;
 }
 
-int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
+int mkipv4(void* buff, size_t size, u_int8_t proto)
 {
         /* create IP header*/
         struct ip *ip = (struct ip *) buff;
@@ -405,12 +405,15 @@ int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
         return 0;
 }
 
-int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto)
+int mkipv6(void* buff, size_t size, u_int8_t proto)
 {
+
+        //This is all wrong. IPV6 needs to be overhauled...
         struct ip6_hdr *ip = (struct ip6_hdr *) buff;
-        ip->ip6_dst = ((struct sockaddr_in6*) res->ai_addr)->sin6_addr;
-        //ip->ip6_src = ((struct sockaddr_in6*)srcaddrs)->sin6_addr;
+        ip->ip6_dst = *(struct in6_addr*) &destip;
+        ip->ip6_src = ((struct sockaddr_in6*) &srcaddrs)->sin6_addr;
         //inet_pton(AF_INET6, "192.168.1.101", &ip->ip6_src);
+        ip->ip6_ctlun.ip6_un2_vfc = proto;        //<-------------wrong, just want to get rid of warning. ipv6 doesn't work.
         ip->ip6_ctlun.ip6_un1.ip6_un1_flow = 0;
         ip->ip6_ctlun.ip6_un1.ip6_un1_hlim = ttl;
         ip->ip6_ctlun.ip6_un1.ip6_un1_nxt = htons(sizeof(struct ip6_hdr));
@@ -580,7 +583,7 @@ int mkicmpv6(void *buff, size_t datalen)
         return 0;
 }
 
-void *send_udp(void* arg)
+void *send_udp()
 {
         int n;
         struct timespec tail_wait_tv;
@@ -628,15 +631,15 @@ void *send_udp(void* arg)
                 }
 
                 pthread_cond_timedwait(&stop_cv, &stop_mutex, &tail_wait_tv);
-                //usleep(tail_wait * 1000);
+
         }		//end for
 
         pthread_mutex_unlock(&stop_mutex);        // release lock
 
-        return NULL;
+        pthread_exit(NULL);
 }
 
-void *send_tcp(void* arg)
+void *send_tcp()
 {
         int n;
         struct timespec tail_wait_tv;
@@ -710,7 +713,7 @@ void *send_tcp(void* arg)
         pthread_mutex_unlock(&stop_mutex);        // release lock
 
         tcp->source = ps_tcp->source = htons(sport);
-        return NULL;
+        pthread_exit(NULL);
 }
 
 void fill_data(void *buff, size_t size)
@@ -1048,7 +1051,7 @@ int check_args(int argc, char* argv[])
                         break;
                 case 's':
                         data_size = atoi(optarg);
-                        if(data_size < 1 || data_size > TCP_DATA_SIZE){
+                        if(data_size < 1 || data_size > (int) TCP_DATA_SIZE){
                                 errno = ERANGE;
                                 char str[256] = { 0 };
                                 snprintf(str, 256, "Valid UDP data size: 1-%lu",
@@ -1104,7 +1107,7 @@ int check_args(int argc, char* argv[])
                         close(fd);
                         break;
                 }
-               case 'h':
+                case 'h':
                         print_use(argv[0]);
                         return EXIT_FAILURE;
                         break;

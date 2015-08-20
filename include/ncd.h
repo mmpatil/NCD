@@ -88,13 +88,12 @@ int detect();
  * Formats an ipv4 header beginning at buff of length size
  * @param buff Address of the starting location for the IP packet
  * @param size The length of the IP packet
- * @param res A pointer to a struct addrinfo -- from getaddrinfo()
  * @param proto The 8-bit protocol
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
-int mkipv4(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
+int mkipv4(void* buff, size_t size, u_int8_t proto);
 
-int mkipv6(void* buff, size_t size, struct addrinfo *res, u_int8_t proto);
+int mkipv6(void* buff, size_t size, u_int8_t proto);
 
 /**
  * @brief Formats an ICMP packet beginning at buff with a payload of length datalen
@@ -115,17 +114,15 @@ void fill_data(void *buff, size_t size);
 
 /**
  * @brief Sends the UDP data train with leading and trailing ICMP messages
- * @return An unsigned integer value cast to void*. 0 success, 1 error/failure
  * @param[out] status returns the status/return code
  */
-void *send_udp(void* status);
+void *send_udp();
 
 /**
  * @brief Sends a tcp data train with leading and trailing ICMP messages
- * @return unsigned integer value cast to void*. 0 success, 1 error/failure
  * @param[out] status returns the status/return code
  */
-void *send_tcp(void* status);
+void *send_tcp();
 
 /**
  * @brief Receives ICMP responses from end host and records times
