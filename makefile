@@ -2,10 +2,10 @@ IDIR=include
 SDIR=src
 ODIR=obj
 
-#CC=gcc
+CC=gcc
 #CPP=g++
 
-CC=clang
+#CC=clang
 LIBS=-lm
 CLINKFLAGS=-pthread
 CFLAGS=-O2 -g -I$(IDIR) -Wall

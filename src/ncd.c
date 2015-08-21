@@ -7,35 +7,34 @@
 #include "bitset.h"
 
 /*  Global Variables  */
-int data_size; 			// size of udp data payload
-int num_packets;		// number of packets in udp data train
-int num_tail;		// number of tail icmp messages sent tail_wait apart
-int tail_wait;			// time between ICMP tail messages
+int data_size; 			    // size of udp data payload
+int num_packets;		    // number of packets in udp data train
+int num_tail;               // number of tail icmp messages sent tail_wait apart
+int tail_wait;			    // time between ICMP tail messages
 
-u_int16_t dport; 		// destination port number
-u_int16_t sport; 		// source port number
+u_int16_t dport; 		    // destination port number
+u_int16_t sport; 		    // source port number
 u_int16_t syn_port; 		// source port number
-u_int8_t ttl;			// time to live
+u_int8_t ttl;			    // time to live
 
-char entropy; 			// the entropy of the data High, Low, Both
-char* dst_ip = NULL; 		// destination ip address
-char* file = NULL;        //name of file to read from /dev/urandom by default
+char entropy; 			    // the entropy of the data High, Low, Both
+char* dst_ip = NULL;        // destination ip address
+char* file = NULL;          //name of file to read from /dev/urandom by default
 
 /* flags */
 uint8_t lflag = 1;    		// default option for low entropy -- set to on
 uint8_t hflag = 1;   		// default option for high entropy -- set to on
-uint8_t fflag = 0;        // file flag <------- do we need this or is this redundant?
 
 /* file descriptors */
-int icmp_fd; 			//icmp socket file descriptor
-int send_fd; 			//udp socket file descriptor
-int recv_fd; 			//reply receiving socket file descriptor
+int icmp_fd; 			    //icmp socket file descriptor
+int send_fd; 			    //udp socket file descriptor
+int recv_fd; 			    //reply receiving socket file descriptor
 
 /* lengths of packets and data, etc. */
 size_t send_len;		// length of data to be sent
 uint8_t tcp_bool = 0;        //bool for whether to use tcp or udp(1 == true, 0 == false)
 
-size_t seq = 0;
+size_t seq = 0;         // sequence number
 size_t icmp_ip_len;		// length of IP icmp packet including payload
 size_t icmp_len;		// length of ICMP packet
 size_t icmp_data_len;		// length of ICMP data
@@ -562,8 +561,6 @@ int setup_tcp_packets()
 int mkicmpv4(void *buff, size_t datalen)
 {
         /* set up icmp message header*/
-        //struct ip *ip = (struct ip *) buff;
-        //ip--;
         struct icmp *icmp = (struct icmp *) buff;
         icmp->icmp_type = ICMP_ECHO;
         icmp->icmp_code = 0;
@@ -595,7 +592,7 @@ void *send_udp()
 {
         int n;
         struct timespec tail_wait_tv;
-        //tail wait is in milli, so multiply by 10^6 to convert to nano seconds
+        //tail wait is in milliseconds, so multiply by 10^6 to convert to nanoseconds
         tail_wait_tv.tv_nsec = tail_wait * 1000000;
 
         /*send Head ICMP Packet*/
@@ -634,7 +631,7 @@ void *send_udp()
                 n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr,
                                 res->ai_addrlen);
                 if(n == -1){
-                        perror("Send error icmp tail");
+                        perror("Call to sendto() failed: icmp tail");
                         exit(EXIT_FAILURE);
                 }
 
@@ -663,7 +660,7 @@ void *send_tcp()
         n = sendto(send_fd, syn_packet_1, sizeof(syn_packet_1), 0, res->ai_addr,
                         res->ai_addrlen);
         if(n == -1){
-                perror("Send error tcp syn");
+                perror("Call to sendto() failed: tcp syn");
                 exit(EXIT_FAILURE);
         }
         // set up the buffer to receive the reply into
@@ -694,12 +691,12 @@ void *send_tcp()
         for(i = 0; i < num_packets; ++i, ptr += len){
                 n = sendto(send_fd, ptr, len, 0, res->ai_addr, res->ai_addrlen);
                 if(n == -1){
-                        perror("Send error tcp train");
+                        perror("Call to sendto() failed: tcp train");
                         exit(EXIT_FAILURE);
                 }		// end if
         }		// end of
 
-        pthread_mutex_lock(&recv_ready_mutex);        // release lock
+        pthread_mutex_lock(&recv_ready_mutex);        // acquire lock
         recv_ready = 1;
         pthread_cond_signal(&recv_ready_cv);
         pthread_mutex_unlock(&recv_ready_mutex);        // release lock
@@ -709,27 +706,26 @@ void *send_tcp()
                 n = sendto(send_fd, syn_packet_2, sizeof(syn_packet_2), 0,
                                 res->ai_addr, res->ai_addrlen);
                 if(n == -1){
-                        perror("Send error TCP Tail Syn");
+                        perror("Call to sendto() failed: TCP Tail Syn");
                         exit(EXIT_FAILURE);
                 }
                 pthread_cond_timedwait(&stop_cv, &stop_mutex, &tail_wait_tv);
-                //usleep(tail_wait * 1000);
         }		// end for
         pthread_mutex_unlock(&stop_mutex);        // release lock
 
-        tcp->source = ps_tcp->source = htons(sport);
+        tcp->source = ps_tcp->source = htons(sport);        //reset tcp sport for next train
         pthread_exit(NULL);
 }
 
 void fill_data(void *buff, size_t size)
 {
-        /* fill with random data from /dev/urandom */
-        /* get random data for high entropy datagrams */
+        /* fill with random data from file location */
         int fd = open(file, O_RDONLY);
         if(fd < 0){
                 perror("Error opening file");
                 exit(-1);
         }
+        /* fill buffer with size bytes of data from file*/
         int err = read(fd, buff, size);
         if(err < 0){
                 perror("Error reading file");
@@ -833,7 +829,7 @@ void *recv4(void *t)
                                         count = 1;
                                 }else{
                                         *time = get_time() - *time;
-                                        pthread_mutex_lock(&stop_mutex);        // release lock
+                                        pthread_mutex_lock(&stop_mutex);        // acquire lock
                                         stop = 1;
                                         pthread_cond_signal(&stop_cv);
                                         pthread_mutex_unlock(&stop_mutex);        // release lock
@@ -921,7 +917,7 @@ void *recv6(void *t)
                                 (struct sockaddr *) &addr, &adrlen)) < 0){
                         if(errno == EINTR)
                                 continue;
-                        perror("recvfrom failed");
+                        perror("Call to recvfrom() failed in recv6");
                         continue;
                 }else if(icmp->icmp6_type == 3 && icmp->icmp6_code == 3){
                         ack++;
@@ -950,13 +946,13 @@ void *recv6(void *t)
 
 uint16_t ip_checksum(void* vdata, size_t length)
 {
-        // Cast the data pointer to one that can be indexed.
+        // Cast the data pointer to one that can be indexed. */
         char* data = (char*) vdata;
 
-        // Initialize the accumulator.
+        /* Initialize the accumulator. */
         uint64_t acc = 0xffff;
 
-        // Handle any partial block at the start of the data.
+        /* Handle any partial block at the start of the data. */
         unsigned int offset = ((uintptr_t) data) & 3;
         if(offset){
                 size_t count = 4 - offset;
@@ -969,7 +965,7 @@ uint16_t ip_checksum(void* vdata, size_t length)
                 length -= count;
         }
 
-        // Handle any complete 32-bit blocks.
+        /* Handle any complete 32-bit blocks. */
         char* data_end = data + (length & ~3);
         while(data != data_end){
                 uint32_t word = 0;
@@ -979,26 +975,26 @@ uint16_t ip_checksum(void* vdata, size_t length)
         }
         length &= 3;
 
-        // Handle any partial block at the end of the data.
+        /* Handle any partial block at the end of the data. */
         if(length){
                 uint32_t word = 0;
                 memcpy(&word, data, length);
                 acc += ntohl(word);
         }
 
-        // Handle deferred carries.
+        /* Handle deferred carries. */
         acc = (acc & 0xffffffff) + (acc >> 32);
         while(acc >> 16){
                 acc = (acc & 0xffff) + (acc >> 16);
         }
 
-        // If the data began at an odd byte address
-        // then reverse the byte order to compensate.
+        /* If the data began at an odd byte address */
+        /* then reverse the byte order to compensate. */
         if(offset & 1){
                 acc = ((acc & 0xff00) >> 8) | ((acc & 0x00ff) << 8);
         }
 
-        // Return the checksum in network byte order.
+        /* Return the checksum in network byte order. */
         return htons(~acc);
 }
 
@@ -1023,13 +1019,13 @@ int check_args(int argc, char* argv[])
         dport = 33434;        //80;
         sport = 13333;
         syn_port = 14444;
-        entropy = 'B';        // default to 2 data trains
+        entropy = 'B';                              // default to 2 data trains
         data_size = 1024 - sizeof(uint16_t) - sizeof(struct tcphdr)
                         - sizeof(struct ip);        //so we send 1 KB packets
-        num_packets = 1000;        // send 1000 packets in udp data train
-        ttl = 255;		// max ttl
-        tail_wait = 10;        // wait 10 ms between ICMP tail messages
-        num_tail = 20;		// send 20 ICMP tail messages
+        num_packets = 1000;             // send 1000 packets in udp data train
+        ttl = 255;		                // max ttl
+        tail_wait = 10;                 // wait 10 ms between ICMP tail messages
+        num_tail = 20;		            // send 20 ICMP tail messages
         file = "/dev/urandom";        // default to random data for compression detection
 
         send_train = send_udp;
@@ -1100,7 +1096,6 @@ int check_args(int argc, char* argv[])
                         break;
                 case 'f':
                 {
-                        fflag = 1;
                         file = optarg;
                         int fd = open(file, O_RDONLY);
                         if(fd < 0){
