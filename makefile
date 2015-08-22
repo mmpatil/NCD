@@ -2,13 +2,13 @@ IDIR=include
 SDIR=src
 ODIR=obj
 
-CC=gcc
+#CC=gcc
 #CPP=g++
 
 #CC=clang
 LIBS=-lm
 CLINKFLAGS=-pthread
-CFLAGS=-O2 -g -I$(IDIR) -Wall
+CFLAGS=-O2 -g -I$(IDIR) -Wall -Wextra
 
 _DEPS=ncd.h bitset.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
