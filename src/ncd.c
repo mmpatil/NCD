@@ -37,47 +37,47 @@ uint8_t tcp_bool = 0;        //bool for whether to use tcp or udp(1 == true, 0 =
 size_t seq = 0;         // sequence number
 size_t icmp_ip_len;		// length of IP icmp packet including payload
 size_t icmp_len;		// length of ICMP packet
-size_t icmp_data_len;		// length of ICMP data
+size_t icmp_data_len;	// length of ICMP data
 size_t rcv_len;			// length of data to be received
 struct addrinfo *res = NULL;        // addrinfo struct for getaddrinfo()
-void *(*recv_data)(void*) = NULL;        // function pointer so we can select properly for IPV4 or IPV6
-void* (*send_train)(void*) = NULL;        // function pointer to send data: UDP or TCP
+void *(*recv_data)(void*) = NULL;   // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
+void* (*send_train)(void*) = NULL;  // function pointer to send data: UDP or TCP
 
 double td;
 
-int stop = 0;        // boolean for if the send thread can stop (receive thread has received second response.
-pthread_mutex_t stop_mutex;        //mutex for stop
-pthread_cond_t stop_cv;         // condition variabl for stop -- denotes
+int stop = 0;							// boolean for if the send thread can stop (receive thread has received second response.
+pthread_mutex_t stop_mutex;             //mutex for stop
+pthread_cond_t stop_cv;                 // condition variabl for stop -- denotes
 
-int recv_ready = 0;        // bool for receiving SYN packets -- denotes if the program is ready to receive traffic
-pthread_mutex_t recv_ready_mutex;        //mutex for recv_ready
-pthread_cond_t recv_ready_cv;          //condition variable for recv_ready mutex
+int recv_ready = 0;                     // bool for receiving SYN packets -- denotes if the program is ready to receive traffic
+pthread_mutex_t recv_ready_mutex;       //mutex for recv_ready
+pthread_cond_t recv_ready_cv;           //condition variable for recv_ready mutex
 
 int second_train = 0;
 
-char pseudo[1500] = { 0 };        // buffer for pseudo header
+char pseudo[1500] = { 0 };              // buffer for pseudo header
 char packet_rcv[1500] = { 0 };			// buffer for receiving replies
-char packet_send[SIZE] = { 0 };        		// buffer for sending data
+char packet_send[SIZE] = { 0 };        	// buffer for sending data
 char syn_packet_1[20] = { 0 };			// packet for head SYN
 char syn_packet_2[20] = { 0 };			// packet for tail SYN
 char icmp_send[128] = { 0 };			// buffer for ICMP messages
 
-struct pseudo_header *ps = (struct pseudo_header *) pseudo;        //pseudo header
-uint16_t* packet_id = (uint16_t*) packet_send;        //sequence/ID number of udp msg
+struct pseudo_header *ps = (struct pseudo_header *) pseudo;     //pseudo header
+uint16_t* packet_id = (uint16_t*) packet_send;                  //sequence/ID number of udp msg
 struct sockaddr_in srcaddrs = { 0 };
 socklen_t sa_len = sizeof(srcaddrs);
 struct in_addr destip;
 
 //union packet *packet_ary;
 char * packets_e = NULL;        //empty packets
-char *packets_f = NULL;        //filled packets
+char *packets_f = NULL;         //filled packets
 
 int verbose = 0;
 
 double time_val;
 
 const int num_threads = 2;
-int cooldown = 5;        // time in seconds to wait between data trains
+int cooldown = 5;               // time in seconds to wait between data trains
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
@@ -175,21 +175,26 @@ int comp_det()
                 exit(EXIT_FAILURE);
         }
 
-        int r = (res->ai_family == AF_INET) ? IPPROTO_IP : IPPROTO_IPV6;
+        if (res->ai_family != AF_INET) {
+                errno = EAFNOSUPPORT;
+                perror("ncd only supports IPV4 at this time");
+                exit(EXIT_FAILURE);
+        }
+
+
 
         //set TTL
-        setsockopt(send_fd, r, IP_TTL, &ttl, sizeof(ttl));
+        setsockopt(send_fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 
         socklen_t size = 1500 * num_packets;
 #if DEBUG
         if(verbose)
-        printf("Buffer size requested %u\n", size);
+                printf("Buffer size requested %u\n", size);
 #endif
         setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 
         /* acquire socket for icmp messages*/
-        int l = res->ai_family == AF_INET ? IPPROTO_ICMP : IPPROTO_ICMPV6;
-        icmp_fd = socket(res->ai_family, SOCK_RAW, l);
+        icmp_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
 
         if(icmp_fd == -1){
                 perror("call to socket() failed for ICMP");
@@ -198,8 +203,7 @@ int comp_det()
 
         /* set up our own IP header*/
         int icmp_hdrincl = 1;
-        if(setsockopt(icmp_fd, r, IP_HDRINCL, &icmp_hdrincl,
-                        sizeof(icmp_hdrincl)) == -1){
+        if(setsockopt(icmp_fd, IPPROTO_IP, IP_HDRINCL, &icmp_hdrincl, sizeof(icmp_hdrincl)) == -1){
                 perror("setsockopt() failed icmp");
                 exit(EXIT_FAILURE);
         }
@@ -212,31 +216,22 @@ int comp_det()
         }
 
         //make ICMP packets
-        if(res->ai_family == AF_INET){
-                recv_data = recv4;
 
-                if(tcp_bool == 1){
-                        setup_syn_packets();
+        recv_data = recv4;
 
-                        if((setup_tcp_packets()) == -1){
-                                errno = ENOMEM;
-                                perror("Packet setup failed...");
-                                return EXIT_FAILURE;
-                        }
-                }else{
-                        mkipv4(icmp_send, icmp_len, IPPROTO_ICMP);
-                        mkicmpv4(icmp_send + sizeof(struct ip), icmp_data_len);
+        if(tcp_bool == 1){
+                setup_syn_packets();
+
+                if((setup_tcp_packets()) == -1){
+                        errno = ENOMEM;
+                        perror("Packet setup failed...");
+                        return EXIT_FAILURE;
                 }
-
-        }else if(res->ai_family == AF_INET6){
-                mkipv6(icmp_send, icmp_len, IPPROTO_ICMPV6);
-                mkicmpv6(icmp_send + (sizeof(struct ip6_hdr)), icmp_data_len);
-                recv_data = recv6;
         }else{
-                errno = EPROTONOSUPPORT;
-                perror("Protocol not supported");
-                return EXIT_FAILURE;
-        }
+                mkipv4(icmp_send, icmp_len, IPPROTO_ICMP);
+                mkicmpv4(icmp_send + sizeof(struct ip), icmp_data_len);
+        }//end if
+
 
         if(lflag == 1){
                 detect();
@@ -255,15 +250,15 @@ int comp_det()
                         printf("\nClearing buffer...");
 
                 //clear out rcvbuffer
-                char buff[1500] = { 0 };
-                if(tcp_bool == 1)
-                        while(recvfrom(send_fd, buff, 1500, MSG_DONTWAIT, NULL,
-                        NULL) != -1){
+                char buff[1500] = {0};
+                if (tcp_bool == 1) {
+                        while (recvfrom(send_fd, buff, 1500, MSG_DONTWAIT, NULL, NULL) != -1) {
                         }
-                else
-                        while(recvfrom(recv_fd, buff, 1500, MSG_DONTWAIT, NULL,
-                        NULL) != -1){
-                        }
+                }
+
+                while(recvfrom(recv_fd, buff, 1500, MSG_DONTWAIT, NULL, NULL) != -1){
+                }
+
                 if(verbose)
                         printf("Done\n\n");
         }
@@ -396,14 +391,16 @@ int detect()
         return EXIT_SUCCESS;
 }
 
-int mkipv4(void* buff, size_t size, u_int8_t proto)
+int mkipv4(void* buff, uint16_t size, u_int8_t proto)
 {
+        if(!buff || size < sizeof(struct ip) || size > SIZE || !proto)
+                return -1;
         /* create IP header*/
         struct ip *ip = (struct ip *) buff;
         ip->ip_v = 4;
         ip->ip_hl = 5;
         ip->ip_len = htons(size);
-        ip->ip_id = htons(getpid());
+        ip->ip_id = htons((uint16_t)getpid());
         ip->ip_src.s_addr = srcaddrs.sin_addr.s_addr;
         ip->ip_dst = destip;
         ip->ip_off |= ntohs(IP_DF);
@@ -412,22 +409,6 @@ int mkipv4(void* buff, size_t size, u_int8_t proto)
         return 0;
 }
 
-int mkipv6(void* buff, size_t size, u_int8_t proto)
-{
-
-        //This is all wrong. IPV6 needs to be overhauled...
-        struct ip6_hdr *ip = (struct ip6_hdr *) buff;
-        ip->ip6_dst = *(struct in6_addr*) &destip;
-        ip->ip6_src = ((struct sockaddr_in6*) &srcaddrs)->sin6_addr;
-        //inet_pton(AF_INET6, "192.168.1.101", &ip->ip6_src);
-        ip->ip6_ctlun.ip6_un2_vfc = proto;        //<-------------wrong, just want to get rid of warning. ipv6 doesn't work.
-        ip->ip6_ctlun.ip6_un1.ip6_un1_flow = 0;
-        ip->ip6_ctlun.ip6_un1.ip6_un1_hlim = ttl;
-        ip->ip6_ctlun.ip6_un1.ip6_un1_nxt = htons(sizeof(struct ip6_hdr));
-        ip->ip6_ctlun.ip6_un1.ip6_un1_plen = htons(size);
-
-        return 0;
-}
 
 void setup_syn_packet(void* buff, uint16_t port)
 {
@@ -573,21 +554,6 @@ int mkicmpv4(void *buff, size_t datalen)
         return 0;
 }
 
-int mkicmpv6(void *buff, size_t datalen)
-{
-        struct icmp6_hdr *icmphdr = (struct icmp6_hdr *) buff;
-        icmphdr->icmp6_type = ICMP6_ECHO_REQUEST;
-        icmphdr->icmp6_code = 0;
-        icmphdr->icmp6_id= htons (getpid());
-        icmphdr->icmp6_seq= htons (rand());
-        memset(&icmphdr->icmp6_dataun, 0xa5, datalen);
-        gettimeofday((struct timeval *) &icmphdr->icmp6_dataun, NULL);
-        icmphdr->icmp6_cksum = 0;
-        icmphdr->icmp6_cksum = ip_checksum(icmphdr,
-                        datalen + sizeof(struct icmp6_hdr));
-        return 0;
-}
-
 void *send_udp()
 {
         int n;
@@ -669,7 +635,7 @@ void *send_tcp()
 
         do{
                 if((recvfrom(send_fd, buff, sizeof(buff), 0, 0, 0)) == -1){
-                        perror("call to recvfrom() tcp SYN-ACK");
+                        perror("call to recvfrom() failed: tcp SYN-ACK");
                         exit(EXIT_FAILURE);
                 }
 
@@ -876,77 +842,10 @@ void *recv4(void *t)
         return NULL;
 }
 
-void *recv6(void *t)
-{
-        double* time = (double *) t;
-
-        /*number of bytes received*/
-        int n;
-
-        /* number of echo replies*/
-        int count = 0;
-
-        /*number of port unreachable replies processed and ignored*/
-        int ack = 0;
-
-        /* data for ICMP msg */
-        size_t datalen = 56;
-
-        /*size of icmp packet*/
-        size_t len = sizeof(struct icmp6_hdr) + datalen;
-
-        /* size of ICMP reply + ip header */
-        size_t icmp_len = sizeof(struct ip6_hdr) + len;
-
-        /* ICMP header */
-        struct icmp6_hdr *icmp;
-
-        /* to receive data with*/
-        struct sockaddr_in addr;
-
-        /* length of address */
-        socklen_t adrlen = sizeof(addr);
-
-        /*Receive initial ICMP echo response && Time-stamp*/
-        struct ip6_hdr *ip = (struct ip6_hdr *) packet_rcv;
-        icmp = (struct icmp6_hdr *) (ip + 1);
-
-        for(;;){
-
-                if((n = recvfrom(recv_fd, packet_rcv, icmp_len, 0,
-                                (struct sockaddr *) &addr, &adrlen)) < 0){
-                        if(errno == EINTR)
-                                continue;
-                        perror("Call to recvfrom() failed in recv6");
-                        continue;
-                }else if(icmp->icmp6_type == 3 && icmp->icmp6_code == 3){
-                        ack++;
-                        continue;
-                }else if(icmp->icmp6_type == 0){
-                        if(count == 0){
-                                *time = get_time();
-                                count = 1;
-                        }else{
-                                *time = get_time() - *time;
-                                pthread_mutex_lock(&stop_mutex);        // release lock
-                                stop = 1;
-                                pthread_cond_signal(&stop_cv);
-                                pthread_mutex_unlock(&stop_mutex);        // release lock
-                                break;
-                        }        //end if
-                }else if(icmp->icmp6_type == 11){
-                        errno = ENETUNREACH;
-                        perror("TTL Exceeded");
-                        exit(EXIT_FAILURE);
-                }        // end if
-        }        // end for
-        printf("\nUDP Packets received: %d\n", ack);
-        return NULL;
-}
 
 uint16_t ip_checksum(void* vdata, size_t length)
 {
-        // Cast the data pointer to one that can be indexed. */
+        /* Cast the data pointer to one that can be indexed. */
         char* data = (char*) vdata;
 
         /* Initialize the accumulator. */

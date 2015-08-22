@@ -6,27 +6,26 @@
 #ifndef _NCD_H_
 #define _NCD_H_
 
-#include <stdio.h>		/* for printf */
-#include <stdlib.h>		/* for EXIT_SUCCESS, EXIT_FAILURE, */
-#include <stdio.h>
-#include <string.h> 		/* for memcpy */
-//#include <time.h> 		/* for struct tv */
-#include <sys/time.h>		/* for gettimeofday() */
-#include <errno.h>		/* for errno*/
-#include <sys/socket.h>		/* for socket(), setsockopt(), etc...*/
-#include <netinet/ip.h>		/* for struct ip */
-#include <netinet/ip6.h>	/* for struct ip6_hdr */
+#include <stdio.h>		        /* for printf, fprintf, snprintf, perror, ... */
+#include <stdlib.h>		        /* for EXIT_SUCCESS, EXIT_FAILURE, */
+#include <string.h> 		    /* for memcpy */
+#include <sys/time.h>		    /* for gettimeofday() */
+#include <errno.h>		        /* for errno*/
+#include <sys/socket.h>		    /* for socket(), setsockopt(), etc...*/
+#include <netinet/ip.h>		    /* for struct ip */
+#include <netinet/ip6.h>	    /* for struct ip6_hdr */
 #include <netinet/ip_icmp.h>	/* for struct icmp */
-#include <netinet/icmp6.h>	/* for struct icmp */
-#include <netinet/tcp.h>	/* for struct tcphdr */
-#include <netinet/udp.h>	/* for struct udphdr */
-#include <netdb.h>		/* for getaddrinfo() */
-#include <arpa/inet.h>		/* for inet_pton() */
-#include <signal.h>		/* for kill() */
-#include <fcntl.h>		/* for O_RDONLY */
-#include <unistd.h>		/* for _________ */
-#include <ctype.h>		/* for inet_pton() */
-#include <pthread.h>		/* for pthreads */
+#include <netinet/icmp6.h>	    /* for struct icmp */
+#include <netinet/tcp.h>	    /* for struct tcphdr */
+#include <netinet/udp.h>	    /* for struct udphdr */
+#include <netdb.h>		        /* for getaddrinfo() */
+#include <arpa/inet.h>		    /* for inet_pton() */
+#include <signal.h>		        /* for kill() */
+#include <fcntl.h>		        /* for O_RDONLY */
+#include <unistd.h>		        /* for _________ */
+#include <ctype.h>		        /* for inet_pton() */
+#include <pthread.h>		    /* for pthreads */
+//#include <time.h> 		    /* for struct tv */
 
 /**
  * Favor the BSD style UDP & IP headers
@@ -91,9 +90,7 @@ int detect();
  * @param proto The 8-bit protocol
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
-int mkipv4(void* buff, size_t size, u_int8_t proto);
-
-int mkipv6(void* buff, size_t size, u_int8_t proto);
+int mkipv4(void* buff, uint16_t size, u_int8_t proto);
 
 /**
  * @brief Formats an ICMP packet beginning at buff with a payload of length datalen
@@ -103,7 +100,6 @@ int mkipv6(void* buff, size_t size, u_int8_t proto);
  */
 int mkicmpv4(void *buff, size_t datalen);
 
-int mkicmpv6(void *buff, size_t datalen);
 
 /**
  * @brief Fills the data portion of a packet with size bytes data from a file (char* file)
@@ -133,7 +129,6 @@ void *send_tcp();
  */
 void *recv4(void *t);
 
-void *recv6(void *t);
 
 /**
  * @brief Calculates the ip cheksum for some buffer of size length
