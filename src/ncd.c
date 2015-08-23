@@ -6,23 +6,24 @@
 #include "ncd.h"
 #include "bitset.h"
 
-/*  Global Variables  */
-uint16_t data_size;                // size of udp data payload
-uint16_t num_packets;            // number of packets in udp data train
-uint16_t num_tail;               // number of tail icmp messages sent tail_wait apart
-uint16_t tail_wait;                // time between ICMP tail messages
 
-uint16_t dport;            // destination port number
-uint16_t sport;            // source port number
-uint16_t syn_port;        // source port number
-uint8_t ttl;                // time to live
+/*  Global Variables  */
+u_int16_t data_size;                // size of udp data payload
+u_int16_t num_packets;            // number of packets in udp data train
+u_int16_t num_tail;               // number of tail icmp messages sent tail_wait apart
+u_int16_t tail_wait;                // time between ICMP tail messages
+
+u_int16_t dport;            // destination port number
+u_int16_t sport;            // source port number
+u_int16_t syn_port;        // source port number
+u_int8_t ttl;                // time to live
 
 char* dst_ip = NULL;        // destination ip address
 char* file = NULL;          //name of file to read from /dev/urandom by default
 
 /* flags */
-uint8_t lflag = 1;            // default option for low entropy -- set to on
-uint8_t hflag = 1;        // default option for high entropy -- set to on
+u_int8_t lflag = 1;            // default option for low entropy -- set to on
+u_int8_t hflag = 1;        // default option for high entropy -- set to on
 
 /* file descriptors */
 int icmp_fd;                //icmp socket file descriptor
@@ -30,13 +31,13 @@ int send_fd;                //udp socket file descriptor
 int recv_fd;                //reply receiving socket file descriptor
 
 /* lengths of packets and data, etc. */
-uint16_t send_len;        // length of data to be sent
-uint8_t tcp_bool = 0;        //bool for whether to use tcp or udp(1 == true, 0 == false)
+u_int16_t send_len;        // length of data to be sent
+u_int8_t tcp_bool = 0;        //bool for whether to use tcp or udp(1 == true, 0 == false)
 
-uint32_t seq = 0;         // sequence number
-uint16_t icmp_ip_len;        // length of IP icmp packet including payload
-uint16_t icmp_len;        // length of ICMP packet
-uint16_t icmp_data_len;    // length of ICMP data
+u_int32_t seq = 0;         // sequence number
+u_int16_t icmp_ip_len;        // length of IP icmp packet including payload
+u_int16_t icmp_len;        // length of ICMP packet
+u_int16_t icmp_data_len;    // length of ICMP data
 
 struct addrinfo* res = NULL;            // addrinfo struct for getaddrinfo()
 void* (* recv_data)(void*) = NULL;       // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
@@ -62,7 +63,7 @@ char syn_packet_2[20] = {0};            // packet for tail SYN
 char icmp_send[128] = {0};            // buffer for ICMP messages
 
 struct pseudo_header* ps = (struct pseudo_header*)pseudo;     //pseudo header
-uint16_t* packet_id = (uint16_t*)packet_send;                  //sequence/ID number of udp msg
+u_int16_t* packet_id = (u_int16_t*)packet_send;                  //sequence/ID number of udp msg
 struct sockaddr_in srcaddrs = {0};
 socklen_t sa_len = sizeof(srcaddrs);
 struct in_addr destip;
@@ -79,7 +80,8 @@ const int num_threads = 2;
 int cooldown = 5;               // time in seconds to wait between data trains
 
 /*  Just returns current time as double, with most possible precision...  */
-double get_time(void){
+double get_time(void)
+{
 	struct timeval tv;
 	double d;
 	gettimeofday(&tv, NULL);
@@ -87,17 +89,20 @@ double get_time(void){
 	return d;
 }
 
-int comp_det(){
-	send_len = data_size + (uint16_t)sizeof(uint16_t);        // data size + size of packet id
+int init_detection()
+{
+	/* Init global size variables with runtime data  */
+	send_len = data_size + (u_int16_t)sizeof(u_int16_t);        // data size + size of packet id
 
 	/* size of ICMP Echo message */
 	icmp_data_len = 56;
 
 	/*size of icmp packet*/
-	icmp_len = (uint16_t)sizeof(struct icmp) + icmp_data_len;
+	icmp_len = (u_int16_t)sizeof(struct icmp) + icmp_data_len;
 
 	/* size of ICMP reply + ip header */
-	icmp_ip_len = (uint16_t)sizeof(struct ip) + icmp_len;
+	icmp_ip_len = (u_int16_t)sizeof(struct ip) + icmp_len;
+
 
 	/* set up hints for getaddrinfo() */
 	struct addrinfo hints = {0}; /* for get addrinfo */
@@ -107,10 +112,20 @@ int comp_det(){
 	else
 		hints.ai_protocol = IPPROTO_UDP;
 
+	/* pass a string of the destination point to getaddrinfo */
 	char str[8] = {0};
 	snprintf(str, sizeof(str), "%d", dport);
 
 	int err = getaddrinfo(dst_ip, str, &hints, &res);
+
+	/*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
+	if(err != 0){
+		if(err == EAI_SYSTEM)
+			fprintf(stderr, "looking up %s: %s\n", dst_ip, strerror(errno));
+		else
+			fprintf(stderr, "looking up %s: %s\n", dst_ip, gai_strerror(err));
+		exit(EXIT_FAILURE);
+	}
 
 	// get temp socket to obtain source IP -- its a hack
 	{
@@ -125,41 +140,36 @@ int comp_det(){
 			return -1;
 		}
 		close(s);
-	}
+	}// end temp socket
+
+	/* Store the destination IP */
 	destip = ((struct sockaddr_in*)res->ai_addr)->sin_addr;
 
+	/* print basic header for NCD */
 	tcp_bool ? printf("TCP NCD\n") : printf("UDP NCD\n");
+
+	/* Verbose output: metadata */
 	if(verbose){
 		printf("Local IP: %s\n", inet_ntoa(srcaddrs.sin_addr));
 		printf("Target IP: %s\n", inet_ntoa(destip));
 		printf("Source port: %d\n", sport);
 		printf("Destination port: %d\n", dport);
 		if(tcp_bool)
-			printf("SYN Port: %d", syn_port);
+			printf("SYN Port: %d\n", syn_port);
 		printf("Data Train length: %d\n", num_packets);
 		printf("Tail length: %d\n", num_tail);
 		printf("Packet Size: %d\n", data_size);
 		printf("Tail wait: %d\n", tail_wait);
 		printf("TTL: %d\n", ttl);
 		printf("\n");
-	}
+	}// end verbose
 
-	/*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
-	if(err != 0){
-		if(err == EAI_SYSTEM)
-			fprintf(stderr, "looking up %s: %s\n", dst_ip,
-			        strerror(errno));
-		else
-			fprintf(stderr, "looking up %s: %s\n", dst_ip,
-			        gai_strerror(err));
-		exit(EXIT_FAILURE);
-	}
-
-	err = setuid(0);/*get root privileges */
+	/* get root privileges */
+	err = setuid(0);
 	if(err < 0){
 		perror("Elevated privileges not acquired...");
 		return EXIT_FAILURE;
-	}
+	}// end error check
 
 	/* Setup TCP Socket to bypass filters, else use UDP*/
 	if(tcp_bool == 1)
@@ -170,24 +180,24 @@ int comp_det(){
 	if(send_fd == -1){
 		perror("call to socket() failed for SEND");
 		exit(EXIT_FAILURE);
-	}
+	} // end error check
 
 	if(res->ai_family != AF_INET){
 		errno = EAFNOSUPPORT;
 		perror("ncd only supports IPV4 at this time");
 		exit(EXIT_FAILURE);
-	}
-
-
+	}// end error check
 
 	//set TTL
 	setsockopt(send_fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 
 	socklen_t size = 1500U * num_packets;
+
 #if DEBUG
 	if(verbose)
 			printf("Buffer size requested %u\n", size);
 #endif
+
 	setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 
 	/* acquire socket for icmp messages*/
@@ -195,7 +205,7 @@ int comp_det(){
 
 	if(icmp_fd == -1){
 		perror("call to socket() failed for ICMP");
-		exit(EXIT_FAILURE);        // consider doing something better here
+		exit(EXIT_FAILURE);
 	}
 
 	/* set up our own IP header*/
@@ -205,33 +215,41 @@ int comp_det(){
 		exit(EXIT_FAILURE);
 	}
 
-	err = setuid(getuid());/*give up privileges */
+	/*give up privileges */
+	err = setuid(getuid());
 
 	if(err < 0){
 		perror("Elevated privileges not released");
 		return EXIT_FAILURE;
 	}
 
-	//make ICMP packets
-
 	recv_data = recv4;
 
 	if(tcp_bool == 1){
 		setup_syn_packets();
-
 		if((setup_tcp_packets()) == -1){
 			errno = ENOMEM;
 			perror("Packet setup failed...");
 			return EXIT_FAILURE;
 		}
 	} else{
+		/* make ICMP packets */
 		mkipv4(icmp_send, icmp_len, IPPROTO_ICMP);
 		mkicmpv4(icmp_send + sizeof(struct ip), icmp_data_len);
 	}//end if
+	return EXIT_SUCCESS;
+}
 
+int detect()
+{
+
+	int err;
+	err = init_detection();
+	if (err != 0)
+		return err;
 
 	if(lflag == 1){
-		detect();
+		measure();
 	}
 
 	if(lflag && hflag){
@@ -265,7 +283,7 @@ int comp_det(){
 
 		if(!tcp_bool)
 			fill_data(packet_send, data_size);
-		detect();
+		measure();
 	}
 
 	if(res)
@@ -282,7 +300,8 @@ int comp_det(){
 	return EXIT_SUCCESS;
 }
 
-int detect(){
+int measure()
+{
 	// initialize synchronization variables
 	stop = 0;        //boolean false
 	recv_ready = 0;        //boolean false
@@ -387,27 +406,33 @@ int detect(){
 	return EXIT_SUCCESS;
 }
 
-int mkipv4(void* buff, uint16_t size, u_int8_t proto){
+void mkipv4(void* buff, u_int16_t size, u_int8_t proto)
+{
 	if(!buff || size < sizeof(struct ip) || size > SIZE || !proto)
-		return -1;
+	{
+		errno = EINVAL;
+		perror("Invalid argument used in ICMP packet allocation");
+		exit(EXIT_FAILURE);
+	}
+
 	/* create IP header*/
 	struct ip* ip = (struct ip*)buff;
 	ip->ip_v = 4;
 	ip->ip_hl = 5;
 	ip->ip_len = htons(size);
-	ip->ip_id = htons((uint16_t)getpid());
+	ip->ip_id = htons((u_int16_t)getpid());
 	ip->ip_src.s_addr = srcaddrs.sin_addr.s_addr;
 	ip->ip_dst = destip;
 	ip->ip_off |= ntohs(IP_DF);
 	ip->ip_ttl = ttl;
 	ip->ip_p = proto;
-	return 0;
+
 }
 
-
-void setup_syn_packet(void* buff, uint16_t port){
+void setup_syn_packet(void* buff, u_int16_t port)
+{
 	//setup tcpheader for syn packets...
-	uint16_t len = (uint16_t)sizeof(struct tcphdr);
+	u_int16_t len = (u_int16_t)sizeof(struct tcphdr);
 	struct tcphdr* tcp = (struct tcphdr*)buff;
 
 	tcp->source = htons(port);
@@ -433,50 +458,50 @@ void setup_syn_packet(void* buff, uint16_t port){
 	tcp->check = ip_checksum(ps, len + sizeof(struct pseudo_header));
 }
 
-void setup_syn_packets(){
+void setup_syn_packets()
+{
 	setup_syn_packet(syn_packet_1, sport);
 	setup_syn_packet(syn_packet_2, syn_port);
 }
 
-int setup_tcp_packets(){
+int setup_tcp_train( char** buff, int fill)
+{
 	//packet_send is already set up;
-	uint16_t len = send_len + (uint16_t)sizeof(struct tcphdr);
+	u_int16_t len = send_len + (u_int16_t)sizeof(struct tcphdr);
 	char buffer[1500] = {0};
 	struct tcphdr* tcp = NULL;
 
 	u_int32_t ack = 0;
 
-	packets_e = (char*)calloc(num_packets, len);
-	if(!packets_e){
+	(*buff) = (char*)calloc(num_packets, len);
+	if(!(*buff)){
 		perror("Failure allocating memory durring TCP packet creation,"
 				       " consider sending less data...\n");
-		return -1;
+		exit(-1);
 	}
-	packets_f = (char*)calloc(num_packets, len);
-	if(!packets_f){
-		perror("Failure allocating memory durring TCP packet creation,"
-				       " consider sending less data...\n");
-		return -1;
-	}
+
 	size_t pslen = len + sizeof(struct pseudo_header);
 
-	/* pseudo header for udp checksum */
-
+	/* pseudo header for checksum */
 	ps->source = srcaddrs.sin_addr.s_addr;
 	ps->dest = destip.s_addr;
 	ps->zero = 0;
 	ps->proto = IPPROTO_TCP;
 	ps->len = htons(len);
 
-	char* ptr = packets_e;
-	uint16_t* pk_num;
+	if(fill)
+		fill_data(buffer + sizeof(u_int16_t), data_size);
+
+	size_t offset = sizeof(struct tcphdr) + sizeof(u_int16_t);
+
+	char* ptr = *buff;
+	u_int16_t* pk_num;
 	register int i = 0;
 
-	//!!! we're moving this ptr wrong somehow we get 0 for ports and other errors
 	for(i = 0; i < num_packets; ++i, ptr += len){
 
 		tcp = (struct tcphdr*)ptr;
-		pk_num = (uint16_t*)(tcp + 1);
+		pk_num = (u_int16_t*)(tcp + 1);
 
 		tcp->source = htons(sport);
 		tcp->dest = htons(dport);
@@ -487,39 +512,10 @@ int setup_tcp_packets(){
 		tcp->window = (1 << 15) - 1;
 		tcp->syn = 0;
 
-		*pk_num = (uint16_t)i;
+		*pk_num = (u_int16_t)i;
 
-		/*copy udp packet into pseudo header buffer to calculate checksum*/
-		memcpy((ps + 1), tcp, len);
-
-		/* set tcp checksum */
-		tcp->check = ip_checksum(ps, pslen);
-	}
-
-	seq = htonl(seq + send_len);
-	ack = 0;
-	ptr = packets_f;
-	fill_data(buffer + sizeof(uint16_t), data_size);
-
-	size_t offset = sizeof(struct tcphdr) + sizeof(uint16_t);
-
-	for(i = 0; i < num_packets; ++i, ptr += len){
-
-		tcp = (struct tcphdr*)ptr;
-		pk_num = (uint16_t*)(tcp + 1);
-
-		tcp->source = htons(sport);
-		tcp->dest = htons(dport);
-		tcp->seq = htonl(seq += send_len);
-		tcp->ack = 1;
-		tcp->ack_seq = htonl(ack++);
-		tcp->doff = 5;
-		tcp->window = (1 << 15) - 1;
-		tcp->syn = 0;
-
-		*pk_num = (uint16_t)i;
-
-		memcpy(ptr + offset, buffer, data_size);
+		if(fill)
+			memcpy(ptr + offset, buffer, data_size);
 
 		/*copy udp packet into pseudo header buffer to calculate checksum*/
 		memcpy(ps + 1, tcp, len);
@@ -529,9 +525,32 @@ int setup_tcp_packets(){
 	}
 
 	return 0;
+}
+
+int setup_tcp_packets()
+{
+
+	int err;
+	err = setup_tcp_train(&packets_e, 0);
+	if(err != 0)
+		return err;
+
+	err = setup_tcp_train(&packets_f, 1);
+	if(err != 0)
+		return err;
+
+	return 0;
 }        // end setup_tcp_packets()
 
-int mkicmpv4(void* buff, size_t datalen){
+void mkicmpv4(void* buff, size_t datalen)
+{
+	if(!buff )
+	{
+		errno = EINVAL;
+		perror("Invalid argument used in ICMP packet header: NULL pointer used");
+		exit(EXIT_FAILURE);
+	}
+
 	/* set up icmp message header*/
 	struct icmp* icmp = (struct icmp*)buff;
 	icmp->icmp_type = ICMP_ECHO;
@@ -542,10 +561,11 @@ int mkicmpv4(void* buff, size_t datalen){
 	gettimeofday((struct timeval*)icmp->icmp_data, NULL);
 	icmp->icmp_cksum = 0;
 	icmp->icmp_cksum = ip_checksum(icmp, datalen + sizeof(struct icmp));
-	return 0;
+
 }
 
-void* send_udp(){
+void* send_udp()
+{
 	int n;
 	struct timespec tail_wait_tv;
 	//tail wait is in milliseconds, so multiply by 10^6 to convert to nanoseconds
@@ -554,27 +574,26 @@ void* send_udp(){
 	/*send Head ICMP Packet*/
 	n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr, res->ai_addrlen);
 	if(n == -1){
-		perror("Send error ICMP head");
+		perror("Call to sendto() failed: error sending ICMP head packet");
 		exit(EXIT_FAILURE);
 	}
 
 	*packet_id = 0;
 
 	/*send data train*/
-	int i = 0;
-
+	register int i;
 	for(i = 0; i < num_packets; ++i, (*packet_id)++){
 
 		n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr, res->ai_addrlen);
 		if(n == -1){
-			perror("Send error udp train");
+			perror("call to() failed: error sending UDP udp train");
 			exit(EXIT_FAILURE);
 		}
 	}
 
 	struct icmp* icmp = (struct icmp*)(icmp_send + sizeof(struct ip));
-	/*send tail ICMP Packets w/ timer*/
 
+	/*send tail ICMP Packets w/ timer*/
 	pthread_mutex_lock(&stop_mutex);        //acquire lock
 	for(i = 0; i < num_tail && stop == 0; ++i){
 		/*not sure if changing the sequence number will help*/
@@ -593,11 +612,11 @@ void* send_udp(){
 	}        //end for
 
 	pthread_mutex_unlock(&stop_mutex);        // release lock
-
 	pthread_exit(NULL);
 }
 
-void* send_tcp(){
+void* send_tcp()
+{
 	int n;
 	struct timespec tail_wait_tv;
 
@@ -667,7 +686,8 @@ void* send_tcp(){
 	pthread_exit(NULL);
 }
 
-void fill_data(void* buff, size_t size){
+void fill_data(void* buff, size_t size)
+{
 	/* fill with random data from file location */
 	int fd = open(file, O_RDONLY);
 	if(fd < 0){
@@ -683,7 +703,8 @@ void fill_data(void* buff, size_t size){
 	close(fd);
 }
 
-void* recv4(void* t){
+void* recv4(void* t)
+{
 	double* time = (double*)t;
 
 	/*number of bytes received*/
@@ -749,8 +770,8 @@ void* recv4(void* t){
 		struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data)
 		                                      + sizeof(struct ip));
 
-		uint32_t* bitset = make_bs_32(num_packets);
-		uint16_t* id = (uint16_t*)(udp + 1);
+		u_int32_t* bitset = make_bs_32(num_packets);
+		u_int16_t* id = (u_int16_t*)(udp + 1);
 		struct in_addr dest;
 		inet_aton(dst_ip, &dest);
 
@@ -822,13 +843,13 @@ void* recv4(void* t){
 	return NULL;
 }
 
-
-uint16_t ip_checksum(void* vdata, size_t length){
+u_int16_t ip_checksum(void* vdata, size_t length)
+{
 	/* Cast the data pointer to one that can be indexed. */
 	char* data = (char*)vdata;
 
 	/* Initialize the accumulator. */
-	uint64_t acc = 0xffff;
+	u_int64_t acc = 0xffff;
 
 	/* Handle any partial block at the start of the data. */
 	unsigned int offset = ((uintptr_t)data) & 3;
@@ -836,7 +857,7 @@ uint16_t ip_checksum(void* vdata, size_t length){
 		size_t count = 4 - offset;
 		if(count > length)
 			count = length;
-		uint32_t word = 0;
+		u_int32_t word = 0;
 		memcpy(offset + (char*)&word, data, count);
 		acc += ntohl(word);
 		data += count;
@@ -846,7 +867,7 @@ uint16_t ip_checksum(void* vdata, size_t length){
 	/* Handle any complete 32-bit blocks. */
 	char* data_end = data + (length & ~3);
 	while(data != data_end){
-		uint32_t word = 0;
+		u_int32_t word = 0;
 		memcpy(&word, data, 4);
 		acc += ntohl(word);
 		data += 4;
@@ -855,7 +876,7 @@ uint16_t ip_checksum(void* vdata, size_t length){
 
 	/* Handle any partial block at the end of the data. */
 	if(length){
-		uint32_t word = 0;
+		u_int32_t word = 0;
 		memcpy(&word, data, length);
 		acc += ntohl(word);
 	}
@@ -876,13 +897,15 @@ uint16_t ip_checksum(void* vdata, size_t length){
 	return htons(~acc);
 }
 
-void print_use(char* program_name){
+void print_use(char* program_name)
+{
 	printf("%s IPAddress [-p PORT] [-T] [-H | -L] [-s DATA_SIZE] "
 			       "[-n NUM_PACKETS] [-t TTL] [-w TAIL_INTERVAL] "
 			       "[- NUM_TAIL][-f FILENAME_PAYLOAD]\n", program_name);
 }
 
-int check_args(int argc, char* argv[]){
+int check_args(int argc, char* argv[])
+{
 	if(argc < 2){
 		errno = EINVAL;
 		perror("Too few arguments, see use");
@@ -895,7 +918,7 @@ int check_args(int argc, char* argv[]){
 	dport = 33434;        //80;
 	sport = 13333;
 	syn_port = 14444;
-	data_size = 1024 - sizeof(uint16_t) - sizeof(struct tcphdr)
+	data_size = 1024 - sizeof(u_int16_t) - sizeof(struct tcphdr)
 	            - sizeof(struct ip);        //so we send 1 KB packets
 	num_packets = 1000;             // send 1000 packets in udp data train
 	ttl = 255;                        // max ttl
@@ -918,7 +941,7 @@ int check_args(int argc, char* argv[]){
 			case 'p':
 				check = atoi(optarg);
 		        if(check < (1 << 16) && check > 0){
-			        dport = (uint16_t)check;
+			        dport = (u_int16_t)check;
 		        } else{
 			        errno = ERANGE;
 			        perror("Port range: 1 - 65535");
@@ -935,7 +958,7 @@ int check_args(int argc, char* argv[]){
 			        perror(str);
 			        return EXIT_FAILURE;
 		        }
-		        data_size = (uint16_t)check;
+		        data_size = (u_int16_t)check;
 		        break;
 			case 'n':
 				check = atoi(optarg);
@@ -944,7 +967,7 @@ int check_args(int argc, char* argv[]){
 			        perror("# of packets: 0 - 10000");
 			        return EXIT_FAILURE;
 		        }
-		        num_packets = (uint16_t)check;
+		        num_packets = (u_int16_t)check;
 		        break;
 			case 't':
 				check = atoi(optarg);
@@ -953,7 +976,7 @@ int check_args(int argc, char* argv[]){
 			        perror("TTL range: 0 - 255");
 			        return EXIT_FAILURE;
 		        } else
-			        ttl = (uint8_t)check;
+			        ttl = (u_int8_t)check;
 		        break;
 			case 'w':
 				check = atoi(optarg);
@@ -962,7 +985,7 @@ int check_args(int argc, char* argv[]){
 			        perror("Time wait must be positive");
 			        return EXIT_FAILURE;
 		        }
-		        tail_wait = (uint16_t)check;
+		        tail_wait = (u_int16_t)check;
 		        break;
 			case 'r':
 				check = atoi(optarg);
@@ -971,7 +994,7 @@ int check_args(int argc, char* argv[]){
 			        perror("# Tail Packets: 1 - 1,000");
 			        return EXIT_FAILURE;
 		        }
-		        num_tail = (uint16_t)check;
+		        num_tail = (u_int16_t)check;
 		        break;
 			case 'f':{
 				file = optarg;

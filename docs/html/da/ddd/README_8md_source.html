@@ -87,17 +87,50 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;===</div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;</div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;Network Compression Detection</div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;</div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;A Project <span class="keywordflow">for</span> Comp 429 @ CSUN, to detect compression along a network transmission path.</div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;</div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;The project will proceed in phases, and incrementally build to be an application suitable to an uncoperative environment.</div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;</div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;We will use low and high <a class="code" href="../../df/dfe/ncd_8c.html#a3f3b78489f3a0d1fb75633bd2b14a5d2">entropy</a> data sent along the network to detect <span class="keywordflow">if</span> compression occurs. If a node compresses the data, the low <a class="code" href="../../df/dfe/ncd_8c.html#a3f3b78489f3a0d1fb75633bd2b14a5d2">entropy</a> transmission times will differ significantly from the high <a class="code" href="../../df/dfe/ncd_8c.html#a3f3b78489f3a0d1fb75633bd2b14a5d2">entropy</a> data transmission times, and give us a reliable way to detect compression.</div>
-<div class="ttc" id="ncd_8c_html_a3f3b78489f3a0d1fb75633bd2b14a5d2"><div class="ttname"><a href="../../df/dfe/ncd_8c.html#a3f3b78489f3a0d1fb75633bd2b14a5d2">entropy</a></div><div class="ttdeci">char entropy</div><div class="ttdef"><b>Definition:</b> <a href="../../df/dfe/ncd_8c_source.html#l00022">ncd.c:22</a></div></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;------------------------------</div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;</div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;This project began as a <span class="keyword">class </span>project for a networking course at CSUN, to</div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<a class="code" href="../../df/dfe/ncd_8c.html#ad6dece13c2b3ee7b9da91f18cf0dcf38">detect</a> compression along a network transmission path. It has since become a</div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;research project of its own, examining the ability to use existing network</div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;facilities, particularly ICMP messages, to <a class="code" href="../../df/dfe/ncd_8c.html#ad6dece13c2b3ee7b9da91f18cf0dcf38">detect</a> compression links in an</div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;uncooperative environment.</div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;</div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;At its core `NCD` is a command-line tool similar to `traceroute` or `ping` that</div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;researchers and network admins can use to identify compression links along a</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;network path. We believe this technique can be broadly applied to the detection</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;of other middle-box behaviors. We are, however, focusing on network compression</div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;as a viable test case. Eventually we would like NCD to have support for many</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;types of middle-boxes, such as deep packet inspection or other potentially</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;intrusive behaviors.</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;&#39;NCD&#39; works by exploiting the different processing times that high entropy and</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;low entropy data exhibit. A low entropy packet, i.e. containing all 0&#39;s, should</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;compress much better - and more quickly - than a high entropy packet,</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;containing &quot;random&quot; data. We expect the low entropy transmission times will</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;differ significantly from the high entropy data transmission times, and give us</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;a reliable way to <a class="code" href="../../df/dfe/ncd_8c.html#ad6dece13c2b3ee7b9da91f18cf0dcf38">detect</a> compression. This work follows that of Vahab</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;Pournaghshband in [End-to-End Detection of Compression of Traffic Flows by</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;Intermediaries]</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;(http:<span class="comment">//lasr.cs.ucla.edu/vahab/resources/compression_detection.pdf), who is my</span></div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;advisor on this project.</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;Current Status</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;--------------</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;Currently `NCD` is under heavy development, and</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;isn&#39;t suitable for general use. It should be considered highly experimental,</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;and unstable at best. We hope that in the near future it will be a far more</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;robust tool that other researchers can use and improve. But by all means feel</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;free to explore the source code, and experiment with the tool. </div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;Once our research is complete, and we can reliably use `NCD` in uncooperative</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;environments we plan to make `NCD` a more fully featured, more reliable CLI</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;tool better suite for general use.</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
+<div class="ttc" id="ncd_8c_html_ad6dece13c2b3ee7b9da91f18cf0dcf38"><div class="ttname"><a href="../../df/dfe/ncd_8c.html#ad6dece13c2b3ee7b9da91f18cf0dcf38">detect</a></div><div class="ttdeci">int detect()</div><div class="ttdoc">Determines if compression occurs along the current transmission path to host by sending data to a rem...</div><div class="ttdef"><b>Definition:</b> <a href="../../df/dfe/ncd_8c_source.html#l00243">ncd.c:243</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 8 2015 17:01:46 for Network Compression Detection by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Aug 22 2015 20:25:39 for Network Compression Detection by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

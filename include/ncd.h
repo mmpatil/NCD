@@ -41,8 +41,8 @@
  */
 
 #define SIZE (1500 - sizeof(struct ip))
-#define UDP_DATA_SIZE (SIZE-sizeof(struct udphdr)-sizeof(uint16_t))
-#define TCP_DATA_SIZE (SIZE-sizeof(struct tcphdr)-sizeof(uint16_t))
+#define UDP_DATA_SIZE (SIZE-sizeof(struct udphdr)-sizeof(u_int16_t))
+#define TCP_DATA_SIZE (SIZE-sizeof(struct tcphdr)-sizeof(u_int16_t))
 
 /**
  * struct for udp pseudo header
@@ -53,7 +53,7 @@ struct __attribute__((__packed__))pseudo_header
         u_int32_t dest;
         u_int8_t zero;
         u_int8_t proto;
-        uint16_t len;
+        u_int16_t len;
 };
 
 /**
@@ -70,7 +70,7 @@ struct __attribute__((__packed__))pseudo_header
  *
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  * */
-int comp_det();
+int detect();
 
 /**
  * @brief Sends and measures a single data train, setup and called from
@@ -81,7 +81,7 @@ int comp_det();
  * train and taking all relevant measurements.
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
-int detect();
+int measure();
 
 /**
  * Formats an ipv4 header beginning at buff of length size
@@ -90,7 +90,7 @@ int detect();
  * @param proto The 8-bit protocol
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
-int mkipv4(void* buff, uint16_t size, u_int8_t proto);
+void mkipv4(void* buff, u_int16_t size, u_int8_t proto);
 
 /**
  * @brief Formats an ICMP packet beginning at buff with a payload of length datalen
@@ -98,7 +98,7 @@ int mkipv4(void* buff, uint16_t size, u_int8_t proto);
  * @param datalen The length of the ICMP payload
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
-int mkicmpv4(void *buff, size_t datalen);
+void mkicmpv4(void *buff, size_t datalen);
 
 
 /**
@@ -136,7 +136,7 @@ void *recv4(void *t);
  * @param length the length in bytes of the data to be checksummed
  * @return the IP checksum of the buffer
  */
-uint16_t ip_checksum(void* vdata, size_t length);
+u_int16_t ip_checksum(void* vdata, size_t length);
 
 /**
  * @brief Checks arguments given on command line and stores values in global variables
@@ -145,6 +145,14 @@ uint16_t ip_checksum(void* vdata, size_t length);
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int check_args(int argc, char* argv[]);
+
+/**
+ * @brief sets up an array of TCP packets located at buff. Can be extended to UDP if necessary
+ * @param buff the starting location of the packet train
+ * @param fill a boolean value to fill the packets from file
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
+ */
+int setup_tcp_train( char** buff, int fill);
 
 /**
  * @brief sets up arrays of TCP packets. Can be extended to UDP if necessary
@@ -162,6 +170,6 @@ void setup_syn_packets();
  * @param buff address of tcp header start for syn packet
  * @param port the source port the syn packet should use.
  */
-void setup_syn_packet(void* buff, uint16_t port);
+void setup_syn_packet(void* buff, u_int16_t port);
 
 #endif// end ncd.h
