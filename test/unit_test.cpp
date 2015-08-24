@@ -2,9 +2,13 @@
  * @author: Paul Kirth
  * @file: ncd.c
  */
-
+#include <gtest/gtest.h>
 #include "unit_test.h"
-#include "ncd.c"
+
+//extern "C" {
+//#include "ncd.h"
+//}
+
 
 TEST(get_time_test, get_time_correct)
 {
@@ -17,32 +21,41 @@ TEST(get_time_test, get_time_correct)
         EXPECT_FLOAT_EQ(d, r);
 }
 
-int test_comp_det()
+
+TEST(init_detection_test, init_detection_works)
 {
-        return 0;
+
+
+
+
 }
 
 TEST(mkipv4_test, mkipv4_sets_values_correctly)
 {
+
+
         /* for get addrinfo */
         struct addrinfo hints = { 0 };
 
         /* set up hints for getaddrinfo() */
         hints.ai_flags = AI_CANONNAME;
         hints.ai_protocol = IPPROTO_UDP;
+        //struct addrinfo *res;
 
         int err = getaddrinfo("192.168.1.100", NULL, &hints, &res);
         EXPECT_EQ(0,err);
 
-        ttl = 50;
-        struct ip ip = { 0 }, *m = NULL;
+        int ttl = 50;
+        struct ip ip = { 0 };
+        struct ip* m = NULL;
         inet_pton(AF_INET, "192.168.1.100", &ip.ip_dst);
         ip.ip_hl = 5;
         ip.ip_id = htons(getpid());
         ip.ip_len = htons(1024);
-        ip.ip_ttl = ttl;
+        ip.ip_ttl = htons(ttl);
         ip.ip_v = 4;
         ip.ip_p = IPPROTO_UDP;
+        destip = ip.ip_dst;
 
         char buff[1024] = { 0 };
         m = (struct ip *) buff;
@@ -59,39 +72,29 @@ TEST(mkipv4_test, mkipv4_sets_values_correctly)
 TEST(mkipv4_test, mkipv4_bad_inputs)
 {
         char buff[1024] = { 0 };
-        m = (struct ip *) buff;
+        EXPECT_DEATH_IF_SUPPORTED(mkipv4(buff, 0, IPPROTO_UDP), "Invalid argument used in ICMP packet allocation");
+        EXPECT_DEATH_IF_SUPPORTED(mkipv4(NULL, 1024, IPPROTO_UDP),  "Invalid argument used in ICMP packet allocation");
+        EXPECT_DEATH_IF_SUPPORTED(mkipv4(buff, 2000, IPPROTO_UDP),  "Invalid argument used in ICMP packet allocation");
+        EXPECT_DEATH_IF_SUPPORTED(mkipv4(buff, 1024, 0),  "Invalid argument used in ICMP packet allocation");
 
-        int err = mkipv4(buff, 0, IPPROTO_UDP);
-        EXPECT_EQ(-1,err);
-
-        int err = mkipv4(NULL, 1024, IPPROTO_UDP);
-        EXPECT_EQ(-1,err);
-
-        int err = mkipv4(buff, 1024, 0);
-        EXPECT_EQ(-1,err);
 }
 
 
-int test_mkudphdr()
-{
-        return 0;
-}
-
-TEST(mkicmpv4_test, mkicmpv4_works)
+TEST(mkicmpv4_test, mkicmpv4_sets_values_correctly)
 {
         char buff[128] = { 0 };
         char str[128] = { 0 };
         int datalen = 56;
         struct icmp *icmp = (struct icmp *) buff;
         struct icmp *m = (struct icmp *) str;
-        EXPECT_NE(NULL, icmp);
-        EXPECT_NE(NULL, m);
+        EXPECT_NE(nullptr, icmp);
+        EXPECT_NE(nullptr, m);
 
         icmp->icmp_type = ICMP_ECHO;
         icmp->icmp_code = 0;
         icmp->icmp_id = (u_int16_t) getpid();
 
-        int ret = mkicmpv4(str, datalen);
+        mkicmpv4(str, datalen);
         memcpy(icmp->icmp_data, m->icmp_data, datalen);
         icmp->icmp_seq = m->icmp_seq;        // so they can match (its random!)
         icmp->icmp_cksum = 0;
@@ -101,14 +104,43 @@ TEST(mkicmpv4_test, mkicmpv4_works)
         EXPECT_EQ(icmp->icmp_code, m->icmp_code);
         EXPECT_EQ(icmp->icmp_type, m->icmp_type);
         EXPECT_EQ(icmp->icmp_id, m->icmp_id);
-        EXPECT_EQ(0, ret);
 }
 
-TEST(fill_data_test, fill_data_works)
+
+TEST(mkicmpv4_test, mkicmpv4_bad_inputs)
 {
-
+        char buff[1024] = { 0 };
+        EXPECT_DEATH_IF_SUPPORTED(mkicmpv4(NULL, 1024),  "Invalid argument used in ICMP packet header: NULL pointer used");
+        EXPECT_DEATH_IF_SUPPORTED(mkicmpv4(buff, 2000),  "Invalid argument used for ICMP packet header length");
 }
 
+
+TEST(fill_data_test, fill_data_bad_input)
+{
+        EXPECT_DEATH_IF_SUPPORTED(fill_data(NULL,100), "Error opening file");
+        char str[64]= "/dev/urandom";
+        extern char* file;
+        EXPECT_DEATH_IF_SUPPORTED(fill_data(NULL,100), "Error opening file");
+        file=str;
+        char buff[1500]={0};
+        EXPECT_DEATH_IF_SUPPORTED(fill_data(NULL,100), "Error reading file");
+}
+
+TEST_F(DetectionInitTest, test_init)
+{
+        init_detection();
+        EXPECT_EQ(64,icmp_len);
+        EXPECT_EQ(0, seq);
+        EXPECT_NE(NULL, (uint64_t)res);
+        EXPECT_STREQ("127.0.0.1", inet_ntoa(destip));
+        EXPECT_LT(0, send_fd);
+        EXPECT_LT(0, recv_fd);
+        EXPECT_LT(0, icmp_fd);
+        EXPECT_EQ(64,ttl);
+        EXPECT_EQ(5, tail_wait);
+        EXPECT_EQ(20, num_tail);
+        EXPECT_EQ(3000, num_packets);
+}
 
 int main(int argc, char **argv)
 {

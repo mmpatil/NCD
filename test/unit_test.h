@@ -7,36 +7,20 @@
 
 #ifndef UNIT_TEST_H_
 #define UNIT_TEST_H_
-
+extern "C" {
 #include "ncd.h"
-#include <gtest/gtest.h>
+}
 
-int test_get_time();
+class DetectionInitTest : public ::testing::Test
+{
+	protected:
+		virtual void SetUp(){
+			char const *args[8] = {"ncd_main", "127.0.0.1", "-p9876", "-n3000", "-t64", "-w5", "-c3", "-v"};
+			size_t sz = sizeof(*args)/sizeof(args);
+			printf("%lu\n", sz);
+			check_args(8, (char**)args);
+		}
+};
 
-int test_comp_det();
-
-int test_detect();
-
-//int test_mkipv4();
-
-int test_mkipv6();
-
-int test_mkudphdr();
-
-int test_mkicmpv4();
-
-int test_mkicmpv6();
-
-int test_fill_data();
-
-int test_send_train();
-
-int test_recv4();
-
-int test_recv6();
-
-int test_ip_checksum();
-
-int test_check_args();
 
 #endif /* UNIT_TEST_H_ */

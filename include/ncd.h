@@ -13,9 +13,7 @@
 #include <errno.h>		        /* for errno*/
 #include <sys/socket.h>		    /* for socket(), setsockopt(), etc...*/
 #include <netinet/ip.h>		    /* for struct ip */
-#include <netinet/ip6.h>	    /* for struct ip6_hdr */
 #include <netinet/ip_icmp.h>	/* for struct icmp */
-#include <netinet/icmp6.h>	    /* for struct icmp */
 #include <netinet/tcp.h>	    /* for struct tcphdr */
 #include <netinet/udp.h>	    /* for struct udphdr */
 #include <netdb.h>		        /* for getaddrinfo() */
@@ -24,22 +22,20 @@
 #include <fcntl.h>		        /* for O_RDONLY */
 #include <unistd.h>		        /* for _________ */
 #include <ctype.h>		        /* for inet_pton() */
-#include <pthread.h>		    /* for pthreads */
-//#include <time.h> 		    /* for struct tv */
-
+#include <pthread.h>            /* for pthread */
+#include "ncd_global.h"
 /**
  * Favor the BSD style UDP & IP headers
  */
 
+#if 0
 /**
- *  maximum ip packet size
- *  1500 bytes Ethernet max size
- *  40 IPv6 header max size
- *  8 UDP header
- *  2 16-bit packet ID
- *
- */
-
+*  maximum ip packet size
+*  1500 bytes Ethernet max size
+*  40 IPv6 header max size
+*  8 UDP header
+*  2 16-bit packet ID
+*/
 #define SIZE (1500 - sizeof(struct ip))
 #define UDP_DATA_SIZE (SIZE-sizeof(struct udphdr)-sizeof(u_int16_t))
 #define TCP_DATA_SIZE (SIZE-sizeof(struct tcphdr)-sizeof(u_int16_t))
@@ -49,12 +45,26 @@
  */
 struct __attribute__((__packed__))pseudo_header
 {
-        u_int32_t source;
-        u_int32_t dest;
-        u_int8_t zero;
-        u_int8_t proto;
-        u_int16_t len;
+    u_int32_t source;
+    u_int32_t dest;
+    u_int8_t zero;
+    u_int8_t proto;
+    u_int16_t len;
 };
+#endif
+
+/**
+ * @ breif Returns current time as double, with most possible precision
+ * @return Returns current time as double, with most possible precision.
+ *
+ */
+double get_time(void);
+
+/**
+ * @breif init_detection(): initializes global variables for use in detection.
+ * @return Returns an integer value for success(0), failure(1), or error(-1)
+ */
+int init_detection();
 
 /**
  * @brief Determines if compression occurs along the current transmission path
@@ -88,7 +98,6 @@ int measure();
  * @param buff Address of the starting location for the IP packet
  * @param size The length of the IP packet
  * @param proto The 8-bit protocol
- * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 void mkipv4(void* buff, u_int16_t size, u_int8_t proto);
 
@@ -96,7 +105,6 @@ void mkipv4(void* buff, u_int16_t size, u_int8_t proto);
  * @brief Formats an ICMP packet beginning at buff with a payload of length datalen
  * @param buff Address of the starting location for the ICMP packet
  * @param datalen The length of the ICMP payload
- * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 void mkicmpv4(void *buff, size_t datalen);
 
@@ -112,20 +120,19 @@ void fill_data(void *buff, size_t size);
  * @brief Sends the UDP data train with leading and trailing ICMP messages
  * @param[out] status returns the status/return code
  */
-void *send_udp();
+void *send_udp(void*);
 
 /**
  * @brief Sends a tcp data train with leading and trailing ICMP messages
  * @param[out] status returns the status/return code
  */
-void *send_tcp();
+void *send_tcp(void*);
 
 /**
  * @brief Receives ICMP responses from end host and records times
  * @param[out] t Pointer to a double. Returns the time in ms between head echo
  * response and first processed tail echo response to a resolution of
- * microseconds (10^-6 sec)
- * @return Returns an integer value for success(0), failure(1), or error(-1) -- pthreads
+ * microseconds (10^-6 sec) *
  */
 void *recv4(void *t);
 

@@ -4,7 +4,7 @@ project(ncd)
 #set (ncd_VERSION_MINOR 1)
 
 include_directories(include)
-set(SOURCE_FILES src/ncd.c src/ncd_main.c)
+set(SOURCE_FILES src/ncd.c src/ncd_main.c include/ncd_global.h)
 find_package ( Threads REQUIRED )
 add_executable(ncd_main  ${SOURCE_FILES})
 target_link_libraries ( ncd_main ${CMAKE_THREAD_LIBS_INIT}  m)
