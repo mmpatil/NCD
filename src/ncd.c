@@ -6,82 +6,6 @@
 #include "ncd.h"
 #include "bitset.h"
 
-#if 0
-/*  Global Variables  */
-u_int16_t data_size;        // size of udp data payload
-u_int16_t num_packets;      // number of packets in udp data train
-u_int16_t num_tail;         // number of tail icmp messages sent tail_wait apart
-u_int16_t tail_wait;        // time between ICMP tail messages
-
-u_int16_t dport;            // destination port number
-u_int16_t sport;            // source port number
-u_int16_t syn_port;         // source port number
-u_int8_t ttl;               // time to live
-
-char* dst_ip = NULL;        // destination ip address
-char* file = NULL;          //name of file to read from /dev/urandom by default
-
-/* flags */
-u_int8_t lflag = 1;         // default option for low entropy -- set to on
-u_int8_t hflag = 1;         // default option for high entropy -- set to on
-
-/* file descriptors */
-int icmp_fd;                //icmp socket file descriptor
-int send_fd;                //udp socket file descriptor
-int recv_fd;                //reply receiving socket file descriptor
-
-/* lengths of packets and data, etc. */
-u_int16_t send_len;         // length of data to be sent
-u_int8_t tcp_bool = 0;        //bool for whether to use tcp or udp(1 == true, 0 == false)
-
-u_int32_t seq = 0;          // sequence number
-u_int16_t icmp_ip_len;      // length of IP icmp packet including payload
-u_int16_t icmp_len;         // length of ICMP packet
-u_int16_t icmp_data_len;    // length of ICMP data
-
-struct addrinfo* res = NULL;            // addrinfo struct for getaddrinfo()
-void* (* recv_data)(void*) = NULL;      // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
-void* (* send_train)(void*) = NULL;     // function pointer to send data: UDP or TCP
-
-
-
-int stop = 0;                           // boolean for if the send thread can stop (receive thread has received second response.
-pthread_mutex_t stop_mutex;             //mutex for stop
-pthread_cond_t stop_cv;                 // condition variabl for stop -- denotes
-
-int recv_ready = 0;                     // bool for receiving SYN packets -- denotes if the program is ready to receive traffic
-pthread_mutex_t recv_ready_mutex;       //mutex for recv_ready
-pthread_cond_t recv_ready_cv;           //condition variable for recv_ready mutex
-
-int second_train = 0;
-
-char pseudo[1500] = {0};                // buffer for pseudo header
-char packet_rcv[1500] = {0};            // buffer for receiving replies
-char packet_send[SIZE] = {0};           // buffer for sending data
-char syn_packet_1[20] = {0};            // packet for head SYN
-char syn_packet_2[20] = {0};            // packet for tail SYN
-char icmp_send[128] = {0};              // buffer for ICMP messages
-
-struct pseudo_header* ps = (struct pseudo_header*)pseudo;       //pseudo header
-u_int16_t* packet_id = (u_int16_t*)packet_send;                 //sequence/ID number of udp msg
-struct sockaddr_in srcaddrs = {0};      // source IP address
-socklen_t sa_len = sizeof(srcaddrs);    // size of src address
-struct in_addr destip;                  // destination IP
-
-char* packets_e = NULL;                 //empty packets
-char* packets_f = NULL;                 //filled packets
-
-int verbose = 0;                        // flag for verbose output
-
-double time_val;                        // time as a double
-double td;
-const int num_threads = 2;
-int cooldown = 5;                       // time in seconds to wait between data trains
-
-#endif
-
-
-
 char* packets_e = NULL;                 //empty packets
 char* packets_f = NULL;                 //filled packets
 char* dst_ip = NULL;        // destination ip address
@@ -107,7 +31,7 @@ char icmp_send[128] = {0};              // buffer for ICMP messages
 struct pseudo_header* ps = (struct pseudo_header*)pseudo;       //pseudo header
 u_int16_t* packet_id = (u_int16_t*)packet_send;                 //sequence/ID number of udp msg
 struct sockaddr_in srcaddrs = {0};      // source IP address
-struct in_addr destip = {0};            // destination IP
+struct in_addr destip = {0};     // destination IP
 socklen_t sa_len = sizeof(srcaddrs);    // size of src address
 
 struct addrinfo* res = NULL;            // addrinfo struct for getaddrinfo()
@@ -255,43 +179,12 @@ int init_detection()
 		exit(EXIT_FAILURE);
 	}
 
-	/* Acquire raw socket to listen for ICMP replies */
-	if(tcp_bool == 1)
-		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
-	else
-		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
-	if(recv_fd == -1){
-		perror("call to socket() failed");
-		return EXIT_FAILURE;
-	}
-
-	/* give up root privileges */
+	/*give up privileges */
 	err = setuid(getuid());
 	if(err < 0){
-		perror("Elevated privileges not released...");
+		perror("Elevated privileges not released");
 		return EXIT_FAILURE;
 	}
-
-	/*increase size of receive buffer*/
-
-	int opts = 1500 * num_packets;
-
-	setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &opts, sizeof(opts));
-
-#if DEBUG
-	if(verbose){
-			int buffsize;
-			socklen_t bufflen = sizeof(buffsize);
-
-			getsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, (void*) &buffsize,
-							&bufflen);
-
-			printf("Send Buffer size: %d\n", buffsize);
-			getsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, (void*) &buffsize,
-							&bufflen);
-			printf("Receive Buffer size: %d\n", buffsize);
-	}
-#endif
 
 	recv_data = recv4;
 
@@ -307,7 +200,6 @@ int init_detection()
 		mkipv4(icmp_send, icmp_len, IPPROTO_ICMP);
 		mkicmpv4(icmp_send + sizeof(struct ip), icmp_data_len);
 	}//end if
-
 	return EXIT_SUCCESS;
 }
 
@@ -391,7 +283,49 @@ int measure()
 
 	void* status[2];
 
+	/*get root privileges */
+	int err = setuid(0);
+	if(err < 0){
+		perror("Elevated privileges not acquired...");
+		return EXIT_FAILURE;
+	}
+	/* Acquire raw socket to listen for ICMP replies */
+	if(tcp_bool == 1)
+		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
+	else
+		recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
+	if(recv_fd == -1){
+		perror("call to socket() failed");
+		return EXIT_FAILURE;
+	}
 
+	/* give up root privileges */
+	err = setuid(getuid());
+	if(err < 0){
+		perror("Elevated privileges not released...");
+		return EXIT_FAILURE;
+	}
+
+	/*increase size of receive buffer*/
+
+	int opts = 1500 * num_packets;
+
+	setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &opts, sizeof(opts));
+
+#if DEBUG
+	if(verbose){
+			int buffsize;
+			socklen_t bufflen = sizeof(buffsize);
+
+			getsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, (void*) &buffsize,
+							&bufflen);
+
+			printf("Send Buffer size: %d\n", buffsize);
+			getsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, (void*) &buffsize,
+							&bufflen);
+			printf("Receive Buffer size: %d\n", buffsize);
+	}
+#endif
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);

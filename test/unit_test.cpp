@@ -134,7 +134,6 @@ TEST_F(DetectionInitTest, test_init)
         EXPECT_NE(NULL, (uint64_t)res);
         EXPECT_STREQ("127.0.0.1", inet_ntoa(destip));
         EXPECT_LT(0, send_fd);
-        EXPECT_LT(0, recv_fd);
         EXPECT_LT(0, icmp_fd);
         EXPECT_EQ(64,ttl);
         EXPECT_EQ(5, tail_wait);
