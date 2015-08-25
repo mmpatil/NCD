@@ -37,7 +37,7 @@ $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
 ncd_main: $(OBJ)
 	$(CC) -o $@  $(OBJ) $(CFLAGS) $(CLINKFLAGS) $(LIBS)
 
-unittest: $(DEPS) $(OBJ)  $(TESTDIR)/unit_test.cpp
+unittest: $(DEPS) $(OBJ)  $(TESTDIR)/unit_test.*
 	$(CXX) obj/ncd.o $(TESTDIR)/unit_test.cpp   -o $@ $(CXXFLAGS) $(CXXLINKFLAGS)
 
 

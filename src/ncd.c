@@ -8,18 +8,17 @@
 
 char* packets_e = NULL;                 //empty packets
 char* packets_f = NULL;                 //filled packets
-char* dst_ip = NULL;        // destination ip address
-char* file = NULL;          //name of file to read from /dev/urandom by default
+char* dst_ip = NULL;                    // destination ip address
+char* file = NULL;                      //name of file to read from /dev/urandom by default
 
 /* flags */
-u_int8_t lflag = 1;         // default option for low entropy -- set to on
-u_int8_t hflag = 1;         // default option for high entropy -- set to on
+u_int8_t lflag = 1;                     // default option for low entropy -- set to on
+u_int8_t hflag = 1;                     // default option for high entropy -- set to on
 int verbose = 0;                        // flag for verbose output
-const int num_threads = 2;
+const int num_threads = 2;              // number of threads used by ncd
 int cooldown = 5;                       // time in seconds to wait between data trains
-u_int8_t tcp_bool = 0;        //bool for whether to use tcp or udp(1 == true, 0 == false)
-
-int second_train = 0;
+u_int8_t tcp_bool = 0;                  // bool for whether to use tcp or udp(1 == true, 0 == false)
+int second_train = 0;                   // bool to denote if the second train is being sent.
 
 char pseudo[1500] = {0};                // buffer for pseudo header
 char packet_rcv[1500] = {0};            // buffer for receiving replies
@@ -31,7 +30,7 @@ char icmp_send[128] = {0};              // buffer for ICMP messages
 struct pseudo_header* ps = (struct pseudo_header*)pseudo;       //pseudo header
 u_int16_t* packet_id = (u_int16_t*)packet_send;                 //sequence/ID number of udp msg
 struct sockaddr_in srcaddrs = {0};      // source IP address
-struct in_addr destip = {0};     // destination IP
+struct in_addr destip = {0};            // destination IP
 socklen_t sa_len = sizeof(srcaddrs);    // size of src address
 
 struct addrinfo* res = NULL;            // addrinfo struct for getaddrinfo()
@@ -83,9 +82,9 @@ int init_detection()
 	/*taken from http://stackoverflow.com/questions/17914550/getaddrinfo-error-success*/
 	if(err != 0){
 		if(err == EAI_SYSTEM)
-			fprintf(stderr, "looking up %s: %s\n", dst_ip, strerror(errno));
+			fprintf(stderr, "Error looking up %s: %s\n", dst_ip, strerror(errno));
 		else
-			fprintf(stderr, "looking up %s: %s\n", dst_ip, gai_strerror(err));
+			fprintf(stderr, "Error looking up %s: %s\n", dst_ip, gai_strerror(err));
 		exit(EXIT_FAILURE);
 	}
 
@@ -212,7 +211,9 @@ int detect()
 		return err;
 
 	if(lflag == 1){
-		measure();
+		err = measure();
+		if(err != 0)
+			return err;
 	}
 
 	if(lflag && hflag){
@@ -246,7 +247,9 @@ int detect()
 
 		if(!tcp_bool)
 			fill_data(packet_send, data_size);
-		measure();
+		err = measure();
+		if(err != 0)
+			return err;
 	}
 
 	if(res)
@@ -688,7 +691,7 @@ void* recv4(void* t)
 	int count = 0;
 
 	/*number of port unreachable replies processed and ignored*/
-	int ack = 0;
+	udp_ack = 0;
 
 	/* ICMP header */
 	struct icmp* icmp;
@@ -761,7 +764,7 @@ void* recv4(void* t)
 			} else if(ip->ip_src.s_addr != dest.s_addr){
 				continue;
 			} else if(icmp->icmp_type == 3 && icmp->icmp_code == 3){
-				ack++;
+				udp_ack++;
 				set_bs_32(bitset, *id, num_packets);
 				continue;
 			} else if(icmp->icmp_type == 0){
@@ -783,7 +786,7 @@ void* recv4(void* t)
 			}        // end if
 
 		}        // end for
-		printf("UDP Packets received: %d/%d\n", ack, num_packets);
+		printf("UDP Packets received: %d/%d\n", udp_ack, num_packets);
 
 		if(verbose){
 			printf("Missing Packets:  ");
@@ -906,6 +909,7 @@ int check_args(int argc, char* argv[])
 
 	int check;
 	int c = 0;
+	optind = 1;
 	while((c = getopt(argc, argv, "HLTvp:c:f:s:n:t:w:r:h")) != -1){
 		switch(c){
 			case 'H':
@@ -1012,7 +1016,7 @@ int check_args(int argc, char* argv[])
 				break;
 			default:
 				errno = ERANGE;
-		        fprintf(stderr, "%s: error -- check use\n", argv[0]);
+		        fprintf(stderr, "%s: error --check use, unkown option '%s'\n", argv[0], optarg);
 				print_use(argv[0]);
 		        return EXIT_FAILURE;
 		}        // end switch
