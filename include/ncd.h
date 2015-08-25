@@ -28,30 +28,6 @@
  * Favor the BSD style UDP & IP headers
  */
 
-#if 0
-/**
-*  maximum ip packet size
-*  1500 bytes Ethernet max size
-*  40 IPv6 header max size
-*  8 UDP header
-*  2 16-bit packet ID
-*/
-#define SIZE (1500 - sizeof(struct ip))
-#define UDP_DATA_SIZE (SIZE-sizeof(struct udphdr)-sizeof(u_int16_t))
-#define TCP_DATA_SIZE (SIZE-sizeof(struct tcphdr)-sizeof(u_int16_t))
-
-/**
- * struct for udp pseudo header
- */
-struct __attribute__((__packed__))pseudo_header
-{
-    u_int32_t source;
-    u_int32_t dest;
-    u_int8_t zero;
-    u_int8_t proto;
-    u_int16_t len;
-};
-#endif
 
 /**
  * @ breif Returns current time as double, with most possible precision

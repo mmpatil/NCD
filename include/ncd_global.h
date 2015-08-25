@@ -1,6 +1,8 @@
-//
-// Created by atlas on 8/22/15.
-//
+/**
+ *@author Paul Kirth
+ * @date 8/22/15.
+ * @file ncd_global.h
+ */
 
 #ifndef NCD_NCD_GLOBAL_H
 #define NCD_NCD_GLOBAL_H
@@ -31,7 +33,6 @@ struct __attribute__((__packed__))pseudo_header{
     u_int8_t proto;
     u_int16_t len;
 };
-
 
 /*  Global Variables  */
 
