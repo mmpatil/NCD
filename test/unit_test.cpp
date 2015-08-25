@@ -133,8 +133,7 @@ TEST_F(DetectionInitTest, test_init){
 }
 
 
-TEST_F(MeasureTest, measure_works)
-{
+TEST_F(MeasureTest, measure_works){
 	int err;
 	err = init_detection();
 	ASSERT_EQ(EXIT_SUCCESS, err);
@@ -150,6 +149,14 @@ TEST_F(MeasureTest, measure_works)
 	EXPECT_EQ(1, stop);
 	EXPECT_EQ(0, recv_ready);
 	EXPECT_EQ(num_packets, udp_ack);
+}
+
+
+TEST_F(DetectTest, detect_works){
+
+	int err = detect();
+	ASSERT_EQ(0, err);
+
 }
 
 

@@ -31,6 +31,15 @@ class MeasureTest :public::testing::Test
 	}
 };
 
+class DetectTest :public::testing::Test
+{
+	protected:
+	virtual void SetUp(){
+		char const* args[6] = {"fake program!!!", "127.0.0.1", "-n2200", "-t64", "-w4", "-c2"};
+		size_t sz = sizeof(args) / sizeof(args[0]);
+		check_args(sz, (char**)args);
+	}
+};
 
 
 #endif /* UNIT_TEST_H_ */
