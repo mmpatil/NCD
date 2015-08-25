@@ -876,7 +876,7 @@ u_int16_t ip_checksum(void* vdata, size_t length)
 
 void print_use(char* program_name)
 {
-	printf("Usage: %s [-H | -L] [-T] [-v] [-p PORT] [-c COOLDOWN ]\n"
+	printf("Usage: %s [-H | -L] [-T] [-v] [-p PORT] [-c COOLDOWN]\n"
 			       "\t\t  [-f FILENAME_PAYLOAD] [-s DATA_SIZE] [-n NUM_PACKETS]\n"
 			       "\t\t  [-t TTL] [-w TAIL_INTERVAL] [-r NUM_TAIL] IPAddress\n",
 	               program_name);
