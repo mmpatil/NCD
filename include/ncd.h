@@ -6,26 +6,26 @@
 #ifndef _NCD_H_
 #define _NCD_H_
 
-#include <stdio.h>		        /* for printf, fprintf, snprintf, perror, ... */
-#include <stdlib.h>		        /* for EXIT_SUCCESS, EXIT_FAILURE, */
-#include <string.h> 		    /* for memcpy */
-#include <sys/time.h>		    /* for gettimeofday() */
-#include <errno.h>		        /* for errno*/
-#include <sys/socket.h>		    /* for socket(), setsockopt(), etc...*/
-#include <netinet/ip.h>		    /* for struct ip */
-#include <netinet/ip6.h>	    /* for struct ip6_hdr */
-#include <netinet/ip_icmp.h>	/* for struct icmp */
-#include <netinet/icmp6.h>	    /* for struct icmp */
-#include <netinet/tcp.h>	    /* for struct tcphdr */
-#include <netinet/udp.h>	    /* for struct udphdr */
-#include <netdb.h>		        /* for getaddrinfo() */
-#include <arpa/inet.h>		    /* for inet_pton() */
-#include <signal.h>		        /* for kill() */
-#include <fcntl.h>		        /* for O_RDONLY */
-#include <unistd.h>		        /* for _________ */
-#include <ctype.h>		        /* for inet_pton() */
-#include <pthread.h>		    /* for pthreads */
-//#include <time.h> 		    /* for struct tv */
+#include <stdio.h>           /* for printf, fprintf, snprintf, perror, ... */
+#include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
+#include <string.h>          /* for memcpy */
+#include <sys/time.h>        /* for gettimeofday() */
+#include <errno.h>           /* for errno*/
+#include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
+#include <netinet/ip.h>      /* for struct ip */
+#include <netinet/ip6.h>     /* for struct ip6_hdr */
+#include <netinet/ip_icmp.h> /* for struct icmp */
+#include <netinet/icmp6.h>   /* for struct icmp */
+#include <netinet/tcp.h>     /* for struct tcphdr */
+#include <netinet/udp.h>     /* for struct udphdr */
+#include <netdb.h>           /* for getaddrinfo() */
+#include <arpa/inet.h>       /* for inet_pton() */
+#include <signal.h>          /* for kill() */
+#include <fcntl.h>           /* for O_RDONLY */
+#include <unistd.h>          /* for _________ */
+#include <ctype.h>           /* for inet_pton() */
+#include <pthread.h>         /* for pthreads */
+                             //#include <time.h> 		    /* for struct tv */
 
 /**
  * Favor the BSD style UDP & IP headers
@@ -41,19 +41,19 @@
  */
 
 #define SIZE (1500 - sizeof(struct ip))
-#define UDP_DATA_SIZE (SIZE-sizeof(struct udphdr)-sizeof(uint16_t))
-#define TCP_DATA_SIZE (SIZE-sizeof(struct tcphdr)-sizeof(uint16_t))
+#define UDP_DATA_SIZE (SIZE - sizeof(struct udphdr) - sizeof(uint16_t))
+#define TCP_DATA_SIZE (SIZE - sizeof(struct tcphdr) - sizeof(uint16_t))
 
 /**
  * struct for udp pseudo header
  */
-struct __attribute__((__packed__))pseudo_header
+struct __attribute__((__packed__)) pseudo_header
 {
-        u_int32_t source;
-        u_int32_t dest;
-        u_int8_t zero;
-        u_int8_t proto;
-        uint16_t len;
+    u_int32_t source;
+    u_int32_t dest;
+    u_int8_t zero;
+    u_int8_t proto;
+    uint16_t len;
 };
 
 /**
@@ -98,7 +98,7 @@ int mkipv4(void* buff, uint16_t size, u_int8_t proto);
  * @param datalen The length of the ICMP payload
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
-int mkicmpv4(void *buff, size_t datalen);
+int mkicmpv4(void* buff, size_t datalen);
 
 
 /**
@@ -106,19 +106,19 @@ int mkicmpv4(void *buff, size_t datalen);
  * @param[out] buff Address of the starting location for the data to be filled
  * @param[in] size The length of the data region to be filled
  */
-void fill_data(void *buff, size_t size);
+void fill_data(void* buff, size_t size);
 
 /**
  * @brief Sends the UDP data train with leading and trailing ICMP messages
  * @param[out] status returns the status/return code
  */
-void *send_udp();
+void* send_udp();
 
 /**
  * @brief Sends a tcp data train with leading and trailing ICMP messages
  * @param[out] status returns the status/return code
  */
-void *send_tcp();
+void* send_tcp();
 
 /**
  * @brief Receives ICMP responses from end host and records times
@@ -127,7 +127,7 @@ void *send_tcp();
  * microseconds (10^-6 sec)
  * @return Returns an integer value for success(0), failure(1), or error(-1) -- pthreads
  */
-void *recv4(void *t);
+void* recv4(void* t);
 
 
 /**
@@ -164,4 +164,4 @@ void setup_syn_packets();
  */
 void setup_syn_packet(void* buff, uint16_t port);
 
-#endif// end ncd.h
+#endif        // end ncd.h
