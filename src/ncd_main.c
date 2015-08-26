@@ -21,10 +21,10 @@
  * @argv[8] Number of tail ICMP messages to send
  *
  */
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-        /* Check ARGs */
-        if(check_args(argc, argv) != EXIT_SUCCESS)
-                return EXIT_FAILURE;
-        return detect();
+    /* Check ARGs */
+    if(check_args(argc, argv) != EXIT_SUCCESS)
+        return EXIT_FAILURE;
+    return detect();
 }

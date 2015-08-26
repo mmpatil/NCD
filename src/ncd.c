@@ -28,10 +28,10 @@ char syn_packet_2[20]  = {0};        // packet for tail SYN
 char icmp_send[128]    = {0};        // buffer for ICMP messages
 
 struct pseudo_header* ps    = (struct pseudo_header*)pseudo;        // pseudo header
-u_int16_t* packet_id        = (u_int16_t*)packet_send;        // sequence/ID number of udp msg
-struct sockaddr_in srcaddrs = {0};                     // source IP address
-struct in_addr destip       = {0};                     // destination IP
-socklen_t sa_len            = sizeof(srcaddrs);        // size of src address
+u_int16_t* packet_id        = (u_int16_t*)packet_send;              // sequence/ID number of udp msg
+struct sockaddr_in srcaddrs = {0};                                  // source IP address
+struct in_addr destip       = {0};                                  // destination IP
+socklen_t sa_len            = sizeof(srcaddrs);                     // size of src address
 
 struct addrinfo* res = NULL;              // addrinfo struct for getaddrinfo()
 void* (*recv_data)(void*) = NULL;         // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
@@ -1090,7 +1090,7 @@ int check_args(int argc, char* argv[])
             print_use(argv[0]);
             return EXIT_FAILURE;
         }        // end switch
-    }        // end while
+    }            // end while
     /* these are the arguments after the command-line options */
     for(; optind < argc; optind++)
     {
