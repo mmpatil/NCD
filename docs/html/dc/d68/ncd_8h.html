@@ -84,7 +84,6 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">ncd.h File Reference</div>  </div>
@@ -97,9 +96,7 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 <code>#include &lt;errno.h&gt;</code><br/>
 <code>#include &lt;sys/socket.h&gt;</code><br/>
 <code>#include &lt;netinet/ip.h&gt;</code><br/>
-<code>#include &lt;netinet/ip6.h&gt;</code><br/>
 <code>#include &lt;netinet/ip_icmp.h&gt;</code><br/>
-<code>#include &lt;netinet/icmp6.h&gt;</code><br/>
 <code>#include &lt;netinet/tcp.h&gt;</code><br/>
 <code>#include &lt;netinet/udp.h&gt;</code><br/>
 <code>#include &lt;netdb.h&gt;</code><br/>
@@ -109,24 +106,18 @@ var searchBox = new SearchBox("searchBox", "../../search",false,'Search');
 <code>#include &lt;unistd.h&gt;</code><br/>
 <code>#include &lt;ctype.h&gt;</code><br/>
 <code>#include &lt;pthread.h&gt;</code><br/>
+<code>#include &quot;<a class="el" href="../../dc/dbb/ncd__global_8h_source.html">ncd_global.h</a>&quot;</code><br/>
 </div>
 <p><a href="../../dc/d68/ncd_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:a70ed59adcb4159ac551058053e649640"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>&#160;&#160;&#160;(1500 - sizeof(struct ip))</td></tr>
-<tr class="memdesc:a70ed59adcb4159ac551058053e649640"><td class="mdescLeft">&#160;</td><td class="mdescRight">Favor the BSD style UDP &amp; IP headers.  <a href="#a70ed59adcb4159ac551058053e649640">More...</a><br/></td></tr>
-<tr class="separator:a70ed59adcb4159ac551058053e649640"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8e039e4bc205e04f774f09e68e63868f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#a8e039e4bc205e04f774f09e68e63868f">UDP_DATA_SIZE</a>&#160;&#160;&#160;(<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>-sizeof(struct udphdr)-sizeof(u_int16_t))</td></tr>
-<tr class="separator:a8e039e4bc205e04f774f09e68e63868f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afdac791ecf1a42be6a814a0c23aa795b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#afdac791ecf1a42be6a814a0c23aa795b">TCP_DATA_SIZE</a>&#160;&#160;&#160;(<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>-sizeof(struct tcphdr)-sizeof(u_int16_t))</td></tr>
-<tr class="separator:afdac791ecf1a42be6a814a0c23aa795b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a4ad006b97556561b12d11cc3aee188a3"><td class="memItemLeft" align="right" valign="top">struct&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#a4ad006b97556561b12d11cc3aee188a3">__attribute__</a> ((__packed__)) pseudo_header</td></tr>
-<tr class="memdesc:a4ad006b97556561b12d11cc3aee188a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">struct for udp pseudo header  <a href="#a4ad006b97556561b12d11cc3aee188a3">More...</a><br/></td></tr>
-<tr class="separator:a4ad006b97556561b12d11cc3aee188a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a634b2de1d27b4fd5b22f6fc46b805d9b"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#a634b2de1d27b4fd5b22f6fc46b805d9b">get_time</a> (void)</td></tr>
+<tr class="memdesc:a634b2de1d27b4fd5b22f6fc46b805d9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Favor the BSD style UDP &amp; IP headers.  <a href="#a634b2de1d27b4fd5b22f6fc46b805d9b">More...</a><br/></td></tr>
+<tr class="separator:a634b2de1d27b4fd5b22f6fc46b805d9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09e5952022b76cf427821fee2c4060d4"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#a09e5952022b76cf427821fee2c4060d4">init_detection</a> ()</td></tr>
+<tr class="memdesc:a09e5952022b76cf427821fee2c4060d4"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="../../dc/d68/ncd_8h.html#a09e5952022b76cf427821fee2c4060d4" title="init_detection(): initializes global variables for use in detection. ">init_detection()</a>: initializes global variables for use in detection.  <a href="#a09e5952022b76cf427821fee2c4060d4">More...</a><br/></td></tr>
+<tr class="separator:a09e5952022b76cf427821fee2c4060d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad6dece13c2b3ee7b9da91f18cf0dcf38"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#ad6dece13c2b3ee7b9da91f18cf0dcf38">detect</a> ()</td></tr>
 <tr class="memdesc:ad6dece13c2b3ee7b9da91f18cf0dcf38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines if compression occurs along the current transmission path to host by sending data to a remote location.  <a href="#ad6dece13c2b3ee7b9da91f18cf0dcf38">More...</a><br/></td></tr>
 <tr class="separator:ad6dece13c2b3ee7b9da91f18cf0dcf38"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -142,12 +133,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a115536db290a1c30ffbc2c07e0db5fbf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#a115536db290a1c30ffbc2c07e0db5fbf">fill_data</a> (void *buff, size_t size)</td></tr>
 <tr class="memdesc:a115536db290a1c30ffbc2c07e0db5fbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fills the data portion of a packet with size bytes data from a file (char* file)  <a href="#a115536db290a1c30ffbc2c07e0db5fbf">More...</a><br/></td></tr>
 <tr class="separator:a115536db290a1c30ffbc2c07e0db5fbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36813875fd04fd1b400b09ad022b1024"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#a36813875fd04fd1b400b09ad022b1024">send_udp</a> ()</td></tr>
-<tr class="memdesc:a36813875fd04fd1b400b09ad022b1024"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends the UDP data train with leading and trailing ICMP messages.  <a href="#a36813875fd04fd1b400b09ad022b1024">More...</a><br/></td></tr>
-<tr class="separator:a36813875fd04fd1b400b09ad022b1024"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abbe8c28d14ff1bdee4102ca5d03b3e08"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#abbe8c28d14ff1bdee4102ca5d03b3e08">send_tcp</a> ()</td></tr>
-<tr class="memdesc:abbe8c28d14ff1bdee4102ca5d03b3e08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a tcp data train with leading and trailing ICMP messages.  <a href="#abbe8c28d14ff1bdee4102ca5d03b3e08">More...</a><br/></td></tr>
-<tr class="separator:abbe8c28d14ff1bdee4102ca5d03b3e08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c8bb5479a27edccf644f75c36f88a03"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#a0c8bb5479a27edccf644f75c36f88a03">send_udp</a> (void *status)</td></tr>
+<tr class="memdesc:a0c8bb5479a27edccf644f75c36f88a03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends the UDP data train with leading and trailing ICMP messages.  <a href="#a0c8bb5479a27edccf644f75c36f88a03">More...</a><br/></td></tr>
+<tr class="separator:a0c8bb5479a27edccf644f75c36f88a03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd55a5cd2ac890d1ea9b629322c8ed92"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#afd55a5cd2ac890d1ea9b629322c8ed92">send_tcp</a> (void *status)</td></tr>
+<tr class="memdesc:afd55a5cd2ac890d1ea9b629322c8ed92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a tcp data train with leading and trailing ICMP messages.  <a href="#afd55a5cd2ac890d1ea9b629322c8ed92">More...</a><br/></td></tr>
+<tr class="separator:afd55a5cd2ac890d1ea9b629322c8ed92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa584eddd915ff9cc908280b49b5cc60"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d68/ncd_8h.html#aaa584eddd915ff9cc908280b49b5cc60">recv4</a> (void *t)</td></tr>
 <tr class="memdesc:aaa584eddd915ff9cc908280b49b5cc60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receives ICMP responses from end host and records times.  <a href="#aaa584eddd915ff9cc908280b49b5cc60">More...</a><br/></td></tr>
 <tr class="separator:aaa584eddd915ff9cc908280b49b5cc60"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -170,73 +161,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:ab684191a099670d8f4f3f4c7ac61c15b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets up a single syn packet for use in tcp_send.  <a href="#ab684191a099670d8f4f3f4c7ac61c15b">More...</a><br/></td></tr>
 <tr class="separator:ab684191a099670d8f4f3f4c7ac61c15b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a class="anchor" id="a70ed59adcb4159ac551058053e649640"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define SIZE&#160;&#160;&#160;(1500 - sizeof(struct ip))</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Favor the BSD style UDP &amp; IP headers. </p>
-<p>maximum ip packet size 1500 bytes Ethernet max size 40 IPv6 header max size 8 UDP header 2 16-bit packet ID </p>
-
-<p>Definition at line <a class="el" href="../../dc/d68/ncd_8h_source.html#l00043">43</a> of file <a class="el" href="../../dc/d68/ncd_8h_source.html">ncd.h</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="afdac791ecf1a42be6a814a0c23aa795b"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define TCP_DATA_SIZE&#160;&#160;&#160;(<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>-sizeof(struct tcphdr)-sizeof(u_int16_t))</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Definition at line <a class="el" href="../../dc/d68/ncd_8h_source.html#l00045">45</a> of file <a class="el" href="../../dc/d68/ncd_8h_source.html">ncd.h</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a8e039e4bc205e04f774f09e68e63868f"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define UDP_DATA_SIZE&#160;&#160;&#160;(<a class="el" href="../../dc/d68/ncd_8h.html#a70ed59adcb4159ac551058053e649640">SIZE</a>-sizeof(struct udphdr)-sizeof(u_int16_t))</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Definition at line <a class="el" href="../../dc/d68/ncd_8h_source.html#l00044">44</a> of file <a class="el" href="../../dc/d68/ncd_8h_source.html">ncd.h</a>.</p>
-
-</div>
-</div>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="a4ad006b97556561b12d11cc3aee188a3"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct __attribute__ </td>
-          <td>(</td>
-          <td class="paramtype">(__packed__)&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>struct for udp pseudo header </p>
-
-<p>Definition at line <a class="el" href="../../dc/d68/ncd_8h_source.html#l00050">50</a> of file <a class="el" href="../../dc/d68/ncd_8h_source.html">ncd.h</a>.</p>
-
-</div>
-</div>
 <a class="anchor" id="a91ffa5784a46ec2b471bf3ba8c1aa870"></a>
 <div class="memitem">
 <div class="memproto">
@@ -271,7 +196,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00907">907</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00941">941</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -292,7 +217,7 @@ Functions</h2></td></tr>
 <p>Determines if compression occurs along the current transmission path to host by sending data to a remote location. Two data trains are sent each with leading and trailing ICMP timestamp messages The first data train will be low entropy data, to encourage compression the second train will have high entropy data, which should not be compressed if the times are significantly different, we have reasonable evidence compression exists along this path.</p>
 <dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00243">243</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00218">218</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -329,7 +254,49 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00689">689</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00703">703</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a634b2de1d27b4fd5b22f6fc46b805d9b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double get_time </td>
+          <td>(</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Favor the BSD style UDP &amp; IP headers. </p>
+<p>@ brief Returns current time as double, with most possible precision </p>
+<dl class="section return"><dt>Returns</dt><dd>Returns current time as double, with most possible precision. </dd></dl>
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00041">41</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a09e5952022b76cf427821fee2c4060d4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int init_detection </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p><a class="el" href="../../dc/d68/ncd_8h.html#a09e5952022b76cf427821fee2c4060d4" title="init_detection(): initializes global variables for use in detection. ">init_detection()</a>: initializes global variables for use in detection. </p>
+<dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
+
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00050">50</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -367,7 +334,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>the IP checksum of the buffer </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00846">846</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00874">874</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -388,7 +355,7 @@ Functions</h2></td></tr>
 <p>Sends and measures a single data train, setup and called from comp_det(). It does most of the work in NCD, by sending a single data train and taking all relevant measurements. </p>
 <dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00303">303</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00288">288</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -424,9 +391,8 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00545">545</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00541">541</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -469,9 +435,8 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00409">409</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00404">404</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -492,24 +457,24 @@ Functions</h2></td></tr>
 <p>Receives ICMP responses from end host and records times. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">t</td><td>Pointer to a double. Returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10^-6 sec) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">t</td><td>Pointer to a double. Returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10^-6 sec) * </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) &ndash; pthreads </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00706">706</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00722">722</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="abbe8c28d14ff1bdee4102ca5d03b3e08"></a>
+<a class="anchor" id="afd55a5cd2ac890d1ea9b629322c8ed92"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">void* send_tcp </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>status</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -523,18 +488,19 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00618">618</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00626">626</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a36813875fd04fd1b400b09ad022b1024"></a>
+<a class="anchor" id="a0c8bb5479a27edccf644f75c36f88a03"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">void* send_udp </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>status</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -548,7 +514,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00567">567</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00569">569</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -585,7 +551,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00432">432</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00426">426</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -604,7 +570,7 @@ Functions</h2></td></tr>
 
 <p>Sets up syn packets for use in tcp_send. </p>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00461">461</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00455">455</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -625,7 +591,7 @@ Functions</h2></td></tr>
 <p>Can be extended to UDP if necessary </p>
 <dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00530">530</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00526">526</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
@@ -664,14 +630,14 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns an integer value for success(0), failure(1), or error(-1) </dd></dl>
 
-<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00467">467</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
+<p>Definition at line <a class="el" href="../../df/dfe/ncd_8c_source.html#l00461">461</a> of file <a class="el" href="../../df/dfe/ncd_8c_source.html">ncd.c</a>.</p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Aug 22 2015 20:25:39 for Network Compression Detection by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Aug 25 2015 20:36:22 for Network Compression Detection by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="../../doxygen.png" alt="doxygen"/>
 </a> 1.8.6
 </small></address>

@@ -9,17 +9,7 @@
 
 /**
  * Main function
- * checks commandline args with check_args, then calls comp_detection()
- *
- * @argv[1] Destination IP address
- * @argv[2] Port Number
- * @argv[3] High or low entropy data 'H' or 'L'
- * @argv[4] Size of udp data
- * @argv[5] Number of packets in UDP Data Train
- * @argv[6] Time to Live
- * @argv[7] Wait time in milliseconds
- * @argv[8] Number of tail ICMP messages to send
- *
+ * checks commandline args with check_args, then calls detect()
  */
 int main(int argc, char* argv[])
 {

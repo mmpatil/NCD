@@ -30,14 +30,14 @@
 
 
 /**
- * @ breif Returns current time as double, with most possible precision
+ * @ brief Returns current time as double, with most possible precision
  * @return Returns current time as double, with most possible precision.
  *
  */
 double get_time(void);
 
 /**
- * @breif init_detection(): initializes global variables for use in detection.
+ * @brief init_detection(): initializes global variables for use in detection.
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
 int init_detection();
@@ -96,13 +96,13 @@ void fill_data(void* buff, size_t size);
  * @brief Sends the UDP data train with leading and trailing ICMP messages
  * @param[out] status returns the status/return code
  */
-void* send_udp(void*);
+void* send_udp(void* status);
 
 /**
  * @brief Sends a tcp data train with leading and trailing ICMP messages
  * @param[out] status returns the status/return code
  */
-void* send_tcp(void*);
+void* send_tcp(void* status);
 
 /**
  * @brief Receives ICMP responses from end host and records times

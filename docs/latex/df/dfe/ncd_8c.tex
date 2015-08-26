@@ -7,9 +7,9 @@
 \begin{DoxyCompactItemize}
 \item 
 double \hyperlink{ncd_8c_a634b2de1d27b4fd5b22f6fc46b805d9b}{get\-\_\-time} (void)
-\item 
+\begin{DoxyCompactList}\small\item\em Favor the B\-S\-D style U\-D\-P \& I\-P headers. \end{DoxyCompactList}\item 
 int \hyperlink{ncd_8c_a09e5952022b76cf427821fee2c4060d4}{init\-\_\-detection} ()
-\item 
+\begin{DoxyCompactList}\small\item\em \hyperlink{ncd_8h_a09e5952022b76cf427821fee2c4060d4}{init\-\_\-detection()}\-: initializes global variables for use in detection. \end{DoxyCompactList}\item 
 int \hyperlink{ncd_8c_ad6dece13c2b3ee7b9da91f18cf0dcf38}{detect} ()
 \begin{DoxyCompactList}\small\item\em Determines if compression occurs along the current transmission path to host by sending data to a remote location. \end{DoxyCompactList}\item 
 int \hyperlink{ncd_8c_aff59b200462e5067c5b990085a426663}{measure} ()
@@ -26,9 +26,9 @@ int \hyperlink{ncd_8c_a95d03bf539922f9b644641a45bd7c836}{setup\-\_\-tcp\-\_\-pac
 \begin{DoxyCompactList}\small\item\em sets up arrays of T\-C\-P packets. \end{DoxyCompactList}\item 
 void \hyperlink{ncd_8c_a0a66cc6454a6f5e1c9b64ba5b5978b44}{mkicmpv4} (void $\ast$buff, size\-\_\-t datalen)
 \begin{DoxyCompactList}\small\item\em Formats an I\-C\-M\-P packet beginning at buff with a payload of length datalen. \end{DoxyCompactList}\item 
-void $\ast$ \hyperlink{ncd_8c_a36813875fd04fd1b400b09ad022b1024}{send\-\_\-udp} ()
+void $\ast$ \hyperlink{ncd_8c_a0c8bb5479a27edccf644f75c36f88a03}{send\-\_\-udp} (void $\ast$status)
 \begin{DoxyCompactList}\small\item\em Sends the U\-D\-P data train with leading and trailing I\-C\-M\-P messages. \end{DoxyCompactList}\item 
-void $\ast$ \hyperlink{ncd_8c_abbe8c28d14ff1bdee4102ca5d03b3e08}{send\-\_\-tcp} ()
+void $\ast$ \hyperlink{ncd_8c_afd55a5cd2ac890d1ea9b629322c8ed92}{send\-\_\-tcp} (void $\ast$status)
 \begin{DoxyCompactList}\small\item\em Sends a tcp data train with leading and trailing I\-C\-M\-P messages. \end{DoxyCompactList}\item 
 void \hyperlink{ncd_8c_a115536db290a1c30ffbc2c07e0db5fbf}{fill\-\_\-data} (void $\ast$buff, size\-\_\-t size)
 \begin{DoxyCompactList}\small\item\em Fills the data portion of a packet with size bytes data from a file (char$\ast$ file) \end{DoxyCompactList}\item 
@@ -43,21 +43,9 @@ int \hyperlink{ncd_8c_a91ffa5784a46ec2b471bf3ba8c1aa870}{check\-\_\-args} (int a
 \subsection*{Variables}
 \begin{DoxyCompactItemize}
 \item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_a0d8f9410fcc25a1c0a11554fa1d75358}{data\-\_\-size}
+char $\ast$ \hyperlink{ncd_8c_ae1231b405862fa498bb62b2d7ac40638}{packets\-\_\-e} = N\-U\-L\-L
 \item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_a76d489e2e5645986f055597c61613b1f}{num\-\_\-packets}
-\item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_adbda49f7c10ec07eaad0fe7107584051}{num\-\_\-tail}
-\item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_af5f018b077b2ca0ad6b002c6b58def6a}{tail\-\_\-wait}
-\item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_a4647f4a35af9aa9e011992ef017afef7}{dport}
-\item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_a92453d8d213cd398b8579327fb3bdd70}{sport}
-\item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_a9995aedfbe2f5b8c0b61fd0e1edbe69a}{syn\-\_\-port}
-\item 
-u\-\_\-int8\-\_\-t \hyperlink{ncd_8c_ae0684734c5b6ef6dd888d43664c483d5}{ttl}
+char $\ast$ \hyperlink{ncd_8c_a992ffe562a51dd08098b04a399a932ff}{packets\-\_\-f} = N\-U\-L\-L
 \item 
 char $\ast$ \hyperlink{ncd_8c_aa600d86ba40a79af175750031d366976}{dst\-\_\-ip} = N\-U\-L\-L
 \item 
@@ -67,43 +55,13 @@ u\-\_\-int8\-\_\-t \hyperlink{ncd_8c_a0373c2ec9cc3ad13431fb273d8c3e1db}{lflag} =
 \item 
 u\-\_\-int8\-\_\-t \hyperlink{ncd_8c_a2d25ad4faac817d870daa9b3b680e31d}{hflag} = 1
 \item 
-int \hyperlink{ncd_8c_aab3ed3199bc18936386acca307bf5d5c}{icmp\-\_\-fd}
+int \hyperlink{ncd_8c_a0b2caeb4b6f130be43e5a2f0267dd453}{verbose} = 0
 \item 
-int \hyperlink{ncd_8c_a4ccd8921f38d8d73068731023f739eac}{send\-\_\-fd}
+const int \hyperlink{ncd_8c_ac2d0ab5e69029d08b446d94e9400f3a7}{num\-\_\-threads} = 2
 \item 
-int \hyperlink{ncd_8c_acbd35ba49b28a4cd44185c0f3cb57d31}{recv\-\_\-fd}
-\item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_ab5240dc8d5d147c206fe041d59ff1899}{send\-\_\-len}
+int \hyperlink{ncd_8c_af6120b55f42d5cb6044788bba68b9521}{cooldown} = 5
 \item 
 u\-\_\-int8\-\_\-t \hyperlink{ncd_8c_abba8573cb98a02424a3867f7c43eae3a}{tcp\-\_\-bool} = 0
-\item 
-u\-\_\-int32\-\_\-t \hyperlink{ncd_8c_ac24df57ce1757d27d76342e7da87793a}{seq} = 0
-\item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_afea9bc46ef5f760cf418371bf175c996}{icmp\-\_\-ip\-\_\-len}
-\item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_ae2b66f47a9b03c317c2b83234de01d0f}{icmp\-\_\-len}
-\item 
-u\-\_\-int16\-\_\-t \hyperlink{ncd_8c_a94da1527f3b180a2b8f1a25c6ee59f68}{icmp\-\_\-data\-\_\-len}
-\item 
-struct addrinfo $\ast$ \hyperlink{ncd_8c_a8df42e4f21cb586ea4981025137520e0}{res} = N\-U\-L\-L
-\item 
-void $\ast$($\ast$ \hyperlink{ncd_8c_adb21d202bf57da16638d7efda96932fa}{recv\-\_\-data} )(void $\ast$) = N\-U\-L\-L
-\item 
-void $\ast$($\ast$ \hyperlink{ncd_8c_a40a9436bb2772790e311e84bad778d13}{send\-\_\-train} )() = N\-U\-L\-L
-\item 
-double \hyperlink{ncd_8c_a009f46a8434d3bd8e4a6794245377cb2}{td}
-\item 
-int \hyperlink{ncd_8c_a6c0af9f2e97842405fb15ed952ef2976}{stop} = 0
-\item 
-pthread\-\_\-mutex\-\_\-t \hyperlink{ncd_8c_ad3899dc5a96d0a80b912bae83eb1a5c2}{stop\-\_\-mutex}
-\item 
-pthread\-\_\-cond\-\_\-t \hyperlink{ncd_8c_abd9e224109bf9471f2174827326b4bf8}{stop\-\_\-cv}
-\item 
-int \hyperlink{ncd_8c_a3a22184cee3999daa9364242df0dd70d}{recv\-\_\-ready} = 0
-\item 
-pthread\-\_\-mutex\-\_\-t \hyperlink{ncd_8c_a2d68848b6fa6a50e5da48c4ce55dcb9d}{recv\-\_\-ready\-\_\-mutex}
-\item 
-pthread\-\_\-cond\-\_\-t \hyperlink{ncd_8c_a96edcd55d61ddca868c171446920890d}{recv\-\_\-ready\-\_\-cv}
 \item 
 int \hyperlink{ncd_8c_a69b40191667f8e98fe175046c8121df4}{second\-\_\-train} = 0
 \item 
@@ -111,7 +69,7 @@ char \hyperlink{ncd_8c_ab47c0369a44e17ff814fca2f5a7803d1}{pseudo} \mbox{[}1500\m
 \item 
 char \hyperlink{ncd_8c_a94439982e7fc188dc12311c47568f5f9}{packet\-\_\-rcv} \mbox{[}1500\mbox{]} = \{0\}
 \item 
-char \hyperlink{ncd_8c_a43587531405dea543232fa917b84de56}{packet\-\_\-send} \mbox{[}\hyperlink{ncd_8h_a70ed59adcb4159ac551058053e649640}{S\-I\-Z\-E}\mbox{]} = \{0\}
+char \hyperlink{ncd_8c_a43587531405dea543232fa917b84de56}{packet\-\_\-send} \mbox{[}\hyperlink{ncd__global_8h_a70ed59adcb4159ac551058053e649640}{S\-I\-Z\-E}\mbox{]} = \{0\}
 \item 
 char \hyperlink{ncd_8c_a20ea96ed21d158a055c5821e81905c45}{syn\-\_\-packet\-\_\-1} \mbox{[}20\mbox{]} = \{0\}
 \item 
@@ -119,27 +77,21 @@ char \hyperlink{ncd_8c_ab685d5eebdfc594a07d1fe0667f7b33c}{syn\-\_\-packet\-\_\-2
 \item 
 char \hyperlink{ncd_8c_a806e49f97606bb7dbd7046b2fe7f0f3a}{icmp\-\_\-send} \mbox{[}128\mbox{]} = \{0\}
 \item 
-struct pseudo\-\_\-header $\ast$ \hyperlink{ncd_8c_a3d02a4ce56562a5dd244b87d52d694d4}{ps} = (struct pseudo\-\_\-header$\ast$)\hyperlink{ncd_8c_ab47c0369a44e17ff814fca2f5a7803d1}{pseudo}
+struct pseudo\-\_\-header $\ast$ \hyperlink{ncd_8c_a3d02a4ce56562a5dd244b87d52d694d4}{ps} = (struct pseudo\-\_\-header$\ast$)\hyperlink{ncd__global_8h_ab47c0369a44e17ff814fca2f5a7803d1}{pseudo}
 \item 
-u\-\_\-int16\-\_\-t $\ast$ \hyperlink{ncd_8c_a2c35aa99e2fa1178b69dedba73b0080c}{packet\-\_\-id} = (u\-\_\-int16\-\_\-t$\ast$)\hyperlink{ncd_8c_a43587531405dea543232fa917b84de56}{packet\-\_\-send}
+u\-\_\-int16\-\_\-t $\ast$ \hyperlink{ncd_8c_a2c35aa99e2fa1178b69dedba73b0080c}{packet\-\_\-id} = (u\-\_\-int16\-\_\-t$\ast$)\hyperlink{ncd__global_8h_a43587531405dea543232fa917b84de56}{packet\-\_\-send}
 \item 
 struct sockaddr\-\_\-in \hyperlink{ncd_8c_a48e92478efee9e56a26e4ce75cd47a6e}{srcaddrs} = \{0\}
 \item 
-socklen\-\_\-t \hyperlink{ncd_8c_a7f3b94a4048f6fd566062cb98a2e4143}{sa\-\_\-len} = sizeof(\hyperlink{ncd_8c_a48e92478efee9e56a26e4ce75cd47a6e}{srcaddrs})
+struct in\-\_\-addr \hyperlink{ncd_8c_aa41cf2785d688ec1e35c38a45f66c3bf}{destip} = \{0\}
 \item 
-struct in\-\_\-addr \hyperlink{ncd_8c_aa41cf2785d688ec1e35c38a45f66c3bf}{destip}
+socklen\-\_\-t \hyperlink{ncd_8c_a7f3b94a4048f6fd566062cb98a2e4143}{sa\-\_\-len} = sizeof(\hyperlink{ncd__global_8h_a48e92478efee9e56a26e4ce75cd47a6e}{srcaddrs})
 \item 
-char $\ast$ \hyperlink{ncd_8c_ae1231b405862fa498bb62b2d7ac40638}{packets\-\_\-e} = N\-U\-L\-L
+struct addrinfo $\ast$ \hyperlink{ncd_8c_a8df42e4f21cb586ea4981025137520e0}{res} = N\-U\-L\-L
 \item 
-char $\ast$ \hyperlink{ncd_8c_a992ffe562a51dd08098b04a399a932ff}{packets\-\_\-f} = N\-U\-L\-L
+void $\ast$($\ast$ \hyperlink{ncd_8c_a6e7246feab9bd6f3f5da6f698465c62a}{recv\-\_\-data} )(void $\ast$) = N\-U\-L\-L
 \item 
-int \hyperlink{ncd_8c_a0b2caeb4b6f130be43e5a2f0267dd453}{verbose} = 0
-\item 
-double \hyperlink{ncd_8c_a6f4c7d0075b21eaab555b4a1c767c4f0}{time\-\_\-val}
-\item 
-const int \hyperlink{ncd_8c_ac2d0ab5e69029d08b446d94e9400f3a7}{num\-\_\-threads} = 2
-\item 
-int \hyperlink{ncd_8c_af6120b55f42d5cb6044788bba68b9521}{cooldown} = 5
+void $\ast$($\ast$ \hyperlink{ncd_8c_a915720bd1608e183b14479e206ecea46}{send\-\_\-train} )(void $\ast$) = N\-U\-L\-L
 \end{DoxyCompactItemize}
 
 
@@ -178,7 +130,7 @@ Returns an integer value for success(0), failure(1), or error(-\/1)
 \end{DoxyReturn}
 
 
-Definition at line 907 of file ncd.\-c.
+Definition at line 941 of file ncd.\-c.
 
 \hypertarget{ncd_8c_ad6dece13c2b3ee7b9da91f18cf0dcf38}{\index{ncd.\-c@{ncd.\-c}!detect@{detect}}
 \index{detect@{detect}!ncd.c@{ncd.\-c}}
@@ -198,7 +150,7 @@ Returns an integer value for success(0), failure(1), or error(-\/1)
 \end{DoxyReturn}
 
 
-Definition at line 243 of file ncd.\-c.
+Definition at line 218 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a115536db290a1c30ffbc2c07e0db5fbf}{\index{ncd.\-c@{ncd.\-c}!fill\-\_\-data@{fill\-\_\-data}}
 \index{fill\-\_\-data@{fill\-\_\-data}!ncd.c@{ncd.\-c}}
@@ -221,7 +173,7 @@ Fills the data portion of a packet with size bytes data from a file (char$\ast$ 
 \end{DoxyParams}
 
 
-Definition at line 689 of file ncd.\-c.
+Definition at line 703 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a634b2de1d27b4fd5b22f6fc46b805d9b}{\index{ncd.\-c@{ncd.\-c}!get\-\_\-time@{get\-\_\-time}}
 \index{get\-\_\-time@{get\-\_\-time}!ncd.c@{ncd.\-c}}
@@ -232,7 +184,14 @@ Definition at line 689 of file ncd.\-c.
 )}}\label{ncd_8c_a634b2de1d27b4fd5b22f6fc46b805d9b}
 
 
-Definition at line 83 of file ncd.\-c.
+Favor the B\-S\-D style U\-D\-P \& I\-P headers. 
+
+@ brief Returns current time as double, with most possible precision \begin{DoxyReturn}{Returns}
+Returns current time as double, with most possible precision. 
+\end{DoxyReturn}
+
+
+Definition at line 41 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a09e5952022b76cf427821fee2c4060d4}{\index{ncd.\-c@{ncd.\-c}!init\-\_\-detection@{init\-\_\-detection}}
 \index{init\-\_\-detection@{init\-\_\-detection}!ncd.c@{ncd.\-c}}
@@ -243,7 +202,14 @@ Definition at line 83 of file ncd.\-c.
 )}}\label{ncd_8c_a09e5952022b76cf427821fee2c4060d4}
 
 
-Definition at line 92 of file ncd.\-c.
+\hyperlink{ncd_8h_a09e5952022b76cf427821fee2c4060d4}{init\-\_\-detection()}\-: initializes global variables for use in detection. 
+
+\begin{DoxyReturn}{Returns}
+Returns an integer value for success(0), failure(1), or error(-\/1) 
+\end{DoxyReturn}
+
+
+Definition at line 50 of file ncd.\-c.
 
 \hypertarget{ncd_8c_ad9b2931d45a3e921538a04b9dc56afcf}{\index{ncd.\-c@{ncd.\-c}!ip\-\_\-checksum@{ip\-\_\-checksum}}
 \index{ip\-\_\-checksum@{ip\-\_\-checksum}!ncd.c@{ncd.\-c}}
@@ -269,7 +235,7 @@ the I\-P checksum of the buffer
 \end{DoxyReturn}
 
 
-Definition at line 846 of file ncd.\-c.
+Definition at line 874 of file ncd.\-c.
 
 \hypertarget{ncd_8c_aff59b200462e5067c5b990085a426663}{\index{ncd.\-c@{ncd.\-c}!measure@{measure}}
 \index{measure@{measure}!ncd.c@{ncd.\-c}}
@@ -287,7 +253,7 @@ Returns an integer value for success(0), failure(1), or error(-\/1)
 \end{DoxyReturn}
 
 
-Definition at line 303 of file ncd.\-c.
+Definition at line 288 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a0a66cc6454a6f5e1c9b64ba5b5978b44}{\index{ncd.\-c@{ncd.\-c}!mkicmpv4@{mkicmpv4}}
 \index{mkicmpv4@{mkicmpv4}!ncd.c@{ncd.\-c}}
@@ -308,12 +274,9 @@ Formats an I\-C\-M\-P packet beginning at buff with a payload of length datalen.
 {\em datalen} & The length of the I\-C\-M\-P payload \\
 \hline
 \end{DoxyParams}
-\begin{DoxyReturn}{Returns}
-Returns an integer value for success(0), failure(1), or error(-\/1) 
-\end{DoxyReturn}
 
 
-Definition at line 545 of file ncd.\-c.
+Definition at line 541 of file ncd.\-c.
 
 \hypertarget{ncd_8c_aee31358878b74a8bb839fffd32aa84b7}{\index{ncd.\-c@{ncd.\-c}!mkipv4@{mkipv4}}
 \index{mkipv4@{mkipv4}!ncd.c@{ncd.\-c}}
@@ -337,12 +300,9 @@ Formats an ipv4 header beginning at buff of length size.
 {\em proto} & The 8-\/bit protocol \\
 \hline
 \end{DoxyParams}
-\begin{DoxyReturn}{Returns}
-Returns an integer value for success(0), failure(1), or error(-\/1) 
-\end{DoxyReturn}
 
 
-Definition at line 409 of file ncd.\-c.
+Definition at line 404 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a6bb04c1388ab75a69d14f9858953463c}{\index{ncd.\-c@{ncd.\-c}!print\-\_\-use@{print\-\_\-use}}
 \index{print\-\_\-use@{print\-\_\-use}!ncd.c@{ncd.\-c}}
@@ -353,7 +313,7 @@ Definition at line 409 of file ncd.\-c.
 )}}\label{ncd_8c_a6bb04c1388ab75a69d14f9858953463c}
 
 
-Definition at line 900 of file ncd.\-c.
+Definition at line 933 of file ncd.\-c.
 
 \hypertarget{ncd_8c_aaa584eddd915ff9cc908280b49b5cc60}{\index{ncd.\-c@{ncd.\-c}!recv4@{recv4}}
 \index{recv4@{recv4}!ncd.c@{ncd.\-c}}
@@ -368,23 +328,20 @@ Receives I\-C\-M\-P responses from end host and records times.
 
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt out}  & {\em t} & Pointer to a double. Returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10$^\wedge$-\/6 sec) \\
+\mbox{\tt out}  & {\em t} & Pointer to a double. Returns the time in ms between head echo response and first processed tail echo response to a resolution of microseconds (10$^\wedge$-\/6 sec) $\ast$ \\
 \hline
 \end{DoxyParams}
-\begin{DoxyReturn}{Returns}
-Returns an integer value for success(0), failure(1), or error(-\/1) -- pthreads 
-\end{DoxyReturn}
 
 
-Definition at line 706 of file ncd.\-c.
+Definition at line 722 of file ncd.\-c.
 
-\hypertarget{ncd_8c_abbe8c28d14ff1bdee4102ca5d03b3e08}{\index{ncd.\-c@{ncd.\-c}!send\-\_\-tcp@{send\-\_\-tcp}}
+\hypertarget{ncd_8c_afd55a5cd2ac890d1ea9b629322c8ed92}{\index{ncd.\-c@{ncd.\-c}!send\-\_\-tcp@{send\-\_\-tcp}}
 \index{send\-\_\-tcp@{send\-\_\-tcp}!ncd.c@{ncd.\-c}}
 \subsubsection[{send\-\_\-tcp}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ send\-\_\-tcp (
 \begin{DoxyParamCaption}
-{}
+\item[{void $\ast$}]{status}
 \end{DoxyParamCaption}
-)}}\label{ncd_8c_abbe8c28d14ff1bdee4102ca5d03b3e08}
+)}}\label{ncd_8c_afd55a5cd2ac890d1ea9b629322c8ed92}
 
 
 Sends a tcp data train with leading and trailing I\-C\-M\-P messages. 
@@ -396,15 +353,15 @@ Sends a tcp data train with leading and trailing I\-C\-M\-P messages.
 \end{DoxyParams}
 
 
-Definition at line 618 of file ncd.\-c.
+Definition at line 626 of file ncd.\-c.
 
-\hypertarget{ncd_8c_a36813875fd04fd1b400b09ad022b1024}{\index{ncd.\-c@{ncd.\-c}!send\-\_\-udp@{send\-\_\-udp}}
+\hypertarget{ncd_8c_a0c8bb5479a27edccf644f75c36f88a03}{\index{ncd.\-c@{ncd.\-c}!send\-\_\-udp@{send\-\_\-udp}}
 \index{send\-\_\-udp@{send\-\_\-udp}!ncd.c@{ncd.\-c}}
 \subsubsection[{send\-\_\-udp}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ send\-\_\-udp (
 \begin{DoxyParamCaption}
-{}
+\item[{void $\ast$}]{status}
 \end{DoxyParamCaption}
-)}}\label{ncd_8c_a36813875fd04fd1b400b09ad022b1024}
+)}}\label{ncd_8c_a0c8bb5479a27edccf644f75c36f88a03}
 
 
 Sends the U\-D\-P data train with leading and trailing I\-C\-M\-P messages. 
@@ -416,7 +373,7 @@ Sends the U\-D\-P data train with leading and trailing I\-C\-M\-P messages.
 \end{DoxyParams}
 
 
-Definition at line 567 of file ncd.\-c.
+Definition at line 569 of file ncd.\-c.
 
 \hypertarget{ncd_8c_ab684191a099670d8f4f3f4c7ac61c15b}{\index{ncd.\-c@{ncd.\-c}!setup\-\_\-syn\-\_\-packet@{setup\-\_\-syn\-\_\-packet}}
 \index{setup\-\_\-syn\-\_\-packet@{setup\-\_\-syn\-\_\-packet}!ncd.c@{ncd.\-c}}
@@ -439,7 +396,7 @@ Sets up a single syn packet for use in tcp\-\_\-send.
 \end{DoxyParams}
 
 
-Definition at line 432 of file ncd.\-c.
+Definition at line 426 of file ncd.\-c.
 
 \hypertarget{ncd_8c_afab7dc6afbfb13289365b893e1d4c741}{\index{ncd.\-c@{ncd.\-c}!setup\-\_\-syn\-\_\-packets@{setup\-\_\-syn\-\_\-packets}}
 \index{setup\-\_\-syn\-\_\-packets@{setup\-\_\-syn\-\_\-packets}!ncd.c@{ncd.\-c}}
@@ -454,7 +411,7 @@ Sets up syn packets for use in tcp\-\_\-send.
 
 
 
-Definition at line 461 of file ncd.\-c.
+Definition at line 455 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a95d03bf539922f9b644641a45bd7c836}{\index{ncd.\-c@{ncd.\-c}!setup\-\_\-tcp\-\_\-packets@{setup\-\_\-tcp\-\_\-packets}}
 \index{setup\-\_\-tcp\-\_\-packets@{setup\-\_\-tcp\-\_\-packets}!ncd.c@{ncd.\-c}}
@@ -472,7 +429,7 @@ Returns an integer value for success(0), failure(1), or error(-\/1)
 \end{DoxyReturn}
 
 
-Definition at line 530 of file ncd.\-c.
+Definition at line 526 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a9ce97d161cdf0a5c7fe5900400b08897}{\index{ncd.\-c@{ncd.\-c}!setup\-\_\-tcp\-\_\-train@{setup\-\_\-tcp\-\_\-train}}
 \index{setup\-\_\-tcp\-\_\-train@{setup\-\_\-tcp\-\_\-train}!ncd.c@{ncd.\-c}}
@@ -498,7 +455,7 @@ Returns an integer value for success(0), failure(1), or error(-\/1)
 \end{DoxyReturn}
 
 
-Definition at line 467 of file ncd.\-c.
+Definition at line 461 of file ncd.\-c.
 
 
 
@@ -508,341 +465,173 @@ Definition at line 467 of file ncd.\-c.
 \subsubsection[{cooldown}]{\setlength{\rightskip}{0pt plus 5cm}int cooldown = 5}}\label{ncd_8c_af6120b55f42d5cb6044788bba68b9521}
 
 
-Definition at line 80 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a0d8f9410fcc25a1c0a11554fa1d75358}{\index{ncd.\-c@{ncd.\-c}!data\-\_\-size@{data\-\_\-size}}
-\index{data\-\_\-size@{data\-\_\-size}!ncd.c@{ncd.\-c}}
-\subsubsection[{data\-\_\-size}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t data\-\_\-size}}\label{ncd_8c_a0d8f9410fcc25a1c0a11554fa1d75358}
-
-
-Definition at line 11 of file ncd.\-c.
+Definition at line 19 of file ncd.\-c.
 
 \hypertarget{ncd_8c_aa41cf2785d688ec1e35c38a45f66c3bf}{\index{ncd.\-c@{ncd.\-c}!destip@{destip}}
 \index{destip@{destip}!ncd.c@{ncd.\-c}}
-\subsubsection[{destip}]{\setlength{\rightskip}{0pt plus 5cm}struct in\-\_\-addr destip}}\label{ncd_8c_aa41cf2785d688ec1e35c38a45f66c3bf}
+\subsubsection[{destip}]{\setlength{\rightskip}{0pt plus 5cm}struct in\-\_\-addr destip = \{0\}}}\label{ncd_8c_aa41cf2785d688ec1e35c38a45f66c3bf}
 
 
-Definition at line 69 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a4647f4a35af9aa9e011992ef017afef7}{\index{ncd.\-c@{ncd.\-c}!dport@{dport}}
-\index{dport@{dport}!ncd.c@{ncd.\-c}}
-\subsubsection[{dport}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t dport}}\label{ncd_8c_a4647f4a35af9aa9e011992ef017afef7}
-
-
-Definition at line 16 of file ncd.\-c.
+Definition at line 33 of file ncd.\-c.
 
 \hypertarget{ncd_8c_aa600d86ba40a79af175750031d366976}{\index{ncd.\-c@{ncd.\-c}!dst\-\_\-ip@{dst\-\_\-ip}}
 \index{dst\-\_\-ip@{dst\-\_\-ip}!ncd.c@{ncd.\-c}}
 \subsubsection[{dst\-\_\-ip}]{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ dst\-\_\-ip = N\-U\-L\-L}}\label{ncd_8c_aa600d86ba40a79af175750031d366976}
 
 
-Definition at line 21 of file ncd.\-c.
+Definition at line 11 of file ncd.\-c.
 
 \hypertarget{ncd_8c_adf16cd437526a5c5e0e0af87745acbb8}{\index{ncd.\-c@{ncd.\-c}!file@{file}}
 \index{file@{file}!ncd.c@{ncd.\-c}}
 \subsubsection[{file}]{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ file = N\-U\-L\-L}}\label{ncd_8c_adf16cd437526a5c5e0e0af87745acbb8}
 
 
-Definition at line 22 of file ncd.\-c.
+Definition at line 12 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a2d25ad4faac817d870daa9b3b680e31d}{\index{ncd.\-c@{ncd.\-c}!hflag@{hflag}}
 \index{hflag@{hflag}!ncd.c@{ncd.\-c}}
 \subsubsection[{hflag}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int8\-\_\-t hflag = 1}}\label{ncd_8c_a2d25ad4faac817d870daa9b3b680e31d}
 
 
-Definition at line 26 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a94da1527f3b180a2b8f1a25c6ee59f68}{\index{ncd.\-c@{ncd.\-c}!icmp\-\_\-data\-\_\-len@{icmp\-\_\-data\-\_\-len}}
-\index{icmp\-\_\-data\-\_\-len@{icmp\-\_\-data\-\_\-len}!ncd.c@{ncd.\-c}}
-\subsubsection[{icmp\-\_\-data\-\_\-len}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t icmp\-\_\-data\-\_\-len}}\label{ncd_8c_a94da1527f3b180a2b8f1a25c6ee59f68}
-
-
-Definition at line 40 of file ncd.\-c.
-
-\hypertarget{ncd_8c_aab3ed3199bc18936386acca307bf5d5c}{\index{ncd.\-c@{ncd.\-c}!icmp\-\_\-fd@{icmp\-\_\-fd}}
-\index{icmp\-\_\-fd@{icmp\-\_\-fd}!ncd.c@{ncd.\-c}}
-\subsubsection[{icmp\-\_\-fd}]{\setlength{\rightskip}{0pt plus 5cm}int icmp\-\_\-fd}}\label{ncd_8c_aab3ed3199bc18936386acca307bf5d5c}
-
-
-Definition at line 29 of file ncd.\-c.
-
-\hypertarget{ncd_8c_afea9bc46ef5f760cf418371bf175c996}{\index{ncd.\-c@{ncd.\-c}!icmp\-\_\-ip\-\_\-len@{icmp\-\_\-ip\-\_\-len}}
-\index{icmp\-\_\-ip\-\_\-len@{icmp\-\_\-ip\-\_\-len}!ncd.c@{ncd.\-c}}
-\subsubsection[{icmp\-\_\-ip\-\_\-len}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t icmp\-\_\-ip\-\_\-len}}\label{ncd_8c_afea9bc46ef5f760cf418371bf175c996}
-
-
-Definition at line 38 of file ncd.\-c.
-
-\hypertarget{ncd_8c_ae2b66f47a9b03c317c2b83234de01d0f}{\index{ncd.\-c@{ncd.\-c}!icmp\-\_\-len@{icmp\-\_\-len}}
-\index{icmp\-\_\-len@{icmp\-\_\-len}!ncd.c@{ncd.\-c}}
-\subsubsection[{icmp\-\_\-len}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t icmp\-\_\-len}}\label{ncd_8c_ae2b66f47a9b03c317c2b83234de01d0f}
-
-
-Definition at line 39 of file ncd.\-c.
+Definition at line 16 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a806e49f97606bb7dbd7046b2fe7f0f3a}{\index{ncd.\-c@{ncd.\-c}!icmp\-\_\-send@{icmp\-\_\-send}}
 \index{icmp\-\_\-send@{icmp\-\_\-send}!ncd.c@{ncd.\-c}}
 \subsubsection[{icmp\-\_\-send}]{\setlength{\rightskip}{0pt plus 5cm}char icmp\-\_\-send\mbox{[}128\mbox{]} = \{0\}}}\label{ncd_8c_a806e49f97606bb7dbd7046b2fe7f0f3a}
 
 
-Definition at line 63 of file ncd.\-c.
+Definition at line 28 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a0373c2ec9cc3ad13431fb273d8c3e1db}{\index{ncd.\-c@{ncd.\-c}!lflag@{lflag}}
 \index{lflag@{lflag}!ncd.c@{ncd.\-c}}
 \subsubsection[{lflag}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int8\-\_\-t lflag = 1}}\label{ncd_8c_a0373c2ec9cc3ad13431fb273d8c3e1db}
 
 
-Definition at line 25 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a76d489e2e5645986f055597c61613b1f}{\index{ncd.\-c@{ncd.\-c}!num\-\_\-packets@{num\-\_\-packets}}
-\index{num\-\_\-packets@{num\-\_\-packets}!ncd.c@{ncd.\-c}}
-\subsubsection[{num\-\_\-packets}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t num\-\_\-packets}}\label{ncd_8c_a76d489e2e5645986f055597c61613b1f}
-
-
-Definition at line 12 of file ncd.\-c.
-
-\hypertarget{ncd_8c_adbda49f7c10ec07eaad0fe7107584051}{\index{ncd.\-c@{ncd.\-c}!num\-\_\-tail@{num\-\_\-tail}}
-\index{num\-\_\-tail@{num\-\_\-tail}!ncd.c@{ncd.\-c}}
-\subsubsection[{num\-\_\-tail}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t num\-\_\-tail}}\label{ncd_8c_adbda49f7c10ec07eaad0fe7107584051}
-
-
-Definition at line 13 of file ncd.\-c.
+Definition at line 15 of file ncd.\-c.
 
 \hypertarget{ncd_8c_ac2d0ab5e69029d08b446d94e9400f3a7}{\index{ncd.\-c@{ncd.\-c}!num\-\_\-threads@{num\-\_\-threads}}
 \index{num\-\_\-threads@{num\-\_\-threads}!ncd.c@{ncd.\-c}}
 \subsubsection[{num\-\_\-threads}]{\setlength{\rightskip}{0pt plus 5cm}const int num\-\_\-threads = 2}}\label{ncd_8c_ac2d0ab5e69029d08b446d94e9400f3a7}
 
 
-Definition at line 79 of file ncd.\-c.
+Definition at line 18 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a2c35aa99e2fa1178b69dedba73b0080c}{\index{ncd.\-c@{ncd.\-c}!packet\-\_\-id@{packet\-\_\-id}}
 \index{packet\-\_\-id@{packet\-\_\-id}!ncd.c@{ncd.\-c}}
 \subsubsection[{packet\-\_\-id}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t$\ast$ packet\-\_\-id = (u\-\_\-int16\-\_\-t$\ast$){\bf packet\-\_\-send}}}\label{ncd_8c_a2c35aa99e2fa1178b69dedba73b0080c}
 
 
-Definition at line 66 of file ncd.\-c.
+Definition at line 31 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a94439982e7fc188dc12311c47568f5f9}{\index{ncd.\-c@{ncd.\-c}!packet\-\_\-rcv@{packet\-\_\-rcv}}
 \index{packet\-\_\-rcv@{packet\-\_\-rcv}!ncd.c@{ncd.\-c}}
 \subsubsection[{packet\-\_\-rcv}]{\setlength{\rightskip}{0pt plus 5cm}char packet\-\_\-rcv\mbox{[}1500\mbox{]} = \{0\}}}\label{ncd_8c_a94439982e7fc188dc12311c47568f5f9}
 
 
-Definition at line 59 of file ncd.\-c.
+Definition at line 24 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a43587531405dea543232fa917b84de56}{\index{ncd.\-c@{ncd.\-c}!packet\-\_\-send@{packet\-\_\-send}}
 \index{packet\-\_\-send@{packet\-\_\-send}!ncd.c@{ncd.\-c}}
 \subsubsection[{packet\-\_\-send}]{\setlength{\rightskip}{0pt plus 5cm}char packet\-\_\-send\mbox{[}{\bf S\-I\-Z\-E}\mbox{]} = \{0\}}}\label{ncd_8c_a43587531405dea543232fa917b84de56}
 
 
-Definition at line 60 of file ncd.\-c.
+Definition at line 25 of file ncd.\-c.
 
 \hypertarget{ncd_8c_ae1231b405862fa498bb62b2d7ac40638}{\index{ncd.\-c@{ncd.\-c}!packets\-\_\-e@{packets\-\_\-e}}
 \index{packets\-\_\-e@{packets\-\_\-e}!ncd.c@{ncd.\-c}}
 \subsubsection[{packets\-\_\-e}]{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ packets\-\_\-e = N\-U\-L\-L}}\label{ncd_8c_ae1231b405862fa498bb62b2d7ac40638}
 
 
-Definition at line 72 of file ncd.\-c.
+Definition at line 9 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a992ffe562a51dd08098b04a399a932ff}{\index{ncd.\-c@{ncd.\-c}!packets\-\_\-f@{packets\-\_\-f}}
 \index{packets\-\_\-f@{packets\-\_\-f}!ncd.c@{ncd.\-c}}
 \subsubsection[{packets\-\_\-f}]{\setlength{\rightskip}{0pt plus 5cm}char$\ast$ packets\-\_\-f = N\-U\-L\-L}}\label{ncd_8c_a992ffe562a51dd08098b04a399a932ff}
 
 
-Definition at line 73 of file ncd.\-c.
+Definition at line 10 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a3d02a4ce56562a5dd244b87d52d694d4}{\index{ncd.\-c@{ncd.\-c}!ps@{ps}}
 \index{ps@{ps}!ncd.c@{ncd.\-c}}
 \subsubsection[{ps}]{\setlength{\rightskip}{0pt plus 5cm}struct pseudo\-\_\-header$\ast$ ps = (struct pseudo\-\_\-header$\ast$){\bf pseudo}}}\label{ncd_8c_a3d02a4ce56562a5dd244b87d52d694d4}
 
 
-Definition at line 65 of file ncd.\-c.
+Definition at line 30 of file ncd.\-c.
 
 \hypertarget{ncd_8c_ab47c0369a44e17ff814fca2f5a7803d1}{\index{ncd.\-c@{ncd.\-c}!pseudo@{pseudo}}
 \index{pseudo@{pseudo}!ncd.c@{ncd.\-c}}
 \subsubsection[{pseudo}]{\setlength{\rightskip}{0pt plus 5cm}char pseudo\mbox{[}1500\mbox{]} = \{0\}}}\label{ncd_8c_ab47c0369a44e17ff814fca2f5a7803d1}
 
 
-Definition at line 58 of file ncd.\-c.
+Definition at line 23 of file ncd.\-c.
 
-\hypertarget{ncd_8c_adb21d202bf57da16638d7efda96932fa}{\index{ncd.\-c@{ncd.\-c}!recv\-\_\-data@{recv\-\_\-data}}
+\hypertarget{ncd_8c_a6e7246feab9bd6f3f5da6f698465c62a}{\index{ncd.\-c@{ncd.\-c}!recv\-\_\-data@{recv\-\_\-data}}
 \index{recv\-\_\-data@{recv\-\_\-data}!ncd.c@{ncd.\-c}}
-\subsubsection[{recv\-\_\-data}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$($\ast$  recv\-\_\-data)(void $\ast$) = N\-U\-L\-L}}\label{ncd_8c_adb21d202bf57da16638d7efda96932fa}
+\subsubsection[{recv\-\_\-data}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$($\ast$ recv\-\_\-data)(void $\ast$) = N\-U\-L\-L}}\label{ncd_8c_a6e7246feab9bd6f3f5da6f698465c62a}
 
 
-Definition at line 43 of file ncd.\-c.
-
-\hypertarget{ncd_8c_acbd35ba49b28a4cd44185c0f3cb57d31}{\index{ncd.\-c@{ncd.\-c}!recv\-\_\-fd@{recv\-\_\-fd}}
-\index{recv\-\_\-fd@{recv\-\_\-fd}!ncd.c@{ncd.\-c}}
-\subsubsection[{recv\-\_\-fd}]{\setlength{\rightskip}{0pt plus 5cm}int recv\-\_\-fd}}\label{ncd_8c_acbd35ba49b28a4cd44185c0f3cb57d31}
-
-
-Definition at line 31 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a3a22184cee3999daa9364242df0dd70d}{\index{ncd.\-c@{ncd.\-c}!recv\-\_\-ready@{recv\-\_\-ready}}
-\index{recv\-\_\-ready@{recv\-\_\-ready}!ncd.c@{ncd.\-c}}
-\subsubsection[{recv\-\_\-ready}]{\setlength{\rightskip}{0pt plus 5cm}int recv\-\_\-ready = 0}}\label{ncd_8c_a3a22184cee3999daa9364242df0dd70d}
-
-
-Definition at line 52 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a96edcd55d61ddca868c171446920890d}{\index{ncd.\-c@{ncd.\-c}!recv\-\_\-ready\-\_\-cv@{recv\-\_\-ready\-\_\-cv}}
-\index{recv\-\_\-ready\-\_\-cv@{recv\-\_\-ready\-\_\-cv}!ncd.c@{ncd.\-c}}
-\subsubsection[{recv\-\_\-ready\-\_\-cv}]{\setlength{\rightskip}{0pt plus 5cm}pthread\-\_\-cond\-\_\-t recv\-\_\-ready\-\_\-cv}}\label{ncd_8c_a96edcd55d61ddca868c171446920890d}
-
-
-Definition at line 54 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a2d68848b6fa6a50e5da48c4ce55dcb9d}{\index{ncd.\-c@{ncd.\-c}!recv\-\_\-ready\-\_\-mutex@{recv\-\_\-ready\-\_\-mutex}}
-\index{recv\-\_\-ready\-\_\-mutex@{recv\-\_\-ready\-\_\-mutex}!ncd.c@{ncd.\-c}}
-\subsubsection[{recv\-\_\-ready\-\_\-mutex}]{\setlength{\rightskip}{0pt plus 5cm}pthread\-\_\-mutex\-\_\-t recv\-\_\-ready\-\_\-mutex}}\label{ncd_8c_a2d68848b6fa6a50e5da48c4ce55dcb9d}
-
-
-Definition at line 53 of file ncd.\-c.
+Definition at line 37 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a8df42e4f21cb586ea4981025137520e0}{\index{ncd.\-c@{ncd.\-c}!res@{res}}
 \index{res@{res}!ncd.c@{ncd.\-c}}
 \subsubsection[{res}]{\setlength{\rightskip}{0pt plus 5cm}struct addrinfo$\ast$ res = N\-U\-L\-L}}\label{ncd_8c_a8df42e4f21cb586ea4981025137520e0}
 
 
-Definition at line 42 of file ncd.\-c.
+Definition at line 36 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a7f3b94a4048f6fd566062cb98a2e4143}{\index{ncd.\-c@{ncd.\-c}!sa\-\_\-len@{sa\-\_\-len}}
 \index{sa\-\_\-len@{sa\-\_\-len}!ncd.c@{ncd.\-c}}
 \subsubsection[{sa\-\_\-len}]{\setlength{\rightskip}{0pt plus 5cm}socklen\-\_\-t sa\-\_\-len = sizeof({\bf srcaddrs})}}\label{ncd_8c_a7f3b94a4048f6fd566062cb98a2e4143}
 
 
-Definition at line 68 of file ncd.\-c.
+Definition at line 34 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a69b40191667f8e98fe175046c8121df4}{\index{ncd.\-c@{ncd.\-c}!second\-\_\-train@{second\-\_\-train}}
 \index{second\-\_\-train@{second\-\_\-train}!ncd.c@{ncd.\-c}}
 \subsubsection[{second\-\_\-train}]{\setlength{\rightskip}{0pt plus 5cm}int second\-\_\-train = 0}}\label{ncd_8c_a69b40191667f8e98fe175046c8121df4}
 
 
-Definition at line 56 of file ncd.\-c.
+Definition at line 21 of file ncd.\-c.
 
-\hypertarget{ncd_8c_a4ccd8921f38d8d73068731023f739eac}{\index{ncd.\-c@{ncd.\-c}!send\-\_\-fd@{send\-\_\-fd}}
-\index{send\-\_\-fd@{send\-\_\-fd}!ncd.c@{ncd.\-c}}
-\subsubsection[{send\-\_\-fd}]{\setlength{\rightskip}{0pt plus 5cm}int send\-\_\-fd}}\label{ncd_8c_a4ccd8921f38d8d73068731023f739eac}
-
-
-Definition at line 30 of file ncd.\-c.
-
-\hypertarget{ncd_8c_ab5240dc8d5d147c206fe041d59ff1899}{\index{ncd.\-c@{ncd.\-c}!send\-\_\-len@{send\-\_\-len}}
-\index{send\-\_\-len@{send\-\_\-len}!ncd.c@{ncd.\-c}}
-\subsubsection[{send\-\_\-len}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t send\-\_\-len}}\label{ncd_8c_ab5240dc8d5d147c206fe041d59ff1899}
-
-
-Definition at line 34 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a40a9436bb2772790e311e84bad778d13}{\index{ncd.\-c@{ncd.\-c}!send\-\_\-train@{send\-\_\-train}}
+\hypertarget{ncd_8c_a915720bd1608e183b14479e206ecea46}{\index{ncd.\-c@{ncd.\-c}!send\-\_\-train@{send\-\_\-train}}
 \index{send\-\_\-train@{send\-\_\-train}!ncd.c@{ncd.\-c}}
-\subsubsection[{send\-\_\-train}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$($\ast$  send\-\_\-train)() = N\-U\-L\-L}}\label{ncd_8c_a40a9436bb2772790e311e84bad778d13}
+\subsubsection[{send\-\_\-train}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$($\ast$ send\-\_\-train)(void $\ast$) = N\-U\-L\-L}}\label{ncd_8c_a915720bd1608e183b14479e206ecea46}
 
 
-Definition at line 44 of file ncd.\-c.
-
-\hypertarget{ncd_8c_ac24df57ce1757d27d76342e7da87793a}{\index{ncd.\-c@{ncd.\-c}!seq@{seq}}
-\index{seq@{seq}!ncd.c@{ncd.\-c}}
-\subsubsection[{seq}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int32\-\_\-t seq = 0}}\label{ncd_8c_ac24df57ce1757d27d76342e7da87793a}
-
-
-Definition at line 37 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a92453d8d213cd398b8579327fb3bdd70}{\index{ncd.\-c@{ncd.\-c}!sport@{sport}}
-\index{sport@{sport}!ncd.c@{ncd.\-c}}
-\subsubsection[{sport}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t sport}}\label{ncd_8c_a92453d8d213cd398b8579327fb3bdd70}
-
-
-Definition at line 17 of file ncd.\-c.
+Definition at line 38 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a48e92478efee9e56a26e4ce75cd47a6e}{\index{ncd.\-c@{ncd.\-c}!srcaddrs@{srcaddrs}}
 \index{srcaddrs@{srcaddrs}!ncd.c@{ncd.\-c}}
 \subsubsection[{srcaddrs}]{\setlength{\rightskip}{0pt plus 5cm}struct sockaddr\-\_\-in srcaddrs = \{0\}}}\label{ncd_8c_a48e92478efee9e56a26e4ce75cd47a6e}
 
 
-Definition at line 67 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a6c0af9f2e97842405fb15ed952ef2976}{\index{ncd.\-c@{ncd.\-c}!stop@{stop}}
-\index{stop@{stop}!ncd.c@{ncd.\-c}}
-\subsubsection[{stop}]{\setlength{\rightskip}{0pt plus 5cm}int stop = 0}}\label{ncd_8c_a6c0af9f2e97842405fb15ed952ef2976}
-
-
-Definition at line 48 of file ncd.\-c.
-
-\hypertarget{ncd_8c_abd9e224109bf9471f2174827326b4bf8}{\index{ncd.\-c@{ncd.\-c}!stop\-\_\-cv@{stop\-\_\-cv}}
-\index{stop\-\_\-cv@{stop\-\_\-cv}!ncd.c@{ncd.\-c}}
-\subsubsection[{stop\-\_\-cv}]{\setlength{\rightskip}{0pt plus 5cm}pthread\-\_\-cond\-\_\-t stop\-\_\-cv}}\label{ncd_8c_abd9e224109bf9471f2174827326b4bf8}
-
-
-Definition at line 50 of file ncd.\-c.
-
-\hypertarget{ncd_8c_ad3899dc5a96d0a80b912bae83eb1a5c2}{\index{ncd.\-c@{ncd.\-c}!stop\-\_\-mutex@{stop\-\_\-mutex}}
-\index{stop\-\_\-mutex@{stop\-\_\-mutex}!ncd.c@{ncd.\-c}}
-\subsubsection[{stop\-\_\-mutex}]{\setlength{\rightskip}{0pt plus 5cm}pthread\-\_\-mutex\-\_\-t stop\-\_\-mutex}}\label{ncd_8c_ad3899dc5a96d0a80b912bae83eb1a5c2}
-
-
-Definition at line 49 of file ncd.\-c.
+Definition at line 32 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a20ea96ed21d158a055c5821e81905c45}{\index{ncd.\-c@{ncd.\-c}!syn\-\_\-packet\-\_\-1@{syn\-\_\-packet\-\_\-1}}
 \index{syn\-\_\-packet\-\_\-1@{syn\-\_\-packet\-\_\-1}!ncd.c@{ncd.\-c}}
 \subsubsection[{syn\-\_\-packet\-\_\-1}]{\setlength{\rightskip}{0pt plus 5cm}char syn\-\_\-packet\-\_\-1\mbox{[}20\mbox{]} = \{0\}}}\label{ncd_8c_a20ea96ed21d158a055c5821e81905c45}
 
 
-Definition at line 61 of file ncd.\-c.
+Definition at line 26 of file ncd.\-c.
 
 \hypertarget{ncd_8c_ab685d5eebdfc594a07d1fe0667f7b33c}{\index{ncd.\-c@{ncd.\-c}!syn\-\_\-packet\-\_\-2@{syn\-\_\-packet\-\_\-2}}
 \index{syn\-\_\-packet\-\_\-2@{syn\-\_\-packet\-\_\-2}!ncd.c@{ncd.\-c}}
 \subsubsection[{syn\-\_\-packet\-\_\-2}]{\setlength{\rightskip}{0pt plus 5cm}char syn\-\_\-packet\-\_\-2\mbox{[}20\mbox{]} = \{0\}}}\label{ncd_8c_ab685d5eebdfc594a07d1fe0667f7b33c}
 
 
-Definition at line 62 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a9995aedfbe2f5b8c0b61fd0e1edbe69a}{\index{ncd.\-c@{ncd.\-c}!syn\-\_\-port@{syn\-\_\-port}}
-\index{syn\-\_\-port@{syn\-\_\-port}!ncd.c@{ncd.\-c}}
-\subsubsection[{syn\-\_\-port}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t syn\-\_\-port}}\label{ncd_8c_a9995aedfbe2f5b8c0b61fd0e1edbe69a}
-
-
-Definition at line 18 of file ncd.\-c.
-
-\hypertarget{ncd_8c_af5f018b077b2ca0ad6b002c6b58def6a}{\index{ncd.\-c@{ncd.\-c}!tail\-\_\-wait@{tail\-\_\-wait}}
-\index{tail\-\_\-wait@{tail\-\_\-wait}!ncd.c@{ncd.\-c}}
-\subsubsection[{tail\-\_\-wait}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int16\-\_\-t tail\-\_\-wait}}\label{ncd_8c_af5f018b077b2ca0ad6b002c6b58def6a}
-
-
-Definition at line 14 of file ncd.\-c.
+Definition at line 27 of file ncd.\-c.
 
 \hypertarget{ncd_8c_abba8573cb98a02424a3867f7c43eae3a}{\index{ncd.\-c@{ncd.\-c}!tcp\-\_\-bool@{tcp\-\_\-bool}}
 \index{tcp\-\_\-bool@{tcp\-\_\-bool}!ncd.c@{ncd.\-c}}
 \subsubsection[{tcp\-\_\-bool}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int8\-\_\-t tcp\-\_\-bool = 0}}\label{ncd_8c_abba8573cb98a02424a3867f7c43eae3a}
 
 
-Definition at line 35 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a009f46a8434d3bd8e4a6794245377cb2}{\index{ncd.\-c@{ncd.\-c}!td@{td}}
-\index{td@{td}!ncd.c@{ncd.\-c}}
-\subsubsection[{td}]{\setlength{\rightskip}{0pt plus 5cm}double td}}\label{ncd_8c_a009f46a8434d3bd8e4a6794245377cb2}
-
-
-Definition at line 46 of file ncd.\-c.
-
-\hypertarget{ncd_8c_a6f4c7d0075b21eaab555b4a1c767c4f0}{\index{ncd.\-c@{ncd.\-c}!time\-\_\-val@{time\-\_\-val}}
-\index{time\-\_\-val@{time\-\_\-val}!ncd.c@{ncd.\-c}}
-\subsubsection[{time\-\_\-val}]{\setlength{\rightskip}{0pt plus 5cm}double time\-\_\-val}}\label{ncd_8c_a6f4c7d0075b21eaab555b4a1c767c4f0}
-
-
-Definition at line 77 of file ncd.\-c.
-
-\hypertarget{ncd_8c_ae0684734c5b6ef6dd888d43664c483d5}{\index{ncd.\-c@{ncd.\-c}!ttl@{ttl}}
-\index{ttl@{ttl}!ncd.c@{ncd.\-c}}
-\subsubsection[{ttl}]{\setlength{\rightskip}{0pt plus 5cm}u\-\_\-int8\-\_\-t ttl}}\label{ncd_8c_ae0684734c5b6ef6dd888d43664c483d5}
-
-
-Definition at line 19 of file ncd.\-c.
+Definition at line 20 of file ncd.\-c.
 
 \hypertarget{ncd_8c_a0b2caeb4b6f130be43e5a2f0267dd453}{\index{ncd.\-c@{ncd.\-c}!verbose@{verbose}}
 \index{verbose@{verbose}!ncd.c@{ncd.\-c}}
 \subsubsection[{verbose}]{\setlength{\rightskip}{0pt plus 5cm}int verbose = 0}}\label{ncd_8c_a0b2caeb4b6f130be43e5a2f0267dd453}
 
 
-Definition at line 75 of file ncd.\-c.
+Definition at line 17 of file ncd.\-c.
 
