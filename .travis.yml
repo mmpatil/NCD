@@ -1,0 +1,12 @@
+
+language: cpp
+os:
+ - linux
+
+compiler:
+    -clang
+    -gcc
+
+script: make && ./unittest
+
+
