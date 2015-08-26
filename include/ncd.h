@@ -6,23 +6,23 @@
 #ifndef _NCD_H_
 #define _NCD_H_
 
-#include <stdio.h>		        /* for printf, fprintf, snprintf, perror, ... */
-#include <stdlib.h>		        /* for EXIT_SUCCESS, EXIT_FAILURE, */
-#include <string.h> 		    /* for memcpy */
-#include <sys/time.h>		    /* for gettimeofday() */
-#include <errno.h>		        /* for errno*/
-#include <sys/socket.h>		    /* for socket(), setsockopt(), etc...*/
-#include <netinet/ip.h>		    /* for struct ip */
-#include <netinet/ip_icmp.h>	/* for struct icmp */
-#include <netinet/tcp.h>	    /* for struct tcphdr */
-#include <netinet/udp.h>	    /* for struct udphdr */
-#include <netdb.h>		        /* for getaddrinfo() */
-#include <arpa/inet.h>		    /* for inet_pton() */
-#include <signal.h>		        /* for kill() */
-#include <fcntl.h>		        /* for O_RDONLY */
-#include <unistd.h>		        /* for _________ */
-#include <ctype.h>		        /* for inet_pton() */
-#include <pthread.h>            /* for pthread */
+#include <stdio.h>           /* for printf, fprintf, snprintf, perror, ... */
+#include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
+#include <string.h>          /* for memcpy */
+#include <sys/time.h>        /* for gettimeofday() */
+#include <errno.h>           /* for errno*/
+#include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
+#include <netinet/ip.h>      /* for struct ip */
+#include <netinet/ip_icmp.h> /* for struct icmp */
+#include <netinet/tcp.h>     /* for struct tcphdr */
+#include <netinet/udp.h>     /* for struct udphdr */
+#include <netdb.h>           /* for getaddrinfo() */
+#include <arpa/inet.h>       /* for inet_pton() */
+#include <signal.h>          /* for kill() */
+#include <fcntl.h>           /* for O_RDONLY */
+#include <unistd.h>          /* for _________ */
+#include <ctype.h>           /* for inet_pton() */
+#include <pthread.h>         /* for pthread */
 #include "ncd_global.h"
 /**
  * Favor the BSD style UDP & IP headers
@@ -82,7 +82,7 @@ void mkipv4(void* buff, u_int16_t size, u_int8_t proto);
  * @param buff Address of the starting location for the ICMP packet
  * @param datalen The length of the ICMP payload
  */
-void mkicmpv4(void *buff, size_t datalen);
+void mkicmpv4(void* buff, size_t datalen);
 
 
 /**
@@ -90,19 +90,19 @@ void mkicmpv4(void *buff, size_t datalen);
  * @param[out] buff Address of the starting location for the data to be filled
  * @param[in] size The length of the data region to be filled
  */
-void fill_data(void *buff, size_t size);
+void fill_data(void* buff, size_t size);
 
 /**
  * @brief Sends the UDP data train with leading and trailing ICMP messages
  * @param[out] status returns the status/return code
  */
-void *send_udp(void*);
+void* send_udp(void*);
 
 /**
  * @brief Sends a tcp data train with leading and trailing ICMP messages
  * @param[out] status returns the status/return code
  */
-void *send_tcp(void*);
+void* send_tcp(void*);
 
 /**
  * @brief Receives ICMP responses from end host and records times
@@ -110,7 +110,7 @@ void *send_tcp(void*);
  * response and first processed tail echo response to a resolution of
  * microseconds (10^-6 sec) *
  */
-void *recv4(void *t);
+void* recv4(void* t);
 
 
 /**
@@ -135,7 +135,7 @@ int check_args(int argc, char* argv[]);
  * @param fill a boolean value to fill the packets from file
  * @return Returns an integer value for success(0), failure(1), or error(-1)
  */
-int setup_tcp_train( char** buff, int fill);
+int setup_tcp_train(char** buff, int fill);
 
 /**
  * @brief sets up arrays of TCP packets. Can be extended to UDP if necessary
@@ -155,4 +155,4 @@ void setup_syn_packets();
  */
 void setup_syn_packet(void* buff, u_int16_t port);
 
-#endif// end ncd.h
+#endif        // end ncd.h
