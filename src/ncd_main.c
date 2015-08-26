@@ -11,10 +11,10 @@
  * Main function
  * checks commandline args with check_args, then calls detect()
  */
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    /* Check ARGs */
-    if(check_args(argc, argv) != EXIT_SUCCESS)
-        return EXIT_FAILURE;
+        /* Check ARGs */
+        if(check_args(argc, argv) != EXIT_SUCCESS)
+                return EXIT_FAILURE;
     return detect();
 }

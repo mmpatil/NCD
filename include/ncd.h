@@ -108,7 +108,7 @@ void* send_tcp(void* status);
  * @brief Receives ICMP responses from end host and records times
  * @param[out] t Pointer to a double. Returns the time in ms between head echo
  * response and first processed tail echo response to a resolution of
- * microseconds (10^-6 sec) *
+ * microseconds (10^-6 sec)
  */
 void* recv4(void* t);
 
@@ -119,7 +119,7 @@ void* recv4(void* t);
  * @param length the length in bytes of the data to be checksummed
  * @return the IP checksum of the buffer
  */
-u_int16_t ip_checksum(void* vdata, size_t length);
+uint16_t ip_checksum(void* vdata, size_t length);
 
 /**
  * @brief Checks arguments given on command line and stores values in global variables
@@ -153,6 +153,6 @@ void setup_syn_packets();
  * @param buff address of tcp header start for syn packet
  * @param port the source port the syn packet should use.
  */
-void setup_syn_packet(void* buff, u_int16_t port);
+void setup_syn_packet(void* buff, uint16_t port);
 
 #endif        // end ncd.h

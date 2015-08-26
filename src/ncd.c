@@ -28,7 +28,7 @@ char syn_packet_2[20]  = {0};        // packet for tail SYN
 char icmp_send[128]    = {0};        // buffer for ICMP messages
 
 struct pseudo_header* ps    = (struct pseudo_header*)pseudo;        // pseudo header
-u_int16_t* packet_id        = (u_int16_t*)packet_send;              // sequence/ID number of udp msg
+uint16_t* packet_id         = (uint16_t*)packet_send;               // sequence/ID number of udp msg
 struct sockaddr_in srcaddrs = {0};                                  // source IP address
 struct in_addr destip       = {0};                                  // destination IP
 socklen_t sa_len            = sizeof(srcaddrs);                     // size of src address
@@ -497,7 +497,7 @@ int setup_tcp_train(char** buff, int fill)
     {
 
         tcp    = (struct tcphdr*)ptr;
-        pk_num = (u_int16_t*)(tcp + 1);
+        pk_num = (uint16_t*)(tcp + 1);
 
         tcp->source  = htons(sport);
         tcp->dest    = htons(dport);
@@ -508,7 +508,7 @@ int setup_tcp_train(char** buff, int fill)
         tcp->window  = (1 << 15) - 1;
         tcp->syn     = 0;
 
-        *pk_num = (u_int16_t)i;
+        *pk_num = (uint16_t)i;
 
         if(fill)
             memcpy(ptr + offset, buffer, data_size);
@@ -591,7 +591,7 @@ void* send_udp(void* status)
         n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr, res->ai_addrlen);
         if(n == -1)
         {
-            perror("call to() failed: error sending UDP udp train");
+            perror("call to sendto() failed: error sending UDP udp train");
             exit(EXIT_FAILURE);
         }
     }
@@ -788,8 +788,8 @@ void* recv4(void* t)
         icmp               = (struct icmp*)(ip + 1);
         struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data) + sizeof(struct ip));
 
-        u_int32_t* bitset = make_bs_32(num_packets);
-        u_int16_t* id     = (u_int16_t*)(udp + 1);
+        uint32_t* bitset = make_bs_32(num_packets);
+        uint16_t* id     = (uint16_t*)(udp + 1);
         struct in_addr dest;
         inet_aton(dst_ip, &dest);
 
@@ -877,7 +877,7 @@ u_int16_t ip_checksum(void* vdata, size_t length)
     char* data = (char*)vdata;
 
     /* Initialize the accumulator. */
-    u_int64_t acc = 0xffff;
+    uint64_t acc = 0xffff;
 
     /* Handle any partial block at the start of the data. */
     unsigned int offset = ((uintptr_t)data) & 3;
@@ -886,7 +886,7 @@ u_int16_t ip_checksum(void* vdata, size_t length)
         size_t count = 4 - offset;
         if(count > length)
             count      = length;
-        u_int32_t word = 0;
+        uint32_t word = 0;
         memcpy(offset + (char*)&word, data, count);
         acc += ntohl(word);
         data += count;
@@ -897,7 +897,7 @@ u_int16_t ip_checksum(void* vdata, size_t length)
     char* data_end = data + (length & ~3);
     while(data != data_end)
     {
-        u_int32_t word = 0;
+        uint32_t word = 0;
         memcpy(&word, data, 4);
         acc += ntohl(word);
         data += 4;
@@ -907,7 +907,7 @@ u_int16_t ip_checksum(void* vdata, size_t length)
     /* Handle any partial block at the end of the data. */
     if(length)
     {
-        u_int32_t word = 0;
+        uint32_t word = 0;
         memcpy(&word, data, length);
         acc += ntohl(word);
     }
