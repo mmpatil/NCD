@@ -25,7 +25,7 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 #CFLAGS+=-DNCD_NO_KILL
 
 #CXX=clang++
-CXXFLAGS=-std=c++11 -O2 -I$(IDIR) -I$(SDIR) #-stdlib=libc++
+CXXFLAGS=-std=c++1y -O2 -I$(IDIR) -I$(SDIR) #-stdlib=libc++
 CXXLINKFLAGS=-pthread -lgtest -lgtest_main
 
 
