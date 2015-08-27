@@ -7,6 +7,6 @@ compiler:
     -clang
     -gcc
 
-script: make && ./unittest
+script: make && sudo ./unittest
 
 
