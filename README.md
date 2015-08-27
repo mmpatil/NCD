@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ilovepi/NCD.svg)](https://travis-ci.org/ilovepi/NCD)
+
 NCD
 ===
 
