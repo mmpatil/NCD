@@ -12,8 +12,8 @@ before_install:
   - source ./travis_setup.sh
 
 install:
-  - $(CC) --version
-  - $(CXX) --version
+  - $CC --version
+  - $CXX --version
 
 
 script: make && sudo ./unittest
