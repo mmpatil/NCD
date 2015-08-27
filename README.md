@@ -31,7 +31,7 @@ Intermediaries]
 (http://lasr.cs.ucla.edu/vahab/resources/compression_detection.pdf), who is my
 advisor on this project.
 
-Current Status    [![Build Status](https://travis-ci.org/ilovepi/NCD.svg?branch=master)](https://travis-ci.org/ilovepi/NCD)
+Current Status    [![Build Status](https://travis-ci.org/ilovepi/NCD.svg?branch=testing)](https://travis-ci.org/ilovepi/NCD)
 --------------
 Currently `NCD` is under heavy development, and
 isn't suitable for general use. It should be considered highly experimental,
