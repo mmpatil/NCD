@@ -11,6 +11,10 @@ before_install:
   - chmod u+x travis_setup.sh
   - ./travis_setup.sh
 
+install:
+  - $(CC) --version
+  - $(CXX) --version
+
 
 script: make && sudo ./unittest
 
