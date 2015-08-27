@@ -5,6 +5,9 @@ os: linux
 
 compiler: clang
 
+before_install:
+    sudo apt-get update && sudo apt-get install libgtest-dev
+
 script: make && sudo ./unittest
 
 
