@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/sh
  
 if [ $(CC) = "gcc" ] then
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
