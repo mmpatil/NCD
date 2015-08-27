@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ilovepi/NCD.svg)](https://travis-ci.org/ilovepi/NCD)
+[![Build Status](https://travis-ci.org/ilovepi/NCD.svg?branch=master)](https://travis-ci.org/ilovepi/NCD)
 
 NCD
 ===
