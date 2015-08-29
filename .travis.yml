@@ -16,6 +16,9 @@ install:
   - $CXX --version
 
 
-script: make && sudo ./unittest
+script:
+  - make
+  - make test
+  - sudo ./unittest
 
 
