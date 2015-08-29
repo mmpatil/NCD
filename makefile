@@ -7,9 +7,23 @@ TESTDIR=test
 #CXX=g++
 
 #CC=clang
-LIBS=-lm
-CLINKFLAGS=-pthread
-CFLAGS=-O2 -g -I$(IDIR) -Wall -Wextra
+#CXX=clang++
+
+#GCOV=--coverage -lgcov
+
+ASAN=-fsanitize=address -fno-omit-frame-pointer
+MSAN=-fsanitize=memory -fsanitize-memory-track-origins  -fno-omit-frame-pointer -fPIE
+TSAN=-fsanitize=thread
+
+SANITIZER=
+
+#DEBUG_RELEASE=-DDEBUG
+
+CLIBS =-lm -pthread
+CFLAGS= -g -O2 -I$(IDIR) -I$(SDIR) $(GCOV) $(SANITIZER)
+
+CXXFLAGS= $(CFLAGS) -std=c++1y  #-stdlib=libc++
+CXXLIBS= -lgtest -lgtest_main $(CLIBS)
 
 _DEPS=ncd.h bitset.h ncd_global.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
@@ -18,30 +32,19 @@ _OBJ=ncd_main.o ncd.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
-#CFLAGS+=-fsanitize=address -fno-omit-frame-pointer
-#CFLAGS+=-fsanitize=memory -fsanitize-memory-track-origins  -fno-omit-frame-pointer -fPIE
-#CFLAGS+=-fsanitize=thread
-#CFLAGS+=-DDEBUG
-#CFLAGS+=-DNCD_NO_KILL
 
-#CXX=clang++
-CXXFLAGS=-std=c++1y -O2 -I$(IDIR) -I$(SDIR) #-stdlib=libc++
-CXXLINKFLAGS=-pthread -lgtest -lgtest_main
-
-
-all: ncd_main unittest
+all: ncd_main
 
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
-	$(CC)  $(CFLAGS) $(CLINKFLAGS) -c -o $@ $<
+	$(CC)  $(CFLAGS) $(CLIBS)  -c -o $@ $<
 
 ncd_main: $(OBJ)
-	$(CC) -o $@  $(OBJ) $(CFLAGS) $(CLINKFLAGS) $(LIBS)
+	$(CC) -o $@  $(OBJ) $(CFLAGS) $(CLINKFLAGS) $(CLIBS)
 
-unittest: $(DEPS) $(OBJ)  $(TESTDIR)/unit_test.*
-	$(CXX) obj/ncd.o $(TESTDIR)/unit_test.cpp   -o $@ $(CXXFLAGS) $(CXXLINKFLAGS)
-
+unit_test: $(DEPS) $(OBJ)  $(TESTDIR)/*.*pp
+	$(CXX) obj/ncd.o $(TESTDIR)/*.cpp   -o $@ $(CXXFLAGS) $(CXXLIBS)
 
 .PHONY: clean
 
 clean:
-	rm $(ODIR)/*.o ncd_main unittest
+	rm $(ODIR)/*.o ncd_main unit_test
