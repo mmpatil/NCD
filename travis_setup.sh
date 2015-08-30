@@ -5,7 +5,7 @@ set -e
 if [ "$CC" = "gcc" ] ; then
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     sudo apt-get update -qq
-    sudo apt-get install -qq g++-4.8
+    sudo apt-get install -qq g++-4.8 gcc-multilib
     export CXX="g++-4.8"
     export CC="gcc-4.8"
 else
