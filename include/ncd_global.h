@@ -20,19 +20,19 @@
 *  2 16-bit packet ID
 */
 #define SIZE (1500 - sizeof(struct ip))
-#define UDP_DATA_SIZE (SIZE - sizeof(struct udphdr) - sizeof(u_int16_t))
-#define TCP_DATA_SIZE (SIZE - sizeof(struct tcphdr) - sizeof(u_int16_t))
+#define UDP_DATA_SIZE (SIZE - sizeof(struct udphdr) - sizeof(uint16_t))
+#define TCP_DATA_SIZE (SIZE - sizeof(struct tcphdr) - sizeof(uint16_t))
 
 /**
  * struct for udp pseudo header
  */
 struct __attribute__((__packed__)) pseudo_header
 {
-    u_int32_t source;
-    u_int32_t dest;
-    u_int8_t zero;
-    u_int8_t proto;
-    u_int16_t len;
+    uint32_t source;
+    uint32_t dest;
+    uint8_t zero;
+    uint8_t proto;
+    uint16_t len;
 };
 
 /*  Global Variables  */
@@ -44,22 +44,22 @@ int recv_fd;        // reply receiving socket file descriptor
 
 
 /* command line arguments  */
-u_int16_t data_size;          // size of udp data payload
-u_int16_t num_packets;        // number of packets in udp data train
-u_int16_t num_tail;           // number of tail icmp messages sent tail_wait apart
-u_int16_t tail_wait;          // time between ICMP tail messages
-u_int16_t dport;              // destination port number
-u_int16_t sport;              // source port number
-u_int16_t syn_port;           // source port number
-u_int8_t ttl;                 // time to live
+uint16_t data_size;          // size of udp data payload
+uint16_t num_packets;        // number of packets in udp data train
+uint16_t num_tail;           // number of tail icmp messages sent tail_wait apart
+uint16_t tail_wait;          // time between ICMP tail messages
+uint16_t dport;              // destination port number
+uint16_t sport;              // source port number
+uint16_t syn_port;           // source port number
+uint8_t ttl;                 // time to live
 
 
 /* lengths of packets and data, etc. */
-u_int16_t send_len;             // length of data to be sent
-u_int32_t seq;                  // sequence number
-u_int16_t icmp_ip_len;          // length of IP icmp packet including payload
-u_int16_t icmp_len;             // length of ICMP packet
-u_int16_t icmp_data_len;        // length of ICMP data
+uint16_t send_len;             // length of data to be sent
+uint32_t seq;                  // sequence number
+uint16_t icmp_ip_len;          // length of IP icmp packet including payload
+uint16_t icmp_len;             // length of ICMP packet
+uint16_t icmp_data_len;        // length of ICMP data
 
 /* Threading globals, mutexes and protected varibles */
 int stop;              // boolean for if the send thread can stop (receive thread has received second response.
@@ -83,12 +83,12 @@ extern char* dst_ip;           // destination ip address
 extern char* file;             // name of file to read from /dev/urandom by default
 
 /* flags */
-extern u_int8_t lflag;               // default option for low entropy -- set to on
-extern u_int8_t hflag;               // default option for high entropy -- set to on
+extern uint8_t lflag;               // default option for low entropy -- set to on
+extern uint8_t hflag;               // default option for high entropy -- set to on
 extern int verbose;                  // flag for verbose output
 extern const int num_threads;        // number of threads we'll use
 extern int cooldown;                 // time in seconds to wait between data trains
-extern u_int8_t tcp_bool;            // bool for whether to use tcp or udp(1 == true, 0 == false)
+extern uint8_t tcp_bool;            // bool for whether to use tcp or udp(1 == true, 0 == false)
 extern int second_train;             // bool for if this is the second or first train
 
 /* global buffers on the stack */
@@ -100,7 +100,7 @@ extern char syn_packet_2[20];         // packet for tail SYN
 extern char icmp_send[128];           // buffer for ICMP messages
 
 extern struct pseudo_header* ps;           // pseudo header
-extern u_int16_t* packet_id;               // sequence/ID number of udp msg
+extern uint16_t* packet_id;               // sequence/ID number of udp msg
 extern struct sockaddr_in srcaddrs;        // source IP address
 extern struct in_addr destip;              // destination IP
 extern socklen_t sa_len;                   // size of src address

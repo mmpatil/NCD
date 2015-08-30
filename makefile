@@ -20,7 +20,7 @@ SANITIZER=
 #DEBUG_RELEASE=-DDEBUG
 
 CLIBS =-lm -pthread
-CFLAGS= -g -O2 -I$(IDIR) -I$(SDIR) $(GCOV) $(SANITIZER)
+CFLAGS= -m32 -g -O2 -I$(IDIR) -I$(SDIR) $(GCOV) $(SANITIZER)
 
 CXXFLAGS= $(CFLAGS) -std=c++1y  #-stdlib=libc++
 CXXLIBS= -lgtest -lgtest_main $(CLIBS)
@@ -36,13 +36,13 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 all: ncd_main
 
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
-	$(CC)  $(CFLAGS) $(CLIBS)  -c -o $@ $<
+	$(CC) $(CFLAGS) $(CLIBS) -c -o $@ $<
 
 ncd_main: $(OBJ)
-	$(CC) -o $@  $(OBJ) $(CFLAGS) $(CLINKFLAGS) $(CLIBS)
+	$(CC) $(CFLAGS) $(CLIBS) -o $@ $(OBJ)
 
 unit_test: $(DEPS) $(OBJ)  $(TESTDIR)/*.*pp
-	$(CXX) obj/ncd.o $(TESTDIR)/*.cpp   -o $@ $(CXXFLAGS) $(CXXLIBS)
+	$(CXX) obj/ncd.o $(TESTDIR)/*.cpp -o $@ $(CXXFLAGS) $(CXXLIBS)
 
 .PHONY: clean
 
