@@ -29,7 +29,7 @@ _DEPS=ncd.h bitset.h ncd_global.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJ=ncd_main.o ncd.o
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
 
@@ -41,7 +41,7 @@ $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
 ncd_main: $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $(OBJ) $(CLIBS)
 
-unit_test: $(DEPS) $(OBJ)  $(TESTDIR)/*.*pp
+unit_test: $(DEPS) $(OBJ) $(TESTDIR)/*.*pp
 	$(CXX) obj/ncd.o $(TESTDIR)/*.cpp -o $@ $(CXXFLAGS) $(CXXLIBS)
 
 .PHONY: clean
