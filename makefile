@@ -36,10 +36,10 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 all: ncd_main
 
 $(ODIR)/%.o: $(SDIR)/%.c $(DEPS)
-	$(CC) $(CFLAGS) $(CLIBS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $< $(CLIBS)
 
 ncd_main: $(OBJ)
-	$(CC) $(CFLAGS) $(CLIBS) -o $@ $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $(OBJ) $(CLIBS)
 
 unit_test: $(DEPS) $(OBJ)  $(TESTDIR)/*.*pp
 	$(CXX) obj/ncd.o $(TESTDIR)/*.cpp -o $@ $(CXXFLAGS) $(CXXLIBS)
