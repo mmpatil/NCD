@@ -17,13 +17,14 @@ TSAN=-fsanitize=thread
 
 SANITIZER=
 
+ARCH?=$(shell getconf LONG_BIT)
 #DEBUG_RELEASE=-DDEBUG
 
 CLIBS =-lm -pthread
-CFLAGS= -m32 -g -O2 -I$(IDIR) -I$(SDIR) $(GCOV) $(SANITIZER)
+CFLAGS= -m$(ARCH) -g -O2 -I$(IDIR) -I$(SDIR) $(GCOV) $(SANITIZER)
 
-CXXFLAGS= $(CFLAGS) -std=c++1y  #-stdlib=libc++
-CXXLIBS= -lgtest -lgtest_main $(CLIBS)
+CXXFLAGS=$(CFLAGS) -std=c++1y  #-stdlib=libc++
+CXXLIBS=-lgtest -lgtest_main $(CLIBS)
 
 _DEPS=ncd.h bitset.h ncd_global.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
