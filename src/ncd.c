@@ -303,7 +303,7 @@ int measure()
     int rc;
     register int i;
 
-    void* status[2];
+    void* status[2] = {0};
 
     /*get root privileges */
     int err = setuid(0);
@@ -357,24 +357,20 @@ int measure()
     rc = pthread_create(&threads[0], &attr, recv_data, &time_val);
     if(rc)
     {
-        printf("ERROR: return code from pthread_create()"
-               " is %d\n",
-               rc);
+        printf("ERROR: return code from pthread_create() is %d\n",rc);
         exit(-1);
     }
 
     rc = pthread_create(&threads[1], &attr, send_train, status[1]);
     if(rc)
     {
-        printf("ERROR: return code from pthread_create() "
-               "is %d\n",
-               rc);
+        printf("ERROR: return code from pthread_create() is %d\n",               rc);
         exit(-1);
     }
 
     for(i = 0; i < num_threads; ++i)
     {
-        rc = pthread_join(threads[i], &status[i]);
+        rc = pthread_join(threads[i], status[i]);
         if(rc)
         {
             printf("ERROR; return code from "
@@ -996,7 +992,7 @@ int check_args(int argc, char* argv[])
             {
                 errno         = ERANGE;
                 char str[256] = {0};
-                snprintf(str, 256, "Valid UDP data size: 1-%du", TCP_DATA_SIZE);
+                snprintf(str, 256, "Valid UDP data size: 1-%lu", TCP_DATA_SIZE);
                 perror(str);
                 return EXIT_FAILURE;
             }

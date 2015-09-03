@@ -75,7 +75,7 @@ int measure();
  * @param size The length of the IP packet
  * @param proto The 8-bit protocol
  */
-void mkipv4(void* buff, u_int16_t size, u_int8_t proto);
+void mkipv4(void* buff, uint16_t size, uint8_t proto);
 
 /**
  * @brief Formats an ICMP packet beginning at buff with a payload of length datalen
