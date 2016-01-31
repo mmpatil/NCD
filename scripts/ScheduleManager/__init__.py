@@ -1,7 +1,3 @@
-import schedule
-
-def r():
-    x = schedule.
-
+from .ScheduleManager import ScheduleMaker, per_delta
 
 
