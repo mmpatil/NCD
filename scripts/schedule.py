@@ -4,10 +4,21 @@ from dateutil.rrule import rrule, DAILY
 
 
 class ScheduleMaker(object):
-    """docstring for ScheduleMaker"""
+    """Creates schedules for use in automation tasks.
+
+    The schedules created should have no conflicts
+    between tasks, i.e. tasks only appear once in a
+    Period and only one task may appear in an Interval.
+
+    Periods denote how often a task should be scheduled,
+    and limit the number of tasks that can be executed
+    for a particular target IP address.
+    Intervals denote the maximum running time for a task,
+    and also limit the number of target IP addresses that
+    can be used.
+    """
 
     def __init__(self, ip_file, start_date:date, end_date: date, period:timedelta, interval:timedelta, command):
-        super(ScheduleMaker, self).__init__()
         self.ip_file = ip_file
         self.start_date = start_date
         self.end_date = end_date
