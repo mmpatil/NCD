@@ -51,7 +51,7 @@ class ScheduleMaker(object):
         if seed is not None:
             random.seed(seed)
 
-        for period in per_delta(d, d+timedelta(days=1), self.period):
+        for period in per_delta(d, (d+timedelta(days=1)), self.period):
             # sample get me a random sample of the minutes in an hour ... up to 60
             # instead of putting that in the dictionary, we should put an actual date time
             # we should also pass in the day's date, and remove logic to make times consistent for the whole day
@@ -70,7 +70,7 @@ class ScheduleMaker(object):
         items = [(k, v) for k, v in day.items()]
         items.sort()
         for line in items:
-            string = "{0}\t{1:15s}\t{2:s}\n".format(line[0], line[1], self.command)
+            string = "{0}\t{1:15s}\t{2:s}\n".format(line[0].strftime("%H:%M %Y-%m-%d"), line[1], self.command)
             outFile.write(string)
 
 
