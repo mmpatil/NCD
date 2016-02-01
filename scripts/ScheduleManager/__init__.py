@@ -1,3 +1,3 @@
-from .ScheduleManager import ScheduleMaker, per_delta
+from ScheduleManager import ScheduleMaker, per_delta
 
 

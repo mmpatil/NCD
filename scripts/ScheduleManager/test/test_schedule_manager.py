@@ -10,6 +10,9 @@ class ScheduleMakerTestCase(unittest.TestCase):
     def setUp(self):
         self.scheduler = ScheduleMaker("ip_list.txt", date(2016, 3,15), date(2016, 3, 17),timedelta(hours=1), timedelta(minutes=1),"echo 'Hello World!'")
 
+    def tearDown(self):
+        self.scheduler = None
+
 
 class TestScheduleMakerInitCase(ScheduleMakerTestCase):
     """Test cases for the ScheduleMaker class"""
