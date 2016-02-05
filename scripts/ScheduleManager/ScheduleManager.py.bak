@@ -1,13 +1,9 @@
-from __future__ import with_statement
-from __future__ import absolute_import
 import random, fileinput
 from datetime import datetime, date, time, timedelta
-from io import open
-from itertools import izip
 
 
 class ScheduleMaker(object):
-    u"""Creates schedules for use in automation tasks.
+    """Creates schedules for use in automation tasks.
 
     The schedules created should have no conflicts
     between tasks, i.e. tasks only appear once in a
@@ -21,8 +17,8 @@ class ScheduleMaker(object):
     can be used.
     """
 
-    def __init__(self, ip_file, start_date, end_date, period, interval, command):
-        u""" initializes the class
+    def __init__(self, ip_file: str, start_date: date, end_date: date, period: timedelta, interval: timedelta, command: str):
+        """ initializes the class
         :param ip_file: (string) file name of a fil that contains a list of remote host IP addresses, one per line
         :param start_date: (date) provides the date when scheduling starts
         :param end_date: (date) provides the date when scheduling ends
@@ -41,15 +37,15 @@ class ScheduleMaker(object):
         with open(ip_file) as f:
             self.target_list = f.read().splitlines()
 
-        self.output_file_name = u"schedule.txt"
+        self.output_file_name = "schedule.txt"
 
     def create_schedule(self, seed=None):
         days = list(per_delta(self.start_date, self.end_date, timedelta(days=1)))
-        with open(self.output_file_name, u'w') as outFile:
+        with open(self.output_file_name, 'w') as outFile:
             for day in days:
                 self.write_day(self.schedule_day(day, seed), outFile)
 
-    def schedule_day(self, my_date, seed=None):
+    def schedule_day(self, my_date: date, seed=None):
         day = {}
         d = datetime.combine(my_date, time(0, 0))
         if seed is not None:
@@ -63,18 +59,18 @@ class ScheduleMaker(object):
 
             schedule = random.sample(list(per_delta(period, (period + self.period), self.interval)), len(self.target_list))
 
-            day.update(dict(izip(schedule, self.target_list)))
+            day.update(dict(zip(schedule, self.target_list)))
 
         return day
 
 
-    def write_day(self,day, outFile):
-        u"""Write the schedule for the day to a file"""
+    def write_day(self,day: dict, outFile: fileinput):
+        """Write the schedule for the day to a file"""
 
         items = [(k, v) for k, v in day.items()]
         items.sort()
         for line in items:
-            string = u"{0}\t{1:15s}\t{2:s}\n".format(line[0].strftime(u"%H:%M %Y-%m-%d"), line[1], self.command)
+            string = "{0}\t{1:15s}\t{2:s}\n".format(line[0].strftime("%H:%M %Y-%m-%d"), line[1], self.command)
             outFile.write(string)
 
 
@@ -85,6 +81,6 @@ def per_delta(start, end, delta):
         yield curr
         curr += delta
 
-if __name__ == u"__main__":
-    scheduler = ScheduleMaker(u"ip_list.txt", date(2016, 3, 15), date(2016, 3, 17), timedelta(hours=1), timedelta(minutes=1), u"echo 'Hello World!'")
+if __name__ == "__main__":
+    scheduler = ScheduleMaker("ip_list.txt", date(2016, 3, 15), date(2016, 3, 17), timedelta(hours=1), timedelta(minutes=1), "echo 'Hello World!'")
     scheduler.create_schedule(0)
