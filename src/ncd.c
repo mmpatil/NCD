@@ -12,12 +12,12 @@ char* dst_ip    = NULL;        // destination ip address
 char* file      = NULL;        // name of file to read from /dev/urandom by default
 
 /* flags */
-uint8_t lflag        = 1;        // default option for low entropy -- set to on
-uint8_t hflag        = 1;        // default option for high entropy -- set to on
+uint8_t lflag         = 1;        // default option for low entropy -- set to on
+uint8_t hflag         = 1;        // default option for high entropy -- set to on
 int verbose           = 0;        // flag for verbose output
 const int num_threads = 2;        // number of threads used by ncd
 int cooldown          = 5;        // time in seconds to wait between data trains
-uint8_t tcp_bool     = 0;        // bool for whether to use tcp or udp(1 == true, 0 == false)
+uint8_t tcp_bool      = 0;        // bool for whether to use tcp or udp(1 == true, 0 == false)
 int second_train      = 0;        // bool to denote if the second train is being sent.
 
 char pseudo[1500]      = {0};        // buffer for pseudo header
@@ -33,8 +33,8 @@ struct sockaddr_in srcaddrs = {0};                                  // source IP
 struct in_addr destip       = {0};                                  // destination IP
 socklen_t sa_len            = sizeof(srcaddrs);                     // size of src address
 
-struct addrinfo* res = NULL;              // addrinfo struct for getaddrinfo()
-void* (*recv_data)(void*) = NULL;         // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
+struct addrinfo* res       = NULL;        // addrinfo struct for getaddrinfo()
+void* (*recv_data)(void*)  = NULL;        // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
 void* (*send_train)(void*) = NULL;        // function pointer to send data: UDP or TCP
 
 /*  Just returns current time as double, with most possible precision...  */
@@ -68,7 +68,7 @@ int init_detection()
 
     /* set up hints for getaddrinfo() */
     struct addrinfo hints = {0}; /* for get addrinfo */
-    hints.ai_flags = AI_CANONNAME;
+    hints.ai_flags        = AI_CANONNAME;
     if(tcp_bool == 1)
         hints.ai_protocol = IPPROTO_TCP;
     else
@@ -357,14 +357,14 @@ int measure()
     rc = pthread_create(&threads[0], &attr, recv_data, &time_val);
     if(rc)
     {
-        printf("ERROR: return code from pthread_create() is %d\n",rc);
+        printf("ERROR: return code from pthread_create() is %d\n", rc);
         exit(-1);
     }
 
     rc = pthread_create(&threads[1], &attr, send_train, status[1]);
     if(rc)
     {
-        printf("ERROR: return code from pthread_create() is %d\n",               rc);
+        printf("ERROR: return code from pthread_create() is %d\n", rc);
         exit(-1);
     }
 
@@ -413,7 +413,7 @@ void mkipv4(void* buff, uint16_t size, uint8_t proto)
     ip->ip_len        = htons(size);
     ip->ip_id         = htons((uint16_t)getpid());
     ip->ip_src.s_addr = srcaddrs.sin_addr.s_addr;
-    ip->ip_dst = destip;
+    ip->ip_dst        = destip;
     ip->ip_off |= ntohs(IP_DF);
     ip->ip_ttl = ttl;
     ip->ip_p   = proto;
@@ -422,7 +422,7 @@ void mkipv4(void* buff, uint16_t size, uint8_t proto)
 void setup_syn_packet(void* buff, uint16_t port)
 {
     // setup tcpheader for syn packets...
-    uint16_t len      = (uint16_t)sizeof(struct tcphdr);
+    uint16_t len       = (uint16_t)sizeof(struct tcphdr);
     struct tcphdr* tcp = (struct tcphdr*)buff;
 
     tcp->source = htons(port);
@@ -457,7 +457,7 @@ void setup_syn_packets()
 int setup_tcp_train(char** buff, int fill)
 {
     // packet_send is already set up;
-    uint16_t len      = send_len + (uint16_t)sizeof(struct tcphdr);
+    uint16_t len       = send_len + (uint16_t)sizeof(struct tcphdr);
     char buffer[1500]  = {0};
     struct tcphdr* tcp = NULL;
 
@@ -555,7 +555,7 @@ void mkicmpv4(void* buff, size_t datalen)
     icmp->icmp_type   = ICMP_ECHO;
     icmp->icmp_code   = 0;
     icmp->icmp_id     = (uint16_t)getpid();
-    icmp->icmp_seq = (uint16_t)rand();
+    icmp->icmp_seq    = (uint16_t)rand();
     memset(icmp->icmp_data, 0xa5, datalen);
     gettimeofday((struct timeval*)icmp->icmp_data, NULL);
     icmp->icmp_cksum = 0;
@@ -692,7 +692,7 @@ void* send_tcp(void* status)
     pthread_mutex_unlock(&stop_mutex);        // release lock
 
     tcp->source = ps_tcp->source = htons(sport);        // reset tcp sport for next train
-    status = NULL;
+    status                       = NULL;
     pthread_exit(status);
 }
 
