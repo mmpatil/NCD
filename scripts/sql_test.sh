@@ -19,9 +19,6 @@ PROTOCOL_NAME="set @protocolName=\"${16}\";"
 
 SQL_VARIABLES="$PROJECTNAME $TESTNAME $TESTDATE $COMMANDNAME $HOSTIP $DESTIP $IS_SUCCESS $HIGH_TIME $LOW_TIME $HIGH_LOSSSES $LOW_LOSSES $NUM_TAIL $DEST_PORT $SRC_PORT $NUM_PACKETS $PACKET_SIZE $PROTOCOL_NAME"
 
-#echo $SQL_VARIABLES
-
-
 SQL_COMMAND="$SQL_VARIABLES insert into data (project,test_name,test_date,command,host_ip, dest_ip, success, high_time, low_time, high_losses, low_losses, num_tail, dest_port, src_port, num_packets, packet_size, protocol) \
           Values (@projectName, @testName, @testDate, @commandName, @hostIP, @destIP , @isSuccess, @highTime, @lowTime, @highLosses, @lowLosses, @numTail, @destPort, @srcPort, @numPackets, @packetSize, @protocolName);"
 
