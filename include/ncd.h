@@ -155,4 +155,5 @@ void setup_syn_packets();
  */
 void setup_syn_packet(void* buff, uint16_t port);
 
+void output_results();
 #endif        // end ncd.h

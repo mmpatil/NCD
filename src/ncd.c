@@ -8,7 +8,13 @@
 
 char* packets_e = NULL;        // empty packets
 char* packets_f = NULL;        // filled packets
-char* dst_ip    = NULL;        // destination ip address
+char* dst_ip    = NULL;        // destination IP address
+char* src_ip    = NULL;        // source IP address
+double high_time = 0;
+double low_time = 0;
+int high_losses = 0;
+int low_losses  = 0;
+int output_bool = 0;
 char* file      = NULL;        // name of file to read from /dev/urandom by default
 
 /* flags */
@@ -103,6 +109,8 @@ int init_detection()
             perror("getsockname() failed");
             return -1;
         }
+
+
         close(s);
     }        // end temp socket
 
@@ -111,7 +119,8 @@ int init_detection()
 
     /* print basic header for NCD */
     char* str_temp = tcp_bool ? "TCP" : "UDP";
-    printf("%s NCD\n", str_temp);
+    if(!output_bool)
+        printf("%s NCD\n", str_temp);
 
     /* Verbose output: metadata */
     if(verbose)
@@ -282,6 +291,9 @@ int detect()
     if(packets_f)
         free(packets_f);
     packets_f = NULL;
+
+    if(output_bool)
+        output_results();
     return EXIT_SUCCESS;
 }
 
@@ -384,7 +396,10 @@ int measure()
 
     }        // end for
     char c = second_train ? 'H' : 'L';
-    printf("%c %f sec\n", c, time_val);
+    double* value = second_train ? &high_time : &low_time;
+    *value = time_val;
+    if(!output_bool)
+        printf("%c %f sec\n", c, time_val);
     close(recv_fd);
 
     // cleanup synchronization variables
@@ -836,7 +851,14 @@ void* recv4(void* t)
             }        // end if
 
         }        // end for
-        printf("UDP Packets received: %d/%d\n", udp_ack, num_packets);
+        char* c = (second_train && !tcp_bool) ? "High":"Low";
+
+        if(!output_bool)
+            printf("UDP %s Packets received: %d/%d\n", c, udp_ack, num_packets);
+
+        //report the losses
+        int* losses = (second_train && !tcp_bool) ? &high_losses : &low_losses;
+        *losses = num_packets-udp_ack;
 
         if(verbose)
         {
@@ -858,8 +880,10 @@ void* recv4(void* t)
             }
             printf("\b\b \n");
         }
+
         if(verbose)
             printf("Echo reply from IP: %s\n", inet_ntoa(ip->ip_src));
+
         if(bitset)
             free(bitset);
     }        // end if
@@ -934,6 +958,18 @@ void print_use(char* program_name)
            program_name);
 }
 
+void output_results()
+{
+    // print meta data
+    printf("%s %s %s %d %d %d %d %d %d %d %d %f %f\n", (tcp_bool? "TCP" : "UDP"),
+            inet_ntoa(srcaddrs.sin_addr), inet_ntoa(destip), sport, dport,
+            num_packets, num_tail, data_size, tail_wait, high_losses, low_losses,
+            high_time, low_time
+            );
+
+   // print test results
+}
+
 int check_args(int argc, char* argv[])
 {
     if(argc < 2)
@@ -963,7 +999,7 @@ int check_args(int argc, char* argv[])
     int check;
     int c  = 0;
     optind = 1;
-    while((c = getopt(argc, argv, "HLTvp:c:f:s:n:t:w:r:h")) != -1)
+    while((c = getopt(argc, argv, "HLTovp:c:f:s:n:t:w:r:h")) != -1)
     {
         switch(c)
         {
@@ -1073,7 +1109,9 @@ int check_args(int argc, char* argv[])
                 return EXIT_FAILURE;
             }
             break;
-
+        case 'o':
+            output_bool = 1;
+            break;
         case ':':
             errno = ERANGE;
             fprintf(stderr, "%s: Invalid option '-%s', check use\n", argv[0], optarg);

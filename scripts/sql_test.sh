@@ -3,19 +3,23 @@ PROJECTNAME="set @projectName=\"$1\";"
 TESTNAME="set @testName=\"$2\";"
 TESTDATE="set @testDate=NOW();"
 COMMANDNAME="set @commandName=\"$3\";"
-HOSTIP="set @hostIP=\"$4\";"
-DESTIP="set @destIP=\"$5\";"
-IS_SUCCESS="set @isSuccess=$6;"
-HIGH_TIME="set @highTime=$7;"
-LOW_TIME="set @lowTime=$8;"
-HIGH_LOSSSES="set @highLosses=\"$9\";"
-LOW_LOSSES="set @lowLosses=\"${10}\";"
-NUM_TAIL="set @numTail=${11};"
-DEST_PORT="set @destPort=${12};"
-SRC_PORT="set @srcPort=${13};"
-NUM_PACKETS="set @numPackets=${14};"
-PACKET_SIZE="set @packetSize=${15};"
-PROTOCOL_NAME="set @protocolName=\"${16}\";"
+IS_SUCCESS="set @isSuccess=$4;"
+if [ $# -gt 5 ]
+then
+    PROTOCOL_NAME="set @protocolName=\"${5}\";"
+    HOSTIP="set @hostIP=\"$6\";"
+    DESTIP="set @destIP=\"$7\";"
+    SRC_PORT="set @srcPort=${8};"
+    DEST_PORT="set @destPort=${9};"
+    NUM_PACKETS="set @numPackets=${10};"
+    NUM_TAIL="set @numTail=${11};"
+    PACKET_SIZE="set @packetSize=${12};"
+    TAIL_WAIT="set @tailWait=${13}"
+    HIGH_LOSSSES="set @highLosses=\"${14}\";"
+    LOW_LOSSES="set @lowLosses=\"${15}\";"
+    HIGH_TIME="set @highTime=${16};"
+    LOW_TIME="set @lowTime=${17};"
+fi
 
 SQL_VARIABLES="$PROJECTNAME $TESTNAME $TESTDATE $COMMANDNAME $HOSTIP $DESTIP $IS_SUCCESS $HIGH_TIME $LOW_TIME $HIGH_LOSSSES $LOW_LOSSES $NUM_TAIL $DEST_PORT $SRC_PORT $NUM_PACKETS $PACKET_SIZE $PROTOCOL_NAME"
 
@@ -24,5 +28,5 @@ SQL_COMMAND="$SQL_VARIABLES insert into data (project,test_name,test_date,comman
 
 #echo $SQL_COMMAND
 
-mysql -u root -p test -e "$SQL_COMMAND"
+mysql -u root test -e "$SQL_COMMAND"
 
