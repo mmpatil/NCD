@@ -16,8 +16,7 @@ PL_TARGET_IP=127.0.0.1
 PROJECT=NCD
 TEST_NAME="My Test"
 SUCCESS=
-TIMEOUT=3
-OPTIONS=
+TIMEOUT=90
 
 #functions
 
@@ -29,8 +28,8 @@ get_results(){
 
 #Defaults
 udp_default(){
-    OPTIONS=-o
-    COMMAND_NAME="../ncd_main $OPTIONS $PL_TARGET_IP"
+    TEST_NAME=${TEST_NAME:="Default UDP"}
+    COMMAND_NAME="../ncd_main -o ${OPTIONS} $PL_TARGET_IP"
     sudo timeout $TIMEOUT ${COMMAND_NAME} > temp.txt
     if [ "$?" = 124 ]
     then
@@ -42,10 +41,9 @@ udp_default(){
 }
 
 tcp_default(){
-    TCP_OPTION=-T
-    OPTIONS=$TCP_OPTION
-    sudo ./ncd_main $PL_TARGET_IP  $OPTIONS > temp.txt 
-    get_results temp.txt
+    TEST_NAME=${TEST_NAME:="Default TCP"}
+    OPTIONS=-T
+    udp_default
 }
 
 #Port 22222
