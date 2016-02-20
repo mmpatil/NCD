@@ -39,8 +39,7 @@ struct sockaddr_in srcaddrs = {0};                                  // source IP
 struct in_addr destip       = {0};                                  // destination IP
 socklen_t sa_len            = sizeof(srcaddrs);                     // size of src address
 
-struct addrinfo* res_high       = NULL;        // addrinfo struct for getaddrinfo()
-struct addrinfo* res_low       = NULL;        // addrinfo struct for getaddrinfo()
+struct addrinfo* res       = NULL;        // addrinfo struct for getaddrinfo()
 void* (*recv_data)(void*)  = NULL;        // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
 void* (*send_train)(void*) = NULL;        // function pointer to send data: UDP or TCP
 
@@ -82,29 +81,15 @@ int init_detection()
         hints.ai_protocol = IPPROTO_UDP;
 
     /* pass a string of the destination point to getaddrinfo */
-    char str_low[8] = {0};
-    snprintf(str_low, sizeof(str_low), "%d", dport_low);
+    char str[8] = {0};
+    snprintf(str, sizeof(str), "%d", dport);
 
-    char str_high[8] = {0};
-    snprintf(str_high, sizeof(str_high), "%d", dport_high);
+    int err= getaddrinfo(dst_ip, str, &hints, &res);
 
-    int err_low = getaddrinfo(dst_ip, str, &hints, &res_low);
-
-    /*taken from http://stackoverfow.com/questions/17914550/getaddrinfo-err_lowor-success*/
-    if(err_low )
+    /*taken from http://stackoverfow.com/questions/17914550/getaddrinfo-error-success*/
+    if(err)
     {
-        if(err_low == EAI_SYSTEM)
-            fprintf(stderr, "Error looking up %s: %s\n", dst_ip, strerror(errno));
-        else
-            fprintf(stderr, "Error looking up %s: %s\n", dst_ip, gai_strerror(err));
-        exit(EXIT_FAILURE);
-    }
-
-    int err_high = getaddrinfo(dst_ip, str, &hints, &res_high);
-
-     if(err_high )
-    {
-        if(err_high == EAI_SYSTEM)
+        if(err== EAI_SYSTEM)
             fprintf(stderr, "Error looking up %s: %s\n", dst_ip, strerror(errno));
         else
             fprintf(stderr, "Error looking up %s: %s\n", dst_ip, gai_strerror(err));
@@ -114,7 +99,7 @@ int init_detection()
    // get temp socket to obtain source IP -- its a hack
     {
         int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-        if(connect(s, res_low->ai_addr, res_low->ai_addrlen) == -1)
+        if(connect(s, res->ai_addr, res->ai_addrlen) == -1)
         {
             perror("Connect failed");
             return -1;
@@ -130,7 +115,7 @@ int init_detection()
     }        // end temp socket
 
     /* Store the destination IP */
-    destip = ((struct sockaddr_in*)res_low->ai_addr)->sin_addr;
+    destip = ((struct sockaddr_in*)res->ai_addr)->sin_addr;
 
     /* print basic header for NCD */
     char* str_temp = tcp_bool ? "TCP" : "UDP";
