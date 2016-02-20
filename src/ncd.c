@@ -6,16 +6,16 @@
 #include "ncd.h"
 #include "bitset.h"
 
-char* packets_e = NULL;        // empty packets
-char* packets_f = NULL;        // filled packets
-char* dst_ip    = NULL;        // destination IP address
-char* src_ip    = NULL;        // source IP address
-double high_time = 0;
-double low_time = 0;
-int high_losses = 0;
-int low_losses  = 0;
-int output_bool = 0;
-char* file      = NULL;        // name of file to read from /dev/urandom by default
+char* packets_e  = NULL;        // empty packets
+char* packets_f  = NULL;        // filled packets
+char* dst_ip     = NULL;        // destination IP address
+char* src_ip     = NULL;        // source IP address
+double high_time = 0;           // elapsed time for high entropy
+double low_time  = 0;           // elapsed time for low entropy
+int high_losses  = 0;           // number of dropped packets for high entropy
+int low_losses   = 0;           // number of dropped packets for low entropy
+int output_bool  = 0;           // output for logging
+char* file       = NULL;        // name of file to read from /dev/urandom by default
 
 /* flags */
 uint8_t lflag         = 1;        // default option for low entropy -- set to on
@@ -55,8 +55,7 @@ double get_time(void)
 
 int init_detection()
 {
-    int icmp_packet_size = 64;        // 64 byte icmp packet size up to a mx of 76 bytes for replies, we just use the
-                                      // min
+    int icmp_packet_size = 64;        // 64 byte icmp packet size up to a mx of 76 bytes for replies
 
     /* Init global size variables with runtime data  */
     send_len = data_size + (uint16_t)sizeof(uint16_t);        // data size + size of packet id
@@ -74,7 +73,7 @@ int init_detection()
 
     /* set up hints for getaddrinfo() */
     struct addrinfo hints = {0}; /* for get addrinfo */
-    hints.ai_flags        = AI_CANONNAME;
+    hints.ai_flags = AI_CANONNAME;
     if(tcp_bool == 1)
         hints.ai_protocol = IPPROTO_TCP;
     else
@@ -84,19 +83,19 @@ int init_detection()
     char str[8] = {0};
     snprintf(str, sizeof(str), "%d", dport);
 
-    int err= getaddrinfo(dst_ip, str, &hints, &res);
+    int err = getaddrinfo(dst_ip, str, &hints, &res);
 
     /*taken from http://stackoverfow.com/questions/17914550/getaddrinfo-error-success*/
     if(err)
     {
-        if(err== EAI_SYSTEM)
+        if(err == EAI_SYSTEM)
             fprintf(stderr, "Error looking up %s: %s\n", dst_ip, strerror(errno));
         else
             fprintf(stderr, "Error looking up %s: %s\n", dst_ip, gai_strerror(err));
         exit(EXIT_FAILURE);
     }
 
-   // get temp socket to obtain source IP -- its a hack
+    // get temp socket to obtain source IP -- its a hack
     {
         int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
         if(connect(s, res->ai_addr, res->ai_addrlen) == -1)
@@ -395,7 +394,7 @@ int measure()
             return EXIT_FAILURE;
 
     }        // end for
-    char c = second_train ? 'H' : 'L';
+    char c        = second_train ? 'H' : 'L';
     double* value = second_train ? &high_time : &low_time;
     *value = time_val;
     if(!output_bool)
@@ -428,7 +427,7 @@ void mkipv4(void* buff, uint16_t size, uint8_t proto)
     ip->ip_len        = htons(size);
     ip->ip_id         = htons((uint16_t)getpid());
     ip->ip_src.s_addr = srcaddrs.sin_addr.s_addr;
-    ip->ip_dst        = destip;
+    ip->ip_dst = destip;
     ip->ip_off |= ntohs(IP_DF);
     ip->ip_ttl = ttl;
     ip->ip_p   = proto;
@@ -570,7 +569,7 @@ void mkicmpv4(void* buff, size_t datalen)
     icmp->icmp_type   = ICMP_ECHO;
     icmp->icmp_code   = 0;
     icmp->icmp_id     = (uint16_t)getpid();
-    icmp->icmp_seq    = (uint16_t)rand();
+    icmp->icmp_seq = (uint16_t)rand();
     memset(icmp->icmp_data, 0xa5, datalen);
     gettimeofday((struct timeval*)icmp->icmp_data, NULL);
     icmp->icmp_cksum = 0;
@@ -706,7 +705,7 @@ void* send_tcp(void* status)
     pthread_mutex_unlock(&stop_mutex);        // release lock
 
     tcp->source = ps_tcp->source = htons(sport);        // reset tcp sport for next train
-    status                       = NULL;
+    status = NULL;
     pthread_exit(status);
 }
 
@@ -850,14 +849,14 @@ void* recv4(void* t)
             }        // end if
 
         }        // end for
-        char* c = (second_train && !tcp_bool) ? "High":"Low";
+        char* c = (second_train && !tcp_bool) ? "High" : "Low";
 
         if(!output_bool)
             printf("UDP %s Packets received: %d/%d\n", c, udp_ack, num_packets);
 
-        //report the losses
+        // report the losses
         int* losses = (second_train && !tcp_bool) ? &high_losses : &low_losses;
-        *losses = num_packets-udp_ack;
+        *losses     = num_packets - udp_ack;
 
         if(verbose)
         {
@@ -960,13 +959,11 @@ void print_use(char* program_name)
 void output_results()
 {
     // print meta data
-    printf("%s %s %s %d %d %d %d %d %d %d %d %f %f\n", (tcp_bool? "TCP" : "UDP"),
-            inet_ntoa(srcaddrs.sin_addr), inet_ntoa(destip), sport, dport,
-            num_packets, num_tail, data_size, tail_wait, high_losses, low_losses,
-            high_time, low_time
-            );
+    printf("%s %s %s %d %d %d %d %d %d %d %d %f %f\n", (tcp_bool ? "TCP" : "UDP"), inet_ntoa(srcaddrs.sin_addr),
+           inet_ntoa(destip), sport, dport, num_packets, num_tail, data_size, tail_wait, high_losses, low_losses,
+           high_time, low_time);
 
-   // print test results
+    // print test results
 }
 
 int check_args(int argc, char* argv[])

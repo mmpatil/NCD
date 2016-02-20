@@ -83,12 +83,12 @@ extern char* dst_ip;           // destination ip address
 extern char* file;             // name of file to read from /dev/urandom by default
 
 /* flags */
-extern uint8_t lflag;               // default option for low entropy -- set to on
-extern uint8_t hflag;               // default option for high entropy -- set to on
+extern uint8_t lflag;                // default option for low entropy -- set to on
+extern uint8_t hflag;                // default option for high entropy -- set to on
 extern int verbose;                  // flag for verbose output
 extern const int num_threads;        // number of threads we'll use
 extern int cooldown;                 // time in seconds to wait between data trains
-extern uint8_t tcp_bool;            // bool for whether to use tcp or udp(1 == true, 0 == false)
+extern uint8_t tcp_bool;             // bool for whether to use tcp or udp(1 == true, 0 == false)
 extern int second_train;             // bool for if this is the second or first train
 
 /* global buffers on the stack */
@@ -100,7 +100,7 @@ extern char syn_packet_2[20];         // packet for tail SYN
 extern char icmp_send[128];           // buffer for ICMP messages
 
 extern struct pseudo_header* ps;           // pseudo header
-extern uint16_t* packet_id;               // sequence/ID number of udp msg
+extern uint16_t* packet_id;                // sequence/ID number of udp msg
 extern struct sockaddr_in srcaddrs;        // source IP address
 extern struct in_addr destip;              // destination IP
 extern socklen_t sa_len;                   // size of src address
