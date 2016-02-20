@@ -28,5 +28,4 @@ SQL_COMMAND="$SQL_VARIABLES insert into data (project,test_name,test_date,comman
 
 #echo $SQL_COMMAND
 
-mysql -u root test -e "$SQL_COMMAND"
-
+mysql -u ucla_triton ncd -e "$SQL_COMMAND"

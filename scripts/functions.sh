@@ -59,9 +59,6 @@ port_tests()
 
     COMMAND_NAME="../ncd_main -oH ${OPTIONS} $PL_TARGET_IP"
     ${COMMAND_NAME} >high.txt
-
-
-
 }
 
 udp_ports(){
@@ -114,4 +111,3 @@ udp_default(){
 #end comment block
 
 #main script
-
