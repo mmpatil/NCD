@@ -145,7 +145,7 @@ TEST_F(MeasureUdpTest, measure_works)
     EXPECT_NE(0, time_val);
     EXPECT_EQ(1, stop);
     EXPECT_EQ(0, recv_ready);
-    EXPECT_EQ(num_packets, udp_ack);
+    EXPECT_GE(num_packets, udp_ack);
 }
 
 TEST_F(DetectUdpTest, detect_works)
