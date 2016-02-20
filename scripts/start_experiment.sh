@@ -1,6 +1,6 @@
 #!/bin/sh
 
-EXPERIMENT=scripts/tcp_experiment.sh
-USER=ucla_triton
+EXPERIMENT=tcp_experiment.sh
+USER=paul
 
-ssh $USER@$1 "$EXPERIMENT"
+ssh $USER@$1 "cd ncd/scripts; ./$EXPERIMENT"
