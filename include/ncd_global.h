@@ -48,8 +48,10 @@ uint16_t data_size;          // size of udp data payload
 uint16_t num_packets;        // number of packets in udp data train
 uint16_t num_tail;           // number of tail icmp messages sent tail_wait apart
 uint16_t tail_wait;          // time between ICMP tail messages
-uint16_t dport;              // destination port number
-uint16_t sport;              // source port number
+uint16_t dport_high;              // destination port number
+uint16_t dport_low;              // destination port number
+uint16_t sport_high;              // source port number
+uint16_t sport_low;              // source port number
 uint16_t syn_port;           // source port number
 uint8_t ttl;                 // time to live
 
