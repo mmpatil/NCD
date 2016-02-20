@@ -24,6 +24,9 @@ set the entropy to high (only second train)
 \fB-L\fR
 set the entropy to low (only first train)
 .TP
+\fB-o\fR 
+output results and metadata separated by spaces. Useful for parsing data.
+.TP
 \fB-T\fR 
 use TCP instead of UDP
 .TP
@@ -36,8 +39,14 @@ set the number of packets in the UDP data train to NUM
 \fB-t\fR \fITTL\fR
 set the Time To Live for all outgoing packets to TTL
 .TP
+\fB-c\fR \fICOOLDOWN\fR
+set the cooldown period between High and Low Entropy trains for COOLDOWN seconds.
+.TP
 .B -w \fITAIL_WAIT\fR
 set the time between tail ICMP messages to TAIL_WAIT in milliseconds
+.TP
+\fB-v\fR
+enable verbose output
 .TP
 \fB-r\fR \fINUM_TAIL\fR
 set the number of tail ICMP messages to NUM_TAIL
