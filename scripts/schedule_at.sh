@@ -19,6 +19,6 @@ while read line
 do
     arr=($line)
     at ${arr[0]} << ENDMARKER
-    timeout $TIMEOUT ${arr[2]}
+    ${arr[2]} ${arr[1]}
 ENDMARKER
 done < $1
