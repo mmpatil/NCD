@@ -6,26 +6,27 @@
 #include "ncd.h"
 #include "bitset.h"
 
-char* packets_e  = NULL;        // empty packets
-char* packets_f  = NULL;        // filled packets
-char* dst_ip     = NULL;        // destination IP address
-char* src_ip     = NULL;        // source IP address
-double high_time = 0;           // elapsed time for high entropy
-double low_time  = 0;           // elapsed time for low entropy
-int high_losses  = 0;           // number of dropped packets for high entropy
-int low_losses   = 0;           // number of dropped packets for low entropy
-int output_bool  = 0;           // output for logging
-char* file       = NULL;        // name of file to read from /dev/urandom by default
+char* packets_e       = NULL;        // empty packets
+char* packets_f       = NULL;        // filled packets
+char* dst_ip          = NULL;        // destination IP address
+char* src_ip          = NULL;        // source IP address
+char* file            = NULL;        // name of file to read from /dev/urandom by default
+double high_time      = 0;           // elapsed time for high entropy
+double low_time       = 0;           // elapsed time for low entropy
+int high_losses       = 0;           // number of dropped packets for high entropy
+int low_losses        = 0;           // number of dropped packets for low entropy
+int cooldown          = 5;           // time in seconds to wait between data trains
+const int num_threads = 2;           // number of threads used by ncd
 
 /* flags */
-uint8_t lflag         = 1;        // default option for low entropy -- set to on
-uint8_t hflag         = 1;        // default option for high entropy -- set to on
-int verbose           = 0;        // flag for verbose output
-const int num_threads = 2;        // number of threads used by ncd
-int cooldown          = 5;        // time in seconds to wait between data trains
-uint8_t tcp_bool      = 0;        // bool for whether to use tcp or udp(1 == true, 0 == false)
-int second_train      = 0;        // bool to denote if the second train is being sent.
+uint8_t lflag    = 1;        // default option for low entropy -- set to on
+uint8_t hflag    = 1;        // default option for high entropy -- set to on
+int verbose      = 0;        // flag for verbose output
+int output_bool  = 0;        // output for logging
+uint8_t tcp_bool = 0;        // bool for whether to use tcp or udp(1 == true, 0 == false)
+int second_train = 0;        // bool to denote if the second train is being sent.
 
+/*structs*/
 char pseudo[1500]      = {0};        // buffer for pseudo header
 char packet_rcv[1500]  = {0};        // buffer for receiving replies
 char packet_send[SIZE] = {0};        // buffer for sending data
@@ -33,15 +34,17 @@ char syn_packet_1[20]  = {0};        // packet for head SYN
 char syn_packet_2[20]  = {0};        // packet for tail SYN
 char icmp_send[128]    = {0};        // buffer for ICMP messages
 
+/* struct pointers */
 struct pseudo_header* ps    = (struct pseudo_header*)pseudo;        // pseudo header
 uint16_t* packet_id         = (uint16_t*)packet_send;               // sequence/ID number of udp msg
 struct sockaddr_in srcaddrs = {0};                                  // source IP address
 struct in_addr destip       = {0};                                  // destination IP
+struct addrinfo* res        = NULL;                                 // addrinfo struct for getaddrinfo()
 socklen_t sa_len            = sizeof(srcaddrs);                     // size of src address
 
-struct addrinfo* res       = NULL;        // addrinfo struct for getaddrinfo()
-void* (*recv_data)(void*)  = NULL;        // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
+/* function pointers */
 void* (*send_train)(void*) = NULL;        // function pointer to send data: UDP or TCP
+void* (*recv_data)(void*) = NULL;         // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time(void)
