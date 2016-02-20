@@ -43,13 +43,13 @@ class ScheduleMaker(object):
 
         self.output_file_name = u"schedule.txt"
 
-    def create_schedule(self, seed=None):
+    def create_schedule(self, use_random=False,seed=None):
         days = list(per_delta(self.start_date, self.end_date, timedelta(days=1)))
         with open(self.output_file_name, u'w') as outFile:
             for day in days:
-                self.write_day(self.schedule_day(day, seed), outFile)
+                self.write_day(self.schedule_day(day, use_random, seed), outFile)
 
-    def schedule_day(self, my_date, seed=None):
+    def schedule_day(self, my_date, use_random, seed):
         day = {}
         d = datetime.combine(my_date, time(0, 0))
         if seed is not None:
@@ -61,7 +61,10 @@ class ScheduleMaker(object):
             # we should also pass in the day's date, and remove logic to make times consistent for the whole day
             # datetime removes a great deal of that calculation
 
-            schedule = random.sample(list(per_delta(period, (period + self.period), self.interval)), len(self.target_list))
+            if(use_random):
+                schedule = random.sample(list(per_delta(period, (period + self.period), self.interval)), len(self.target_list))
+            else:
+                schedule = list(per_delta(period, (period + self.period), self.interval))[: len(self.target_list)]
 
             day.update(dict(izip(schedule, self.target_list)))
 
@@ -87,4 +90,4 @@ def per_delta(start, end, delta):
 
 if __name__ == u"__main__":
     scheduler = ScheduleMaker(u"ip_list.txt", date(2016, 3, 15), date(2016, 3, 17), timedelta(hours=1), timedelta(minutes=1), u"echo 'Hello World!'")
-    scheduler.create_schedule(0)
+    scheduler.create_schedule(False, 0)
