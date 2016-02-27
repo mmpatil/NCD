@@ -6,6 +6,10 @@
 #ifndef _NCD_H_
 #define _NCD_H_
 
+//#include <cstdio>
+//#include <cstdlib>
+//#include <string>
+//#include <cstring>
 #include <stdio.h>           /* for printf, fprintf, snprintf, perror, ... */
 #include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
 #include <string.h>          /* for memcpy */
@@ -24,6 +28,7 @@
 #include <ctype.h>           /* for inet_pton() */
 #include <pthread.h>         /* for pthread */
 #include "ncd_global.h"
+//#include <vector>
 /**
  * Favor the BSD style UDP & IP headers
  */
@@ -156,4 +161,86 @@ void setup_syn_packets();
 void setup_syn_packet(void* buff, uint16_t port);
 
 void output_results();
+/*
+template <size_t N>
+class payload
+{
+public:
+    payload()
+        : size(N){};
+    void fill_data() {}
+    char data[N];
+    uint32_t size;
+};
+
+
+template <typename T, size_t N>
+class transport_packet : public payload<N>
+{
+public:
+    transport_packet(uint32_t sport, uint32_t dport)
+        : payload<N>()
+    {
+        header.source = sport;
+        header.dest   = dport;
+    }
+
+    T header;
+};
+
+template <size_t N>
+class tcp_packet : public transport_packet <tcphdr,N>
+{
+
+public:
+    tcp_packet(uint32_t sport, uint32_t dport, uint32_t seq, uint32_t ack_seq, uint16_t window, uint16_t check_sum,
+               uint16_t urgptr)
+        : transport_packet<tcphdr, N>(sport, dport)
+    {
+        this->header.seq     = seq;
+        this->header.ack_seq = ack_seq;
+        this->header.window  = window;
+        this->header.check   = check_sum;
+        this->header.urg_ptr = urgptr;
+    }
+};
+
+
+template < size_t N>
+class udp_packet: transport_packet<udphdr, N>
+{
+
+public:
+    udp_packet(uint32_t sport, uint32_t dport, uint16_t check_sum)
+        : transport_packet<udphdr, N>(sport, dport)
+    {
+        this->header.check = check_sum;
+    }
+};
+
+template <typename T, size_t N>
+class ip_packet : public transport_packet<T,N>
+{
+
+public:
+    ip_packet(uint8_t tos, uint16_t length, uint16_t id, uint16_t frag_off, uint8_t ttl, uint8_t proto,
+              uint16_t check_sum, uint32_t saddr, uint32_t daddr)
+        : transport_packet<T, N>()
+    {
+    }
+
+    struct iphdr ip_header;
+};
+
+template <size_t N>
+class packet_train
+{
+private:
+    std::vector<payload<N>> packets;
+
+public:
+    packet_train();
+};
+
+*/
 #endif        // end ncd.h

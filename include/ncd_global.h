@@ -70,7 +70,7 @@ pthread_cond_t stop_cv;                  // condition variabl for stop -- denote
 pthread_cond_t recv_ready_cv;            // condition variable for recv_ready mutex
 
 
-/* Time varibles */
+/* Time variables */
 double time_val;        // time as a double -- used to pass the value back to main
 double td;              // time value as a double -- used in calcs
 int udp_ack;

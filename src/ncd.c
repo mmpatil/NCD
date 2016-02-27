@@ -47,7 +47,7 @@ void* (*send_train)(void*) = NULL;        // function pointer to send data: UDP 
 void* (*recv_data)(void*) = NULL;         // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
 
 /*  Just returns current time as double, with most possible precision...  */
-double get_time(void)
+double get_time()
 {
     struct timeval tv;
     double d;
@@ -315,7 +315,7 @@ int measure()
     pthread_attr_t attr;
 
     int rc;
-    register int i;
+    int i;
 
     void* status[2] = {0};
 
@@ -384,7 +384,7 @@ int measure()
 
     for(i = 0; i < num_threads; ++i)
     {
-        rc = pthread_join(threads[i], status[i]);
+        rc = pthread_join(threads[i], &status[i]);
         if(rc)
         {
             printf("ERROR; return code from "
@@ -471,6 +471,17 @@ void setup_syn_packets()
     setup_syn_packet(syn_packet_2, syn_port);
 }
 
+/**
+ * this should become a generic function for setting up
+ * either a tcp or udp train depending on the parameters
+ *
+ * new params should be:
+ *  the fill data for the payload
+ *  the type of transport packet:tcp, udp, none
+ *  whether to use IP header
+ *
+ * It should be invoked by the class constructor
+ */
 int setup_tcp_train(char** buff, int fill)
 {
     // packet_send is already set up;
@@ -504,7 +515,7 @@ int setup_tcp_train(char** buff, int fill)
 
     char* ptr = *buff;
     uint16_t* pk_num;
-    register int i = 0;
+    int i = 0;
 
     for(i = 0; i < num_packets; ++i, ptr += len)
     {
@@ -579,6 +590,10 @@ void mkicmpv4(void* buff, size_t datalen)
     icmp->icmp_cksum = ip_checksum(icmp, datalen + sizeof(struct icmp));
 }
 
+/**
+ * change to use the pre allocated buffer
+ *
+ */
 void* send_udp(void* status)
 {
     int n;
@@ -597,7 +612,7 @@ void* send_udp(void* status)
     *packet_id = 0;
 
     /*send data train*/
-    register int i;
+    int i;
     for(i = 0; i < num_packets; ++i, (*packet_id)++)
     {
         n = sendto(send_fd, packet_send, send_len, 0, res->ai_addr, res->ai_addrlen);
@@ -676,8 +691,8 @@ void* send_tcp(void* status)
     td = get_time();        // time stamp just before we begin sending
 
     /*send data train*/
-    register int i = 0;
-    char* ptr      = second_train ? packets_f : packets_e;
+    int i     = 0;
+    char* ptr = second_train ? packets_f : packets_e;
 
     for(i = 0; i < num_packets; ++i, ptr += len)
     {
@@ -712,6 +727,7 @@ void* send_tcp(void* status)
     pthread_exit(status);
 }
 
+// stay the same... mostly
 void fill_data(void* buff, size_t size)
 {
     /* fill with random data from file location */
@@ -731,6 +747,12 @@ void fill_data(void* buff, size_t size)
     close(fd);
 }
 
+/**
+ *  split this function up so that the tcp implmentation and udp implemntation are separate
+ *  they can each be simple functions that are invoked inside
+ *
+ *  logic for managing these items is also much simpler now that the will not be reused by the class
+ */
 void* recv4(void* t)
 {
     double* time = (double*)t;
@@ -864,7 +886,7 @@ void* recv4(void* t)
         if(verbose)
         {
             printf("Missing Packets:  ");
-            register int i = 0;
+            int i = 0;
             for(i = 0; i < num_packets; ++i)
             {
                 if(get_bs_32(bitset, i, num_packets) == 0)
@@ -892,6 +914,7 @@ void* recv4(void* t)
     pthread_exit(NULL);
 }
 
+// can stay the same
 uint16_t ip_checksum(void* vdata, size_t length)
 {
     /* Cast the data pointer to one that can be indexed. */
@@ -951,6 +974,7 @@ uint16_t ip_checksum(void* vdata, size_t length)
     return htons(~acc);
 }
 
+// stay the same
 void print_use(char* program_name)
 {
     printf("Usage: %s [-H | -L] [-T] [-v] [-p PORT] [-c COOLDOWN]\n"
@@ -959,6 +983,7 @@ void print_use(char* program_name)
            program_name);
 }
 
+// stay the same
 void output_results()
 {
     // print meta data
@@ -969,6 +994,7 @@ void output_results()
     // print test results
 }
 
+// stay the same... with small modifications
 int check_args(int argc, char* argv[])
 {
     if(argc < 2)
