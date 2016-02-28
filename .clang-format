@@ -16,7 +16,7 @@ AlwaysBreakBeforeMultilineStrings: false
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: false
-BreakConstructorInitializersBeforeComma: true
+BreakConstructorInitializersBeforeComma: false
 BinPackParameters: true
 ColumnLimit:     120
 CommentPragmas:  '^!<'
