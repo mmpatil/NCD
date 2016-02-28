@@ -3,6 +3,7 @@
 //#include <string.h>          /* for memcpy */
 //#include <sys/time.h>        /* for gettimeofday() */
 //#include <errno.h>           /* for errno*/
+#include <unistd.h>          /* for close() */
 #include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
 #include <netinet/ip.h>      /* for struct ip */
 #include <netinet/ip_icmp.h> /* for struct icmp */
@@ -12,7 +13,6 @@
 #include <arpa/inet.h>       /* for inet_pton() */
 //#include <signal.h>          /* for kill() */
 //#include <fcntl.h>           /* for O_RDONLY */
-#include <unistd.h> /* for _________ */
 //#include <ctype.h>           /* for inet_pton() */
 //#include <pthread.h>         /* for pthread */
 //#include "ncd_global.h"
@@ -56,7 +56,8 @@ class detector
 public:
     detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id, uint16_t frag_off,
              uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
-             std::string filename = "/dev/urandom", uint32_t num_packets = 1000, uint32_t data_length=512, uint32_t num_tail=20, )
+             std::string filename = "/dev/urandom", uint32_t num_packets = 1000, uint32_t data_length = 512,
+             uint32_t num_tail = 20, )
         : src_ip(src_ip), dest_ip(dest_ip), tos(tos), ip_length(ip_length), ip_id(id), frag_off(frag_off), ttl(ttl),
           proto(proto), check_sum(check_sum), sport(sport), dport(dport), res(nullptr), num_packets(num_packets),
           data_length(data_length)
@@ -175,23 +176,20 @@ private:
     uint32_t num_packets;
     uint32_t data_length;
 
-// file descriptors
-// cli args
+    // file descriptors
+    // cli args
 
-// pointers
-// packets
+    // pointers
+    // packets
 
-// packet size, payload size, transport size, ip size
-
-
-
-// threading items
+    // packet size, payload size, transport size, ip size
 
 
-// time
-double miliseconds;
-timeval elapsed;
+    // threading items
 
 
+    // time
+    double miliseconds;
+    timeval elapsed;
 };
 
