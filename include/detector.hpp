@@ -12,7 +12,7 @@
 #include <arpa/inet.h>       /* for inet_pton() */
 //#include <signal.h>          /* for kill() */
 //#include <fcntl.h>           /* for O_RDONLY */
-//#include <unistd.h>          /* for _________ */
+#include <unistd.h> /* for _________ */
 //#include <ctype.h>           /* for inet_pton() */
 //#include <pthread.h>         /* for pthread */
 //#include "ncd_global.h"
@@ -23,7 +23,22 @@
 #include <cstdint>
 #include <iostream>
 
-#include <unistd.h>
+
+#include <vector>
+
+typedef std::vector<char> buffer_t;
+
+/**
+ * struct for udp pseudo header
+ */
+struct __attribute__((__packed__)) pseudo_header
+{
+    uint32_t source;
+    uint32_t dest;
+    uint8_t zero;
+    uint8_t proto;
+    uint16_t len;
+};
 
 enum class transport_type
 {
@@ -40,9 +55,11 @@ class detector
 {
 public:
     detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id, uint16_t frag_off,
-             uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport, std::string filename = "")
+             uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
+             std::string filename = "/dev/urandom", uint32_t num_packets = 1000, uint32_t data_length=512, uint32_t num_tail=20, )
         : src_ip(src_ip), dest_ip(dest_ip), tos(tos), ip_length(ip_length), ip_id(id), frag_off(frag_off), ttl(ttl),
-          proto(proto), check_sum(check_sum), sport(sport), dport(dport), res(nullptr)
+          proto(proto), check_sum(check_sum), sport(sport), dport(dport), res(nullptr), num_packets(num_packets),
+          data_length(data_length)
     {
         file.open(filename);
         setup_ip_info();
@@ -53,8 +70,8 @@ public:
         ip_header.id       = id;
         ip_header.frag_off = frag_off;
         ip_header.ttl      = ttl;
-        ip_header.protocol=proto;
-        ip_header.check = check_sum;
+        ip_header.protocol = proto;
+        ip_header.check    = check_sum;
     }
 
     virtual ~detector()
@@ -127,7 +144,7 @@ public:
             ip_header.saddr = srcaddrs.sin_addr.s_addr;
             close(temp_sock);
         }        // end temp socket
-    }// end setup_ip_info()
+    }            // end setup_ip_info()
 
 private:
     /* data */
@@ -154,5 +171,27 @@ private:
     int packets_lost;            // number of packets lost -- for loss based approach
     const size_t num_threads = 2;        // number of threads used by pthread
     addrinfo* res;
+    buffer_t data_train;
+    uint32_t num_packets;
+    uint32_t data_length;
+
+// file descriptors
+// cli args
+
+// pointers
+// packets
+
+// packet size, payload size, transport size, ip size
+
+
+
+// threading items
+
+
+// time
+double miliseconds;
+timeval elapsed;
+
+
 };
 
