@@ -1,3 +1,34 @@
+
+/*
+  The MIT License
+
+  Copyright (c) 2015-2016 Paul Kirth pk1574@gmail.com
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+*/
+
+/**
+ * @author: Paul Kirth
+ * @file: ncd.c
+ */
+
+
 //#include <stdio.h>           /* for printf, fprintf, snprintf, perror, ... */
 //#include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
 //#include <string.h>          /* for memcpy */
@@ -26,6 +57,10 @@
 #include <cstring>
 #include <memory>
 #include <vector>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
 
 #include "ip_checksum.h"
 #include "bitset.h"
@@ -171,7 +206,7 @@ public:
         icmp->icmp_seq    = seq;
 
         memset(icmp->icmp_data, 0xa5, length);
-        gettimeofday((struct timeval*)icmp->icmp_data, NULL);
+        gettimeofday((struct timeval*)icmp->icmp_data, nullptr);
 
         icmp->icmp_cksum = 0;
         icmp->icmp_cksum = ip_checksum(icmp, data.size() - offset);
@@ -185,6 +220,7 @@ class ip_tcp_packet : public tcp_packet
 public:
     ip_tcp_packet(const iphdr& ip, size_t payload_length, uint16_t sport, uint16_t dport, uint32_t sequence,
                   uint32_t ack_sequence, uint16_t win, uint16_t urg, bool ack_flag, bool syn_flag, char doff)
+
         : tcp_packet(payload_length + sizeof(iphdr), sizeof(iphdr), sport, dport, sequence, ack_sequence, win, urg,
                      ack_flag, syn_flag, doff),
           ps{ip.saddr, ip.daddr, 0, IPPROTO_TCP, htons(payload_length + sizeof(pseudo_header) + sizeof(udphdr))}
@@ -341,29 +377,28 @@ public:
     virtual void populate_trans();                 // pure virtual
     virtual void populate_none();                  // pure virtual
     virtual int transport_header_size();           // returns size of transport header -- pure virtual
-    virtual void* send_train(void* status);        // sends the packet train -- pure virtual;
-    virtual void* receive();                       // receives responses from the target IP -- pure virtual
+    virtual void send_train();        // sends the packet train -- pure virtual;
+    virtual void receive();                       // receives responses from the target IP -- pure virtual
     virtual void measure()
     {
-
         // initialize synchronization variables
-        stop       = 0;        // boolean false
-        recv_ready = 0;        // boolean false
+        stop       = false;        // boolean false
+        recv_ready = false;        // boolean false
 
-        pthread_mutex_init(&stop_mutex, NULL);
-        pthread_cond_init(&stop_cv, NULL);
+        std::vector<std::thread> threads;
+        threads.emplace_back(&detector::receive, this);
+        threads.emplace_back(&detector::send_train, this);
+        for(auto& t : threads)
+        {
+            t.join();
+        }        // end for
 
-        pthread_mutex_init(&recv_ready_mutex, NULL);
-        pthread_cond_init(&recv_ready_cv, NULL);
+        if(!sql_output)
+            printf("%f sec\n", miliseconds);        // are these unit correct now???
+        close(recv_fd);
 
-        pthread_t threads[num_threads];
-        pthread_attr_t attr;
+    }        // end measure()
 
-        int rc;
-        int i;
-
-        void* status[2] = {0};
-    }
     virtual void setup_ip_info()
     {
         // set leading bits for version and ip header length -- can change later;
@@ -461,10 +496,10 @@ protected:
     // threading items
     bool recv_ready;        // bool for receiving SYN packets -- denotes if the program is ready to receive traffic
     bool stop;              // boolean for if the send thread can stop (receive thread has received second response.
-    pthread_mutex_t stop_mutex;              // mutex for stop
-    pthread_mutex_t recv_ready_mutex;        // mutex for recv_ready
-    pthread_cond_t stop_cv;                  // condition variabl for stop -- denotes
-    pthread_cond_t recv_ready_cv;            // condition variable for recv_ready mutex
+    std::mutex stop_mutex;                        // mutex for stop
+    std::mutex recv_ready_mutex;                  // mutex for recv_ready
+    std::condition_variable stop_cv;              // condition variable for stop -- denotes
+    std::condition_variable recv_ready_cv;        // condition variable for recv_ready mutex
 
 
     // internal data
@@ -570,7 +605,7 @@ public:
     }
 
 
-    virtual void* send_train(void* status)
+    virtual void send_train()
     {
         int icmp_packet_size = 64;        // 64 byte icmp packet size up to a mx of 76 bytes for replies
 
@@ -586,10 +621,6 @@ public:
         ip_icmp_packet icmp_send(ip_header, icmp_data_len, ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand());
 
         int n;
-        struct timespec tail_wait_tv;
-
-        // tail wait is in milliseconds, so multiply by 10^6 to convert to nanoseconds
-        tail_wait_tv.tv_nsec = tail_wait * 1000000;
 
         /*send Head ICMP Packet*/
         n = sendto(icmp_fd, icmp_send.data.data(), icmp_ip_len, 0, res->ai_addr, res->ai_addrlen);
@@ -613,8 +644,8 @@ public:
         struct icmp* icmp = (struct icmp*)(icmp_send.data.data() + sizeof(struct ip));
 
         /*send tail ICMP Packets with timer*/
-        pthread_mutex_lock(&stop_mutex);        // acquire lock
-        for(int i = 0; i < num_tail && stop == 0; ++i)
+        std::unique_lock<std::mutex> stop_lock(stop_mutex);        // acquire lock
+        for(int i = 0; i < num_tail && !stop; ++i)
         {
             /*not sure if changing the sequence number will help*/
             icmp->icmp_cksum = 0;
@@ -628,16 +659,13 @@ public:
                 exit(EXIT_FAILURE);
             }
 
-            pthread_cond_timedwait(&stop_cv, &stop_mutex, &tail_wait_tv);
+            stop_cv.wait_for(stop_lock, std::chrono::milliseconds(tail_wait));
 
-        }        // end for
-
-        pthread_mutex_unlock(&stop_mutex);        // release lock
-        status = NULL;
-        pthread_exit(status);
+        }                     // end for
+        stop_lock.unlock();        // release lock
     }
 
-    virtual void* receive()
+    virtual void receive()
     {
 
         /*number of bytes received*/
@@ -699,12 +727,11 @@ public:
                 else
                 {
                     miliseconds = get_time() - miliseconds;
-                    pthread_mutex_lock(&stop_mutex);        // acquire lock
-                    stop = 1;
-                    pthread_cond_signal(&stop_cv);
-                    pthread_mutex_unlock(&stop_mutex);        // release lock
-                    break;
-                }        // end if
+                    std::lock_guard<std::mutex> guard(stop_mutex);        // acquire lock
+                    stop = true;
+                    stop_cv.notify_all();
+                    break;        // release lock
+                }                 // end if
             }
             else if(icmp->icmp_type == 11)
             {
@@ -748,17 +775,14 @@ public:
         if(bitset)
             free(bitset);
 
-        pthread_exit(NULL);
+        pthread_exit(nullptr);
     }        // end receive()
 
 private:
     /* data */
-    int send_fd;
-    int recv_fd;
     int icmp_fd;
 };
 
-#if 0
 
 class tcp_detector : public detector
 {
@@ -767,12 +791,14 @@ public:
                  uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                  std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
                  uint32_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
-                 transport_type trans_proto = transport_type::tcp)
+                 transport_type trans_proto = transport_type::tcp, uint16_t syn_port_in = 22223)
         : detector(src_ip, dest_ip, tos, data_length + sizeof(tcphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
                    check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
-                   trans_proto)
+                   trans_proto),
+          syn_port(syn_port_in)
     {
     }
+
     virtual ~tcp_detector() {}
 
     virtual void populate_full()
@@ -801,7 +827,7 @@ public:
             exit(EXIT_FAILURE);
         }
 
-        send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_tcp);
+        send_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
 
         if(send_fd == -1)
         {
@@ -828,20 +854,14 @@ public:
 
         setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 
-        /* acquire socket for icmp messages*/
-        icmp_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
-
-        if(icmp_fd == -1)
+        if(raw == full)
         {
-            perror("call to socket() failed for ICMP");
-            exit(EXIT_FAILURE);
-        }
-
-        /* set up our own IP header*/
-        int icmp_hdrincl = 1;
-        if(setsockopt(icmp_fd, IPPROTO_IP, IP_HDRINCL, &icmp_hdrincl, sizeof(icmp_hdrincl)) == -1)
-        {
-            perror("setsockopt() failed icmp");
+            /* set up our own IP header*/
+            int tcp_hdrincl = 1;
+            if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &tcp_hdrincl, sizeof(tcp_hdrincl)) == -1)
+            {
+                perror("setsockopt() failed icmp");
+            }
         }
 
         /*give up privileges */
@@ -851,10 +871,46 @@ public:
             perror("Elevated privileges not released");
             exit(EXIT_FAILURE);
         }
+
+        recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
+
+        if(recv_fd == -1)
+        {
+            perror("call to socket() failed");
+            exit(EXIT_FAILURE);
+        }
+
+        /* give up root privileges */
+        err = setuid(getuid());
+        if(err < 0)
+        {
+            perror("Elevated privileges not released...");
+            exit(EXIT_FAILURE);
+        }
+
+        /*increase size of receive buffer*/
+
+        int opts = 1500 * num_packets;
+
+
+        setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &opts, sizeof(opts));
+
+#if DEBUG
+        if(verbose)
+        {
+            int buffsize;
+            socklen_t bufflen = sizeof(buffsize);
+
+            getsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, (void*)&buffsize, &bufflen);
+
+            printf("Send Buffer size: %d\n", buffsize);
+            getsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, (void*)&buffsize, &bufflen);
+            printf("Receive Buffer size: %d\n", buffsize);
+        }
+#endif
     }
 
-
-    virtual void* send_train(void* status)
+    virtual void send_train()
     {
         int n;
         struct timespec tail_wait_tv;
@@ -862,12 +918,12 @@ public:
         // tail wait is in milliseconds, so multiply by 10^6 to convert to nanoseconds
         tail_wait_tv.tv_nsec = tail_wait * 1000000;
 
-        //int len               = send_len + sizeof(struct tcphdr);
-        //char buff[1500]       = {0};
-        struct tcphdr* tcp    = (struct tcphdr*)packet_send;
-        struct tcphdr* ps_tcp = (struct tcphdr*)(ps + 1);
+        ip_tcp_packet syn_packet_1(ip_header, 1, sport, dport, 1, 0, (1 << 15) - 1, 0, 0, 1, 5);
+        ip_tcp_packet syn_packet_2(ip_header, 1, sport + 1, syn_port, 1, 0, (1 << 15) - 1, 0, 0, 1, 5);
 
-        n = sendto(send_fd, syn_packet_1, sizeof(syn_packet_1), 0, res->ai_addr, res->ai_addrlen);
+        char buff[1500]       = {0};
+
+        n = sendto(send_fd, syn_packet_1.data.data(), syn_packet_1.data.size(), 0, res->ai_addr, res->ai_addrlen);
         if(n == -1)
         {
             perror("Call to sendto() failed: tcp syn");
@@ -885,60 +941,116 @@ public:
                 exit(EXIT_FAILURE);
             }
 
-        } while((tcp_reply->dest != htons(sport)) || (destip.s_addr != ip->ip_src.s_addr));
+        } while((tcp_reply->dest != htons(sport)) || (ip_header.saddr != ip->ip_src.s_addr));
 
         if(verbose)
         {
             printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
             printf("TCP SYN reply from port: %d to port: %d\n", ntohs(tcp_reply->source), ntohs(tcp_reply->dest));
         }
-        td = get_time();        // time stamp just before we begin sending
+        miliseconds = get_time();        // time stamp just before we begin sending
 
         /*send data train*/
-        int i     = 0;
-        char* ptr = second_train ? packets_f : packets_e;
-
-        for(i = 0; i < num_packets; ++i, ptr += len)
+        for(auto item : data_train)
         {
-            n = sendto(send_fd, ptr, len, 0, res->ai_addr, res->ai_addrlen);
+            n = sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
             if(n == -1)
             {
-                perror("Call to sendto() failed: tcp train");
+                perror("call to sendto() failed: error sending TCP train");
                 exit(EXIT_FAILURE);
-            }        // end if
-        }            // end of
+            }
+        }
 
-        pthread_mutex_lock(&recv_ready_mutex);        // acquire lock
-        recv_ready = 1;
-        pthread_cond_signal(&recv_ready_cv);
-        pthread_mutex_unlock(&recv_ready_mutex);        // release lock
-
-        pthread_mutex_lock(&stop_mutex);        // acquire lock
-        for(i = 0; i < num_tail && stop == 0; ++i)
         {
-            n = sendto(send_fd, syn_packet_2, sizeof(syn_packet_2), 0, res->ai_addr, res->ai_addrlen);
+            std::lock_guard<std::mutex> read_guard(recv_ready_mutex);        // acquire lock
+            recv_ready = true;
+        }
+
+        recv_ready_cv.notify_all();
+
+
+        std::unique_lock<std::mutex> stop_lock(stop_mutex);        // acquire lock
+        for(int i = 0; i < num_tail && !stop; ++i)
+        {
+            n = sendto(send_fd, syn_packet_2.data.data(), syn_packet_2.data.size(), 0, res->ai_addr, res->ai_addrlen);
             if(n == -1)
             {
                 perror("Call to sendto() failed: TCP Tail Syn");
                 exit(EXIT_FAILURE);
             }
-            pthread_cond_timedwait(&stop_cv, &stop_mutex, &tail_wait_tv);
-        }                                         // end for
-        pthread_mutex_unlock(&stop_mutex);        // release lock
 
-        tcp->source = ps_tcp->source = htons(sport);        // reset tcp sport for next train
-        status = NULL;
-        pthread_exit(status);
+            stop_cv.wait_for(stop_lock, std::chrono::milliseconds(tail_wait));
+        }        // end for
+
+        stop_lock.unlock();        // release lock
+
     }
 
-    virtual void* receive() {}        // end receive()
+    virtual void receive() {
 
+        {
+
+     /*number of bytes received*/
+        int n;
+
+        /* number of echo replies*/
+        int count = 0;
+
+        /*number of port unreachable replies processed and ignored*/
+        int udp_ack = 0;
+
+
+        /* to receive data with*/
+        struct sockaddr_in addr;
+
+        socklen_t adrlen = sizeof(addr);
+
+        char packet_rcv[1500] = {0};        // buffer for receiving replies
+        /* length of address */
+
+            std::unique_lock<std::mutex> recv_ready_lock(recv_ready_mutex);
+        //while(!recv_ready)
+        //{
+            recv_ready_cv.wait(recv_ready_lock, [this](){return this->recv_ready; });
+        //}
+
+            char packet_rcv[1500] = {0};        // buffer for receiving replies
+        struct ip* ip      = (struct ip*)packet_rcv;
+        struct tcphdr* tcp = (struct tcphdr*)(ip + 1);
+        do
+        {
+            n = recvfrom(send_fd, packet_rcv, sizeof(packet_rcv), 0, (struct sockaddr*)&addr, &adrlen);
+            if(n < 0)
+            {
+                perror("recvfrom failed");
+                exit(EXIT_FAILURE);
+            }
+
+        } while((tcp->dest != htons(syn_port)) || (ip->ip_src.s_addr != ip_header.s_addr));
+        *time = get_time() - td;
+
+        pthread_mutex_lock(&recv_ready_mutex);        // release lock
+        recv_ready = 0;
+        pthread_mutex_unlock(&recv_ready_mutex);        // release lock
+
+        pthread_mutex_lock(&stop_mutex);        // release lock
+        stop = 1;
+        pthread_cond_signal(&stop_cv);
+        pthread_mutex_unlock(&stop_mutex);        // release lock
+
+        if(verbose)
+        {
+            printf("TCP reply from IP: %s\n", inet_ntoa(ip->ip_src));
+
+            printf("TCP reply from port: %d to port: %d\n", ntohs(tcp->source), ntohs(tcp->dest));
+        }
+
+    }        // end receive()
+
+
+    uint16_t syn_port;
 private:
     /* data */
-    int send_fd;
-    int recv_fd;
     int icmp_fd;
 };
 
-
-#endif

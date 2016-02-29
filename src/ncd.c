@@ -60,7 +60,7 @@ int init_detection()
 {
     int icmp_packet_size = 64;        // 64 byte icmp packet size up to a mx of 76 bytes for replies
 
-    /* Init global size variables with runtime data  */
+    /* Initialize global size variables with runtime data  */
     send_len = data_size + (uint16_t)sizeof(uint16_t);        // data size + size of packet id
 
     /* size of ICMP Echo message */
@@ -75,7 +75,7 @@ int init_detection()
     seq = 0;
 
     /* set up hints for getaddrinfo() */
-    struct addrinfo hints = {0}; /* for get addrinfo */
+    struct addrinfo hints = {}; /* for get addrinfo */
     hints.ai_flags = AI_CANONNAME;
     if(tcp_bool == 1)
         hints.ai_protocol = IPPROTO_TCP;
