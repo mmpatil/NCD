@@ -301,8 +301,6 @@ enum raw_level
  */
 class detector
 {
-
-
 public:
     detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id, uint16_t frag_off,
              uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
@@ -513,6 +511,7 @@ protected:
 
 class udp_detector : public detector
 {
+
 public:
     udp_detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
                  uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
@@ -722,7 +721,7 @@ public:
                 if(count == 0)
                 {
                     milliseconds = get_time();
-                    count       = 1;
+                    count        = 1;
                 }
                 else
                 {
@@ -786,6 +785,7 @@ private:
 
 class tcp_detector : public detector
 {
+
 public:
     tcp_detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
                  uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
@@ -991,13 +991,6 @@ public:
         /*number of bytes received*/
         int n;
 
-        /* number of echo replies*/
-        int count = 0;
-
-        /*number of port unreachable replies processed and ignored*/
-        int udp_ack = 0;
-
-
         /* to receive data with*/
         struct sockaddr_in addr;
 
@@ -1015,14 +1008,14 @@ public:
                            });
         //}
 
-        struct ip* ip         = (struct ip*)packet_rcv;
-        struct tcphdr* tcp    = (struct tcphdr*)(ip + 1);
+        struct ip* ip      = (struct ip*)packet_rcv;
+        struct tcphdr* tcp = (struct tcphdr*)(ip + 1);
         do
         {
             n = recvfrom(send_fd, packet_rcv, sizeof(packet_rcv), 0, (struct sockaddr*)&addr, &adrlen);
             if(n < 0)
             {
-                perror("recvfrom failed");
+                perror("recvfrom() failed");
                 exit(EXIT_FAILURE);
             }
 
@@ -1031,9 +1024,8 @@ public:
 
         {
             std::lock_guard<std::mutex> stop_guard(stop_mutex);
-
-            stop=true;
-        }
+            stop = true;
+        }//release lock guard
 
         stop_cv.notify_all();
 
@@ -1045,7 +1037,6 @@ public:
         }
 
     }        // end receive()
-
 
 
 private:
