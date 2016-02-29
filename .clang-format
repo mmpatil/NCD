@@ -20,7 +20,7 @@ BreakConstructorInitializersBeforeComma: false
 BinPackParameters: true
 ColumnLimit:     120
 CommentPragmas:  '^!<'
-ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ContinuationIndentWidth: 2
 Cpp11BracedListStyle: true
 DerivePointerAlignment: false
