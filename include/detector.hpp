@@ -757,3 +757,188 @@ private:
     int recv_fd;
     int icmp_fd;
 };
+
+#if 0
+
+class tcp_detector : public detector
+{
+public:
+    tcp_detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
+                 uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
+                 std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
+                 uint32_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
+                 transport_type trans_proto = transport_type::tcp)
+        : detector(src_ip, dest_ip, tos, data_length + sizeof(tcphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
+                   check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
+                   trans_proto)
+    {
+    }
+    virtual ~tcp_detector() {}
+
+    virtual void populate_full()
+    {
+        data_train.resize(num_packets, std::make_shared<ip_tcp_packet>(ip_header, payload_size, sport, dport));
+    }
+    virtual void populate_trans()
+    {
+        data_train.resize(num_packets, std::make_shared<tcp_packet>(ip_header, payload_size, sport, dport));
+    }
+    virtual void populate_none()
+    {
+        data_train.resize(num_packets, std::make_shared<packet>(ip_header, payload_size, sport, dport));
+    };
+
+    virtual int transport_header_size() { return sizeof(tcphdr); }
+
+    virtual void setup_sockets()
+    {
+
+        /*get root privileges */
+        int err = setuid(0);
+        if(err < 0)
+        {
+            perror("Elevated privileges not acquired...");
+            exit(EXIT_FAILURE);
+        }
+
+        send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_tcp);
+
+        if(send_fd == -1)
+        {
+            perror("call to socket() failed for SEND");
+            exit(EXIT_FAILURE);
+        }        // end error check
+
+        if(res->ai_family != AF_INET)
+        {
+            errno = EAFNOSUPPORT;
+            perror("ncd only supports IPV4 at this time");
+            exit(EXIT_FAILURE);
+        }        // end error check
+
+        // set TTL
+        setsockopt(send_fd, IPPROTO_IP, IP_TTL, &ip_header.ttl, sizeof(ip_header.ttl));
+
+        socklen_t size = 1500U * num_packets;
+
+#if DEBUG
+        if(verbose)
+            printf("Buffer size requested %u\n", size);
+#endif
+
+        setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
+
+        /* acquire socket for icmp messages*/
+        icmp_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
+
+        if(icmp_fd == -1)
+        {
+            perror("call to socket() failed for ICMP");
+            exit(EXIT_FAILURE);
+        }
+
+        /* set up our own IP header*/
+        int icmp_hdrincl = 1;
+        if(setsockopt(icmp_fd, IPPROTO_IP, IP_HDRINCL, &icmp_hdrincl, sizeof(icmp_hdrincl)) == -1)
+        {
+            perror("setsockopt() failed icmp");
+        }
+
+        /*give up privileges */
+        err = setuid(getuid());
+        if(err < 0)
+        {
+            perror("Elevated privileges not released");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+
+    virtual void* send_train(void* status)
+    {
+        int n;
+        struct timespec tail_wait_tv;
+
+        // tail wait is in milliseconds, so multiply by 10^6 to convert to nanoseconds
+        tail_wait_tv.tv_nsec = tail_wait * 1000000;
+
+        //int len               = send_len + sizeof(struct tcphdr);
+        //char buff[1500]       = {0};
+        struct tcphdr* tcp    = (struct tcphdr*)packet_send;
+        struct tcphdr* ps_tcp = (struct tcphdr*)(ps + 1);
+
+        n = sendto(send_fd, syn_packet_1, sizeof(syn_packet_1), 0, res->ai_addr, res->ai_addrlen);
+        if(n == -1)
+        {
+            perror("Call to sendto() failed: tcp syn");
+            exit(EXIT_FAILURE);
+        }
+        // set up the buffer to receive the reply into
+        struct ip* ip            = (struct ip*)buff;
+        struct tcphdr* tcp_reply = (struct tcphdr*)(ip + 1);
+
+        do
+        {
+            if((recvfrom(send_fd, buff, sizeof(buff), 0, 0, 0)) == -1)
+            {
+                perror("call to recvfrom() failed: tcp SYN-ACK");
+                exit(EXIT_FAILURE);
+            }
+
+        } while((tcp_reply->dest != htons(sport)) || (destip.s_addr != ip->ip_src.s_addr));
+
+        if(verbose)
+        {
+            printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
+            printf("TCP SYN reply from port: %d to port: %d\n", ntohs(tcp_reply->source), ntohs(tcp_reply->dest));
+        }
+        td = get_time();        // time stamp just before we begin sending
+
+        /*send data train*/
+        int i     = 0;
+        char* ptr = second_train ? packets_f : packets_e;
+
+        for(i = 0; i < num_packets; ++i, ptr += len)
+        {
+            n = sendto(send_fd, ptr, len, 0, res->ai_addr, res->ai_addrlen);
+            if(n == -1)
+            {
+                perror("Call to sendto() failed: tcp train");
+                exit(EXIT_FAILURE);
+            }        // end if
+        }            // end of
+
+        pthread_mutex_lock(&recv_ready_mutex);        // acquire lock
+        recv_ready = 1;
+        pthread_cond_signal(&recv_ready_cv);
+        pthread_mutex_unlock(&recv_ready_mutex);        // release lock
+
+        pthread_mutex_lock(&stop_mutex);        // acquire lock
+        for(i = 0; i < num_tail && stop == 0; ++i)
+        {
+            n = sendto(send_fd, syn_packet_2, sizeof(syn_packet_2), 0, res->ai_addr, res->ai_addrlen);
+            if(n == -1)
+            {
+                perror("Call to sendto() failed: TCP Tail Syn");
+                exit(EXIT_FAILURE);
+            }
+            pthread_cond_timedwait(&stop_cv, &stop_mutex, &tail_wait_tv);
+        }                                         // end for
+        pthread_mutex_unlock(&stop_mutex);        // release lock
+
+        tcp->source = ps_tcp->source = htons(sport);        // reset tcp sport for next train
+        status = NULL;
+        pthread_exit(status);
+    }
+
+    virtual void* receive() {}        // end receive()
+
+private:
+    /* data */
+    int send_fd;
+    int recv_fd;
+    int icmp_fd;
+};
+
+
+#endif
