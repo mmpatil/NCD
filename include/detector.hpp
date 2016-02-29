@@ -321,7 +321,7 @@ public:
           data_length(data_length),
           tail_wait(tail_wait),
           raw(raw_status),
-          miliseconds(0),
+          milliseconds(0),
           elapsed{}
     {
         // get file stream to use in packet initialization;
@@ -373,12 +373,12 @@ public:
             }
         }
     }
-    virtual void populate_full();                  // pure virtual
-    virtual void populate_trans();                 // pure virtual
-    virtual void populate_none();                  // pure virtual
-    virtual int transport_header_size();           // returns size of transport header -- pure virtual
-    virtual void send_train();        // sends the packet train -- pure virtual;
-    virtual void receive();                       // receives responses from the target IP -- pure virtual
+    virtual void populate_full();               // pure virtual
+    virtual void populate_trans();              // pure virtual
+    virtual void populate_none();               // pure virtual
+    virtual int transport_header_size();        // returns size of transport header -- pure virtual
+    virtual void send_train();                  // sends the packet train -- pure virtual;
+    virtual void receive();                     // receives responses from the target IP -- pure virtual
     virtual void measure()
     {
         // initialize synchronization variables
@@ -394,7 +394,7 @@ public:
         }        // end for
 
         if(!sql_output)
-            printf("%f sec\n", miliseconds);        // are these unit correct now???
+            printf("%f sec\n", milliseconds);        // are these unit correct now???
         close(recv_fd);
 
     }        // end measure()
@@ -506,7 +506,7 @@ protected:
     std::ifstream file;        // file to read payload in from -- could also be file with entire train pre made
     raw_level raw;
     // time
-    double miliseconds;
+    double milliseconds;
     timeval elapsed;
 };
 
@@ -661,7 +661,7 @@ public:
 
             stop_cv.wait_for(stop_lock, std::chrono::milliseconds(tail_wait));
 
-        }                     // end for
+        }                          // end for
         stop_lock.unlock();        // release lock
     }
 
@@ -721,12 +721,12 @@ public:
             {
                 if(count == 0)
                 {
-                    miliseconds = get_time();
+                    milliseconds = get_time();
                     count       = 1;
                 }
                 else
                 {
-                    miliseconds = get_time() - miliseconds;
+                    milliseconds = get_time() - milliseconds;
                     std::lock_guard<std::mutex> guard(stop_mutex);        // acquire lock
                     stop = true;
                     stop_cv.notify_all();
@@ -921,7 +921,7 @@ public:
         ip_tcp_packet syn_packet_1(ip_header, 1, sport, dport, 1, 0, (1 << 15) - 1, 0, 0, 1, 5);
         ip_tcp_packet syn_packet_2(ip_header, 1, sport + 1, syn_port, 1, 0, (1 << 15) - 1, 0, 0, 1, 5);
 
-        char buff[1500]       = {0};
+        char buff[1500] = {0};
 
         n = sendto(send_fd, syn_packet_1.data.data(), syn_packet_1.data.size(), 0, res->ai_addr, res->ai_addrlen);
         if(n == -1)
@@ -948,7 +948,7 @@ public:
             printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
             printf("TCP SYN reply from port: %d to port: %d\n", ntohs(tcp_reply->source), ntohs(tcp_reply->dest));
         }
-        miliseconds = get_time();        // time stamp just before we begin sending
+        milliseconds = get_time();        // time stamp just before we begin sending
 
         /*send data train*/
         for(auto item : data_train)
@@ -983,14 +983,12 @@ public:
         }        // end for
 
         stop_lock.unlock();        // release lock
-
     }
 
-    virtual void receive() {
+    virtual void receive()
+    {
 
-        {
-
-     /*number of bytes received*/
+        /*number of bytes received*/
         int n;
 
         /* number of echo replies*/
@@ -1006,17 +1004,19 @@ public:
         socklen_t adrlen = sizeof(addr);
 
         char packet_rcv[1500] = {0};        // buffer for receiving replies
-        /* length of address */
+                                            /* length of address */
 
-            std::unique_lock<std::mutex> recv_ready_lock(recv_ready_mutex);
-        //while(!recv_ready)
+        std::unique_lock<std::mutex> recv_ready_lock(recv_ready_mutex);
+        // while(!recv_ready)
         //{
-            recv_ready_cv.wait(recv_ready_lock, [this](){return this->recv_ready; });
+        recv_ready_cv.wait(recv_ready_lock, [this]()
+                           {
+                               return this->recv_ready;
+                           });
         //}
 
-            char packet_rcv[1500] = {0};        // buffer for receiving replies
-        struct ip* ip      = (struct ip*)packet_rcv;
-        struct tcphdr* tcp = (struct tcphdr*)(ip + 1);
+        struct ip* ip         = (struct ip*)packet_rcv;
+        struct tcphdr* tcp    = (struct tcphdr*)(ip + 1);
         do
         {
             n = recvfrom(send_fd, packet_rcv, sizeof(packet_rcv), 0, (struct sockaddr*)&addr, &adrlen);
@@ -1026,17 +1026,16 @@ public:
                 exit(EXIT_FAILURE);
             }
 
-        } while((tcp->dest != htons(syn_port)) || (ip->ip_src.s_addr != ip_header.s_addr));
-        *time = get_time() - td;
+        } while((tcp->dest != htons(syn_port)) || (ip->ip_src.s_addr != ip_header.saddr));
+        milliseconds = get_time() - milliseconds;
 
-        pthread_mutex_lock(&recv_ready_mutex);        // release lock
-        recv_ready = 0;
-        pthread_mutex_unlock(&recv_ready_mutex);        // release lock
+        {
+            std::lock_guard<std::mutex> stop_guard(stop_mutex);
 
-        pthread_mutex_lock(&stop_mutex);        // release lock
-        stop = 1;
-        pthread_cond_signal(&stop_cv);
-        pthread_mutex_unlock(&stop_mutex);        // release lock
+            stop=true;
+        }
+
+        stop_cv.notify_all();
 
         if(verbose)
         {
@@ -1048,9 +1047,10 @@ public:
     }        // end receive()
 
 
-    uint16_t syn_port;
+
 private:
     /* data */
     int icmp_fd;
+    uint16_t syn_port;
 };
 
