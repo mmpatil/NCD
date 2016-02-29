@@ -59,7 +59,7 @@ public:
         : data(payload_length + sizeof(uint16_t), 0), filled(false), data_offset(data_offset)
     {
     }
-    virtual ~packet();
+    virtual ~packet() {}
     virtual void fill(std::ifstream& file, uint16_t packet_id)
     {
         if(file.is_open())
@@ -94,7 +94,7 @@ public:
         udp_header->len    = htons(payload_length + sizeof(udphdr));
     }
 
-    virtual ~udp_packet();
+    virtual ~udp_packet() {}
 
     virtual void checksum(const pseudo_header& ps)
     {
@@ -136,7 +136,7 @@ public:
         tcp_header->urg_ptr = urg;
     }
 
-    virtual ~tcp_packet();
+    virtual ~tcp_packet() {}
 
 
     virtual void checksum(const pseudo_header& ps)
@@ -156,6 +156,29 @@ private:
     size_t transport_offset;
 };
 
+class icmp_packet : public packet
+{
+
+public:
+    icmp_packet(size_t length, uint8_t type, uint8_t code, uint16_t id, uint16_t seq, size_t offset = 0)
+        : packet(length + sizeof(icmp), sizeof(icmp))
+    {
+        /* set up icmp message header*/
+        struct icmp* icmp = (struct icmp*)&data[offset];
+        icmp->icmp_type   = type;
+        icmp->icmp_code   = code;
+        icmp->icmp_id     = id;
+        icmp->icmp_seq    = seq;
+
+        memset(icmp->icmp_data, 0xa5, length);
+        gettimeofday((struct timeval*)icmp->icmp_data, NULL);
+
+        icmp->icmp_cksum = 0;
+        icmp->icmp_cksum = ip_checksum(icmp, data.size() - offset);
+    }
+
+    virtual ~icmp_packet() {}
+};
 
 class ip_tcp_packet : public tcp_packet
 {
@@ -169,7 +192,7 @@ public:
         std::memcpy(&data[0], &ip, sizeof(iphdr));
     }
 
-    virtual ~ip_tcp_packet();
+    virtual ~ip_tcp_packet() {}
 
     virtual void fill(std::ifstream& file, uint16_t packet_id)
     {
@@ -197,7 +220,7 @@ public:
         std::memcpy(&data[0], &ip, sizeof(iphdr));
     }
 
-    virtual ~ip_udp_packet();
+    virtual ~ip_udp_packet() {}
     virtual void fill(std::ifstream& file, uint16_t packet_id)
     {
         packet::fill(file, packet_id);
@@ -212,6 +235,18 @@ public:
 
 private:
     /* data */
+};
+
+class ip_icmp_packet : public icmp_packet
+{
+
+public:
+    ip_icmp_packet(const iphdr& ip, size_t length, uint8_t type, uint8_t code, uint16_t id, uint16_t seq)
+        : icmp_packet(length + sizeof(iphdr), type, code, id, seq, sizeof(icmp))
+    {
+        std::memcpy(&data[0], &ip, sizeof(iphdr));
+    }
+    virtual ~ip_icmp_packet() {}
 };
 
 
@@ -328,16 +363,6 @@ public:
         int i;
 
         void* status[2] = {0};
-
-
-
-
-
-
-
-
-
-
     }
     virtual void setup_ip_info()
     {
@@ -464,7 +489,7 @@ public:
                    trans_proto)
     {
     }
-    virtual ~udp_detector();
+    virtual ~udp_detector() {}
 
     virtual void populate_full()
     {
@@ -481,20 +506,84 @@ public:
 
     virtual int transport_header_size() { return sizeof(udphdr); }
 
-    virtual void setup_sockets() {}
+    virtual void setup_sockets()
+    {
+
+        /*get root privileges */
+        int err = setuid(0);
+        if(err < 0)
+        {
+            perror("Elevated privileges not acquired...");
+            exit(EXIT_FAILURE);
+        }
+
+        send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
+
+        if(send_fd == -1)
+        {
+            perror("call to socket() failed for SEND");
+            exit(EXIT_FAILURE);
+        }        // end error check
+
+        if(res->ai_family != AF_INET)
+        {
+            errno = EAFNOSUPPORT;
+            perror("ncd only supports IPV4 at this time");
+            exit(EXIT_FAILURE);
+        }        // end error check
+
+        // set TTL
+        setsockopt(send_fd, IPPROTO_IP, IP_TTL, &ip_header.ttl, sizeof(ip_header.ttl));
+
+        socklen_t size = 1500U * num_packets;
+
+#if DEBUG
+        if(verbose)
+            printf("Buffer size requested %u\n", size);
+#endif
+
+        setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
+
+        /* acquire socket for icmp messages*/
+        icmp_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
+
+        if(icmp_fd == -1)
+        {
+            perror("call to socket() failed for ICMP");
+            exit(EXIT_FAILURE);
+        }
+
+        /* set up our own IP header*/
+        int icmp_hdrincl = 1;
+        if(setsockopt(icmp_fd, IPPROTO_IP, IP_HDRINCL, &icmp_hdrincl, sizeof(icmp_hdrincl)) == -1)
+        {
+            perror("setsockopt() failed icmp");
+        }
+
+        /*give up privileges */
+        err = setuid(getuid());
+        if(err < 0)
+        {
+            perror("Elevated privileges not released");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+
     virtual void* send_train(void* status)
     {
-        char icmp_send[128]  = {0};        // buffer for ICMP messages
-        int icmp_packet_size = 64;         // 64 byte icmp packet size up to a mx of 76 bytes for replies
+        int icmp_packet_size = 64;        // 64 byte icmp packet size up to a mx of 76 bytes for replies
 
         /* size of ICMP Echo message */
-        // uint16_t icmp_data_len = (uint16_t)(icmp_packet_size - sizeof(struct icmp));
+        uint16_t icmp_data_len = (uint16_t)(icmp_packet_size - sizeof(struct icmp));
 
         /*size of icmp packet*/
         uint16_t icmp_len = (uint16_t)(icmp_packet_size);
 
-        /* size of ICMP reply + ip header */
+        /* size of ICMP reply + IP header */
         uint16_t icmp_ip_len = (uint16_t)(sizeof(struct ip) + icmp_len);
+
+        ip_icmp_packet icmp_send(ip_header, icmp_data_len, ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand());
 
         int n;
         struct timespec tail_wait_tv;
@@ -503,7 +592,7 @@ public:
         tail_wait_tv.tv_nsec = tail_wait * 1000000;
 
         /*send Head ICMP Packet*/
-        n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr, res->ai_addrlen);
+        n = sendto(icmp_fd, icmp_send.data.data(), icmp_ip_len, 0, res->ai_addr, res->ai_addrlen);
         if(n == -1)
         {
             perror("Call to sendto() failed: error sending ICMP head packet");
@@ -521,7 +610,7 @@ public:
             }
         }
 
-        struct icmp* icmp = (struct icmp*)(icmp_send + sizeof(struct ip));
+        struct icmp* icmp = (struct icmp*)(icmp_send.data.data() + sizeof(struct ip));
 
         /*send tail ICMP Packets with timer*/
         pthread_mutex_lock(&stop_mutex);        // acquire lock
@@ -532,7 +621,7 @@ public:
             icmp->icmp_seq += 1;
             icmp->icmp_cksum = ip_checksum(icmp, icmp_len);
 
-            n = sendto(icmp_fd, icmp_send, icmp_ip_len, 0, res->ai_addr, res->ai_addrlen);
+            n = sendto(icmp_fd, icmp_send.data.data(), icmp_ip_len, 0, res->ai_addr, res->ai_addrlen);
             if(n == -1)
             {
                 perror("Call to sendto() failed: icmp tail");
