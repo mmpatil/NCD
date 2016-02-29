@@ -1,7 +1,7 @@
 //#include <stdio.h>           /* for printf, fprintf, snprintf, perror, ... */
 //#include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
 //#include <string.h>          /* for memcpy */
-#include <sys/time.h>        /* for gettimeofday() */
+#include <sys/time.h> /* for gettimeofday() */
 //#include <errno.h>           /* for errno*/
 #include <unistd.h>          /* for close() */
 #include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
@@ -302,12 +302,43 @@ public:
             }
         }
     }
-    virtual void populate_full();                 // pure virtual
-    virtual void populate_trans();                // pure virtual
-    virtual void populate_none();                 // pure virtual
-    virtual int transport_header_size();          // returns size of transport header -- pure virtual
-    virtual void send_train(void* status);        // sends the packet train -- pure virtual;
-    virtual void receive();                       // receives responses from the target IP -- pure virtual
+    virtual void populate_full();                  // pure virtual
+    virtual void populate_trans();                 // pure virtual
+    virtual void populate_none();                  // pure virtual
+    virtual int transport_header_size();           // returns size of transport header -- pure virtual
+    virtual void* send_train(void* status);        // sends the packet train -- pure virtual;
+    virtual void* receive();                       // receives responses from the target IP -- pure virtual
+    virtual void measure()
+    {
+
+        // initialize synchronization variables
+        stop       = 0;        // boolean false
+        recv_ready = 0;        // boolean false
+
+        pthread_mutex_init(&stop_mutex, NULL);
+        pthread_cond_init(&stop_cv, NULL);
+
+        pthread_mutex_init(&recv_ready_mutex, NULL);
+        pthread_cond_init(&recv_ready_cv, NULL);
+
+        pthread_t threads[num_threads];
+        pthread_attr_t attr;
+
+        int rc;
+        int i;
+
+        void* status[2] = {0};
+
+
+
+
+
+
+
+
+
+
+    }
     virtual void setup_ip_info()
     {
         // set leading bits for version and ip header length -- can change later;
@@ -451,7 +482,7 @@ public:
     virtual int transport_header_size() { return sizeof(udphdr); }
 
     virtual void setup_sockets() {}
-    virtual void send_train(void* status)
+    virtual void* send_train(void* status)
     {
         char icmp_send[128]  = {0};        // buffer for ICMP messages
         int icmp_packet_size = 64;         // 64 byte icmp packet size up to a mx of 76 bytes for replies
@@ -517,7 +548,7 @@ public:
         pthread_exit(status);
     }
 
-    virtual void receive()
+    virtual void* receive()
     {
 
         /*number of bytes received*/
@@ -574,7 +605,7 @@ public:
                 if(count == 0)
                 {
                     miliseconds = get_time();
-                    count = 1;
+                    count       = 1;
                 }
                 else
                 {
@@ -594,14 +625,12 @@ public:
             }        // end if
 
         }        // end for
-        char* c = (second_train && !tcp_bool) ? "High" : "Low";
 
-        if(!output_bool)
-            printf("UDP %s Packets received: %d/%d\n", c, udp_ack, num_packets);
+        if(!sql_output)
+            printf("UDP Packets received: %d/%d\n", udp_ack, num_packets);
 
         // report the losses
-        int* losses = (second_train && !tcp_bool) ? &high_losses : &low_losses;
-        *losses     = num_packets - udp_ack;
+        packets_lost = num_packets - udp_ack;
 
         if(verbose)
         {
@@ -630,7 +659,7 @@ public:
         if(bitset)
             free(bitset);
 
-
+        pthread_exit(NULL);
     }        // end receive()
 
 private:
