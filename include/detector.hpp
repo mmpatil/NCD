@@ -45,7 +45,6 @@
 //#include <signal.h>          /* for kill() */
 //#include <fcntl.h>           /* for O_RDONLY */
 //#include <ctype.h>           /* for inet_pton() */
-#include <pthread.h> /* for pthread */
 //#include "ncd_global.h"
 
 #include <string>
@@ -91,16 +90,21 @@ class packet
 {
 public:
     packet(size_t payload_length, size_t data_offset = 0)
-        : data(payload_length + sizeof(uint16_t), 0), filled(false), data_offset(data_offset)
+        : data(payload_length), filled(false), data_offset(data_offset)
     {
     }
     virtual ~packet() {}
     virtual void fill(std::ifstream& file, uint16_t packet_id)
     {
+        printf("Packet ID: %d\n", packet_id);
+        if(data_offset >= data.size())
+            throw std::ios_base::failure("The Data offset in the packet is too large...");
         if(file.is_open())
         {
-            memcpy(&data[0], &packet_id, sizeof(packet_id));
-            file.read(&data[data_offset + sizeof(uint16_t)], data.size() - data_offset);
+            // memcpy(&data[data_offset], &packet_id, sizeof(packet_id));
+            uint16_t* id = (uint16_t*)&data[data_offset];
+            *id          = packet_id;
+            // file.read(&data[data_offset + sizeof(packet_id)], data.size() - data_offset);
         }
         else
         {
@@ -205,7 +209,7 @@ public:
         icmp->icmp_id     = id;
         icmp->icmp_seq    = seq;
 
-        memset(icmp->icmp_data, 0xa5, length);
+        // memset(icmp->icmp_data, 0xa5, length);
         gettimeofday((struct timeval*)icmp->icmp_data, nullptr);
 
         icmp->icmp_cksum = 0;
@@ -278,7 +282,7 @@ class ip_icmp_packet : public icmp_packet
 
 public:
     ip_icmp_packet(const iphdr& ip, size_t length, uint8_t type, uint8_t code, uint16_t id, uint16_t seq)
-        : icmp_packet(length + sizeof(iphdr), type, code, id, seq, sizeof(icmp))
+        : icmp_packet(length + sizeof(iphdr), type, code, id, seq, sizeof(iphdr))
     {
         std::memcpy(&data[0], &ip, sizeof(iphdr));
     }
@@ -304,7 +308,7 @@ class detector
 public:
     detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id, uint16_t frag_off,
              uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
-             std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
+             std::string filename = "/dev/urandom", uint16_t num_packets = 10, uint16_t data_length = 512,
              uint32_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
              transport_type trans_proto = transport_type::udp)
         : src_ip(src_ip),
@@ -314,16 +318,18 @@ public:
           sport(sport),
           dport(dport),
           res(nullptr),
+          payload_size(data_length),
           num_packets(num_packets),
           num_tail(num_tail),
-          data_length(data_length),
           tail_wait(tail_wait),
+          file(filename, std::ios::in | std::ios::binary),
           raw(raw_status),
           milliseconds(0),
-          elapsed{}
+          elapsed{},
+          sockets_ready(false)
     {
+        verbose = true;
         // get file stream to use in packet initialization;
-        file.open(filename);
         if(!file.is_open())
         {
             std::string err_string = "Error: file " + filename + " could not be opened";
@@ -340,10 +346,12 @@ public:
     {
         if(res)
             freeaddrinfo(res);
+        res = nullptr;
     }
-    virtual void setup_sockets();        // pure virtual
+    virtual void setup_sockets() = 0;        // pure virtual
     virtual void setup_packet_train()
     {
+        // populate the empty data_train based on raw and transport type
         switch(raw)
         {
         case full:
@@ -371,14 +379,19 @@ public:
             }
         }
     }
-    virtual void populate_full();               // pure virtual
-    virtual void populate_trans();              // pure virtual
-    virtual void populate_none();               // pure virtual
-    virtual int transport_header_size();        // returns size of transport header -- pure virtual
-    virtual void send_train();                  // sends the packet train -- pure virtual;
-    virtual void receive();                     // receives responses from the target IP -- pure virtual
+    virtual void populate_full() = 0;               // pure virtual
+    virtual void populate_trans() = 0;              // pure virtual
+    virtual void populate_none() = 0;               // pure virtual
+    virtual int transport_header_size() = 0;        // returns size of transport header -- pure virtual
+    virtual void send_train() = 0;                  // sends the packet train -- pure virtual;
+    virtual void receive() = 0;                     // receives responses from the target IP -- pure virtual
     virtual void measure()
     {
+        if(!sockets_ready)
+        {
+            setup_sockets();
+            sockets_ready = true;
+        }
         // initialize synchronization variables
         stop       = false;        // boolean false
         recv_ready = false;        // boolean false
@@ -386,6 +399,7 @@ public:
         std::vector<std::thread> threads;
         threads.emplace_back(&detector::receive, this);
         threads.emplace_back(&detector::send_train, this);
+
         for(auto& t : threads)
         {
             t.join();
@@ -396,6 +410,28 @@ public:
         close(recv_fd);
 
     }        // end measure()
+
+    // stay the same
+    virtual void output_results()
+    {
+
+        std::stringstream out;
+        switch(trans)
+        {
+        case transport_type::udp:
+            out << "UDP";
+            break;
+        case transport_type::tcp:
+            out << "TCP";
+        default:
+            break;
+        };
+
+        out << src_ip << " " << dest_ip << " " << sport << " " << dport << " " << num_packets << " " << num_tail << " "
+            << payload_size << " " << tail_wait << " " << packets_lost << " " << milliseconds << std::endl;
+
+        std::cout << out.str();
+    }
 
     virtual void setup_ip_info()
     {
@@ -488,7 +524,6 @@ protected:
     uint16_t payload_size;
     uint16_t num_packets;
     uint16_t num_tail;
-    uint16_t data_length;
     u_int16_t tail_wait;
 
     // threading items
@@ -506,6 +541,7 @@ protected:
     // time
     double milliseconds;
     timeval elapsed;
+    bool sockets_ready;
 };
 
 
@@ -515,28 +551,36 @@ class udp_detector : public detector
 public:
     udp_detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
                  uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
-                 std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
+                 std::string filename = "/dev/urandom", uint16_t num_packets = 10, uint16_t data_length = 512,
                  uint32_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
                  transport_type trans_proto = transport_type::udp)
         : detector(src_ip, dest_ip, tos, data_length + sizeof(udphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
                    check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
                    trans_proto)
     {
+        printf("payload_size: %d\n", payload_size);
+        setup_packet_train();
+        // setup_sockets();
     }
-    virtual ~udp_detector() {}
 
     virtual void populate_full()
     {
-        data_train.resize(num_packets, std::make_shared<ip_udp_packet>(ip_header, payload_size, sport, dport));
+        data_train.reserve(num_packets);
+        for(int i = 0; i < num_packets; ++i)
+            data_train.push_back(std::make_shared<ip_udp_packet>(ip_header, payload_size, sport, dport));
     }
     virtual void populate_trans()
     {
-        data_train.resize(num_packets, std::make_shared<udp_packet>(ip_header, payload_size, sport, dport));
+        data_train.reserve(num_packets);
+        for(int i = 0; i < num_packets; ++i)
+            data_train.push_back(std::make_shared<udp_packet>(payload_size, sport, dport));
     }
     virtual void populate_none()
     {
-        data_train.resize(num_packets, std::make_shared<packet>(ip_header, payload_size, sport, dport));
-    };
+        data_train.reserve(num_packets);
+        for(int i = 0; i < num_packets; ++i)
+            data_train.push_back(std::make_shared<packet>(payload_size));
+    }
 
     virtual int transport_header_size() { return sizeof(udphdr); }
 
@@ -601,6 +645,34 @@ public:
             perror("Elevated privileges not released");
             exit(EXIT_FAILURE);
         }
+
+
+        recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
+        if(recv_fd == -1)
+        {
+            perror("call to socket() failed");
+            exit(EXIT_FAILURE);
+        }
+
+        /*increase size of receive buffer*/
+
+        int opts = 1500 * num_packets;
+
+        setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &opts, sizeof(opts));
+
+#if DEBUG
+        if(verbose)
+        {
+            int buffsize;
+            socklen_t bufflen = sizeof(buffsize);
+
+            getsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, (void*)&buffsize, &bufflen);
+
+            printf("Send Buffer size: %d\n", buffsize);
+            getsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, (void*)&buffsize, &bufflen);
+            printf("Receive Buffer size: %d\n", buffsize);
+        }
+#endif
     }
 
 
@@ -609,29 +681,32 @@ public:
         int icmp_packet_size = 64;        // 64 byte icmp packet size up to a mx of 76 bytes for replies
 
         /* size of ICMP Echo message */
-        uint16_t icmp_data_len = (uint16_t)(icmp_packet_size - sizeof(struct icmp));
+        uint16_t icmp_data_len = (uint16_t)(icmp_packet_size - sizeof(struct icmp) - sizeof(uint16_t));
 
         /*size of icmp packet*/
         uint16_t icmp_len = (uint16_t)(icmp_packet_size);
 
         /* size of ICMP reply + IP header */
         uint16_t icmp_ip_len = (uint16_t)(sizeof(struct ip) + icmp_len);
-
-        ip_icmp_packet icmp_send(ip_header, icmp_data_len, ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand());
+        iphdr icmp_ip_header(ip_header);
+        icmp_ip_header.protocol = IPPROTO_ICMP;
+        ip_icmp_packet icmp_send(icmp_ip_header, icmp_data_len, ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand());
 
         int n;
-
         /*send Head ICMP Packet*/
-        n = sendto(icmp_fd, icmp_send.data.data(), icmp_ip_len, 0, res->ai_addr, res->ai_addrlen);
+        n = sendto(icmp_fd, icmp_send.data.data(), icmp_send.data.size(), 0, res->ai_addr, res->ai_addrlen);
         if(n == -1)
         {
             perror("Call to sendto() failed: error sending ICMP head packet");
             exit(EXIT_FAILURE);
         }
 
+        printf("data train size: %zu\n", data_train.size());
         /*send data train*/
-        for(auto item : data_train)
+        for(const auto& item : data_train)
         {
+            uint16_t* id = (uint16_t*)&item->data[item->data_offset];
+            printf("The id sent is: %d\n", *id);
             n = sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
             if(n == -1)
             {
@@ -692,8 +767,7 @@ public:
         struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data) + sizeof(struct ip));
 
         uint32_t* bitset = make_bs_32(num_packets);
-        uint16_t* id     = (uint16_t*)(udp + 1);
-
+        uint16_t* id = (uint16_t*)(udp + 1);
         for(;;)
         {
 
@@ -774,7 +848,6 @@ public:
         if(bitset)
             free(bitset);
 
-        pthread_exit(nullptr);
     }        // end receive()
 
 private:
@@ -799,19 +872,27 @@ public:
     {
     }
 
-    virtual ~tcp_detector() {}
-
     virtual void populate_full()
     {
-        data_train.resize(num_packets, std::make_shared<ip_tcp_packet>(ip_header, payload_size, sport, dport));
+        data_train.reserve(num_packets);
+        for(int i = 0; i < num_packets; ++i)
+            data_train.push_back(std::make_shared<ip_tcp_packet>(
+              ip_header, payload_size, sport, dport, tcp_header.seq, tcp_header.ack_seq, tcp_header.window,
+              tcp_header.urg_ptr, (uint16_t)tcp_header.ack, (uint16_t)tcp_header.syn, (uint16_t)tcp_header.doff));
     }
     virtual void populate_trans()
     {
-        data_train.resize(num_packets, std::make_shared<tcp_packet>(ip_header, payload_size, sport, dport));
+        data_train.reserve(num_packets);
+        for(int i = 0; i < num_packets; ++i)
+            data_train.push_back(std::make_shared<tcp_packet>(
+              payload_size, sport, dport, tcp_header.seq, tcp_header.ack_seq, tcp_header.window, tcp_header.urg_ptr,
+              (uint16_t)tcp_header.ack, (uint16_t)tcp_header.syn, (uint16_t)tcp_header.doff));
     }
     virtual void populate_none()
     {
-        data_train.resize(num_packets, std::make_shared<packet>(ip_header, payload_size, sport, dport));
+        data_train.reserve(num_packets);
+        for(int i = 0; i < num_packets; ++i)
+            data_train.push_back(std::make_shared<packet>(payload_size));
     };
 
     virtual int transport_header_size() { return sizeof(tcphdr); }
@@ -1025,7 +1106,7 @@ public:
         {
             std::lock_guard<std::mutex> stop_guard(stop_mutex);
             stop = true;
-        }//release lock guard
+        }        // release lock guard
 
         stop_cv.notify_all();
 
