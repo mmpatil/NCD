@@ -96,7 +96,6 @@ public:
     virtual ~packet() {}
     virtual void fill(std::ifstream& file, uint16_t packet_id)
     {
-        printf("Packet ID: %d\n", packet_id);
         if(data_offset >= data.size())
             throw std::ios_base::failure("The Data offset in the packet is too large...");
         if(file.is_open())
@@ -138,21 +137,22 @@ public:
     virtual void checksum(const pseudo_header& ps)
     {
         size_t offset = sizeof(ps);
-        buffer_t buff(offset + data.size());
+        buffer_t buff(offset + data.size() - transport_offset);
 
         // copy the pseudo header into the buffer
         memcpy(&buff[0], &ps, offset);
 
         // copy the transport header and data into the buffer
-        memcpy(&buff[offset], &data[0], data.size());
+        memcpy(&buff[offset], &data[transport_offset], data.size() - transport_offset);
 
-        udphdr* udp_header = (udphdr*)&(data[0]);
-        udp_header->check  = ip_checksum(&buff[0], buff.size());
+        udphdr* udp_header = (udphdr*)&(data[transport_offset]);
+        udp_header->check  = ip_checksum(buff.data(), buff.size());
     }
+
+    size_t transport_offset;
 
 private:
     /* data */
-    size_t transport_offset;
 };
 
 
@@ -160,7 +160,7 @@ class tcp_packet : public packet
 {
 public:
     tcp_packet(size_t payload_length, uint16_t sport, uint16_t dport, uint32_t sequence, uint32_t ack_sequence,
-               uint16_t win, uint16_t urg, bool ack_flag, bool syn_flag, char doff, size_t trans_off = 0)
+               uint16_t win, uint16_t urg, bool ack_flag, bool syn_flag, char doff = 5, size_t trans_off = 0)
         : packet(payload_length + sizeof(tcphdr), trans_off + sizeof(tcphdr)), transport_offset(trans_off)
     {
         tcphdr* tcp_header  = (tcphdr*)&(data[transport_offset]);
@@ -168,8 +168,8 @@ public:
         tcp_header->dest    = htons(dport);
         tcp_header->seq     = htonl(sequence);
         tcp_header->ack_seq = htonl(ack_sequence);
-        tcp_header->ack     = ack_flag;
-        tcp_header->syn     = syn_flag;
+        tcp_header->ack     = (ack_flag ? 1 : 0);
+        tcp_header->syn     = (syn_flag ? 1 : 0);
         tcp_header->doff    = doff;
         tcp_header->window  = win;
         tcp_header->urg_ptr = urg;
@@ -178,21 +178,24 @@ public:
     virtual ~tcp_packet() {}
 
 
-    virtual void checksum(const pseudo_header& ps)
+    virtual void checksum(const pseudo_header& pseudo)
     {
-        size_t offset = sizeof(ps);
-        buffer_t buff(offset + data.size());
-        // copy the pseudo header into the buffer
-        memcpy(&buff[0], &ps, offset);
-        // copy the transport header and data into the buffer
-        memcpy(&buff[offset], &data[0], data.size());
+        size_t offset = sizeof(pseudo);
+        buffer_t buff(offset + data.size() - transport_offset);
 
-        tcphdr* tcp_header = (tcphdr*)&(data[0]);
-        tcp_header->check  = ip_checksum(&buff[0], buff.size());
+        // copy the pseudo header into the buffer
+        memcpy(&buff[0], &pseudo, offset);
+
+        // copy the transport header and data into the buffer
+        memcpy(&buff[offset], &data[transport_offset], data.size() - transport_offset);
+
+        tcphdr* tcp_header = (tcphdr*)&(data[transport_offset]);
+        tcp_header->check  = ip_checksum(buff.data(), buff.size());
     }
 
-private:
     size_t transport_offset;
+
+private:
 };
 
 class icmp_packet : public packet
@@ -223,11 +226,11 @@ class ip_tcp_packet : public tcp_packet
 {
 public:
     ip_tcp_packet(const iphdr& ip, size_t payload_length, uint16_t sport, uint16_t dport, uint32_t sequence,
-                  uint32_t ack_sequence, uint16_t win, uint16_t urg, bool ack_flag, bool syn_flag, char doff)
+                  uint32_t ack_sequence, uint16_t win, uint16_t urg, bool ack_flag, bool syn_flag, char doff = 5)
 
-        : tcp_packet(payload_length + sizeof(iphdr), sizeof(iphdr), sport, dport, sequence, ack_sequence, win, urg,
-                     ack_flag, syn_flag, doff),
-          ps{ip.saddr, ip.daddr, 0, IPPROTO_TCP, htons(payload_length + sizeof(pseudo_header) + sizeof(udphdr))}
+        : tcp_packet(payload_length + sizeof(iphdr), sport, dport, sequence, ack_sequence, win, urg, ack_flag, syn_flag,
+                     doff, sizeof(iphdr)),
+          ps{ip.saddr, ip.daddr, 0, IPPROTO_TCP, htons(payload_length + sizeof(pseudo_header) + sizeof(tcphdr))}
     {
         std::memcpy(&data[0], &ip, sizeof(iphdr));
     }
@@ -286,6 +289,7 @@ public:
     {
         std::memcpy(&data[0], &ip, sizeof(iphdr));
     }
+
     virtual ~ip_icmp_packet() {}
 };
 
@@ -351,6 +355,7 @@ public:
     virtual void setup_sockets() = 0;        // pure virtual
     virtual void setup_packet_train()
     {
+        uint8_t proto = trans == transport_type::udp ? IPPROTO_UDP : IPPROTO_TCP;
         // populate the empty data_train based on raw and transport type
         switch(raw)
         {
@@ -366,6 +371,8 @@ public:
             populate_none();
             break;
         }
+        ps = {ip_header.saddr, ip_header.daddr, 0, proto,
+              htons(payload_size + transport_header_size() + sizeof(pseudo_header))};
 
         uint16_t packet_id = 0;
         for(auto& item : data_train)
@@ -373,18 +380,29 @@ public:
             item->fill(file, packet_id++);
             if(raw == transport_only)
             {
-                pseudo_header ps = {ip_header.saddr, ip_header.daddr, 0, IPPROTO_TCP,
-                                    htons(payload_size + transport_header_size() + sizeof(pseudo_header))};
                 item->checksum(ps);
             }
         }
     }
-    virtual void populate_full() = 0;               // pure virtual
-    virtual void populate_trans() = 0;              // pure virtual
-    virtual void populate_none() = 0;               // pure virtual
+    virtual void populate_full() = 0;         // pure virtual
+    virtual void populate_trans() = 0;        // pure virtual
+    virtual void populate_none() = 0;         // pure virtual
+    virtual void send_train() = 0;            // sends the packet train -- pure virtual;
+    virtual void receive() = 0;               // receives responses from the target IP -- pure virtual
+    virtual void send_timestamp() = 0;        // sends time stamping packets must send inital packets, can be reused
+    virtual void send_tail() = 0;             // sends the tail set of time stamping packets
     virtual int transport_header_size() = 0;        // returns size of transport header -- pure virtual
-    virtual void send_train() = 0;                  // sends the packet train -- pure virtual;
-    virtual void receive() = 0;                     // receives responses from the target IP -- pure virtual
+
+    inline virtual void detect()
+    {
+        prepare();
+        send_timestamp();
+        send_train();
+        send_tail();
+    }        // end detect()
+
+    virtual void prepare(){};
+
     virtual void measure()
     {
         if(!sockets_ready)
@@ -398,7 +416,7 @@ public:
 
         std::vector<std::thread> threads;
         threads.emplace_back(&detector::receive, this);
-        threads.emplace_back(&detector::send_train, this);
+        threads.emplace_back(&detector::detect, this);
 
         for(auto& t : threads)
         {
@@ -435,7 +453,7 @@ public:
 
     virtual void setup_ip_info()
     {
-        // set leading bits for version and ip header length -- can change later;
+        // set leading bits for version and IP header length -- can change later;
         ip_header.version = 4;
         ip_header.ihl     = 5;
 
@@ -542,6 +560,8 @@ protected:
     double milliseconds;
     timeval elapsed;
     bool sockets_ready;
+    pseudo_header ps;
+    std::array<char, 1500> buff;
 };
 
 
@@ -556,9 +576,9 @@ public:
                  transport_type trans_proto = transport_type::udp)
         : detector(src_ip, dest_ip, tos, data_length + sizeof(udphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
                    check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
-                   trans_proto)
+                   trans_proto),
+          icmp_send(ip_header, 64 - sizeof(udphdr), ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand())
     {
-        printf("payload_size: %d\n", payload_size);
         setup_packet_train();
         // setup_sockets();
     }
@@ -583,7 +603,6 @@ public:
     }
 
     virtual int transport_header_size() { return sizeof(udphdr); }
-
     virtual void setup_sockets()
     {
 
@@ -676,72 +695,75 @@ public:
     }
 
 
-    virtual void send_train()
+    virtual void setup_icmp_packet()
     {
-        int icmp_packet_size = 64;        // 64 byte icmp packet size up to a mx of 76 bytes for replies
-
         /* size of ICMP Echo message */
         uint16_t icmp_data_len = (uint16_t)(icmp_packet_size - sizeof(struct icmp) - sizeof(uint16_t));
 
-        /*size of icmp packet*/
-        uint16_t icmp_len = (uint16_t)(icmp_packet_size);
-
-        /* size of ICMP reply + IP header */
-        uint16_t icmp_ip_len = (uint16_t)(sizeof(struct ip) + icmp_len);
         iphdr icmp_ip_header(ip_header);
         icmp_ip_header.protocol = IPPROTO_ICMP;
-        ip_icmp_packet icmp_send(icmp_ip_header, icmp_data_len, ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand());
+        icmp_send               = ip_icmp_packet(icmp_ip_header, icmp_data_len, ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand());
+    }
 
-        int n;
+
+    inline virtual void send_timestamp()
+    {
         /*send Head ICMP Packet*/
-        n = sendto(icmp_fd, icmp_send.data.data(), icmp_send.data.size(), 0, res->ai_addr, res->ai_addrlen);
+        int n = sendto(icmp_fd, icmp_send.data.data(), icmp_send.data.size(), 0, res->ai_addr, res->ai_addrlen);
         if(n == -1)
         {
-            perror("Call to sendto() failed: error sending ICMP head packet");
+            perror("Call to sendto() failed: error sending ICMP packet");
             exit(EXIT_FAILURE);
         }
+    }
 
-        printf("data train size: %zu\n", data_train.size());
+
+    virtual void send_train()
+    {
+        int n;
         /*send data train*/
         for(const auto& item : data_train)
         {
-            uint16_t* id = (uint16_t*)&item->data[item->data_offset];
-            printf("The id sent is: %d\n", *id);
             n = sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
             if(n == -1)
             {
                 perror("call to sendto() failed: error sending UDP udp train");
                 exit(EXIT_FAILURE);
-            }
-        }
+            }        // end if
+        }            // end for
+    }                // end send_train()
 
+
+    virtual void prepare() { setup_icmp_packet(); }
+
+    virtual void send_tail()
+    {
         struct icmp* icmp = (struct icmp*)(icmp_send.data.data() + sizeof(struct ip));
 
         /*send tail ICMP Packets with timer*/
         std::unique_lock<std::mutex> stop_lock(stop_mutex);        // acquire lock
         for(int i = 0; i < num_tail && !stop; ++i)
         {
+            // get timestamp
+            auto now = std::chrono::system_clock::now() + std::chrono::milliseconds(tail_wait);
+
+            // do some work
             /*not sure if changing the sequence number will help*/
             icmp->icmp_cksum = 0;
             icmp->icmp_seq += 1;
-            icmp->icmp_cksum = ip_checksum(icmp, icmp_len);
+            icmp->icmp_cksum = ip_checksum(icmp, icmp_packet_size);
+            send_timestamp();
 
-            n = sendto(icmp_fd, icmp_send.data.data(), icmp_ip_len, 0, res->ai_addr, res->ai_addrlen);
-            if(n == -1)
-            {
-                perror("Call to sendto() failed: icmp tail");
-                exit(EXIT_FAILURE);
-            }
+            // wait until we should send the next tail_message
+            stop_cv.wait_until(stop_lock, now);
+        }        // end for
 
-            stop_cv.wait_for(stop_lock, std::chrono::milliseconds(tail_wait));
-
-        }                          // end for
         stop_lock.unlock();        // release lock
     }
 
+
     virtual void receive()
     {
-
         /*number of bytes received*/
         int n;
 
@@ -757,12 +779,13 @@ public:
         /* to receive data with*/
         struct sockaddr_in addr;
 
-        char packet_rcv[1500] = {0};        // buffer for receiving replies
+        buff.fill(0);
+
         /* length of address */
         socklen_t adrlen = sizeof(addr);
 
         /*Receive initial ICMP echo response && Time-stamp*/
-        struct ip* ip      = (struct ip*)packet_rcv;
+        struct ip* ip      = (struct ip*)buff.data();
         icmp               = (struct icmp*)(ip + 1);
         struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data) + sizeof(struct ip));
 
@@ -771,7 +794,7 @@ public:
         for(;;)
         {
 
-            n = recvfrom(recv_fd, packet_rcv, sizeof(packet_rcv), 0, (struct sockaddr*)&addr, &adrlen);
+            n = recvfrom(recv_fd, buff.data(), buff.size(), 0, (struct sockaddr*)&addr, &adrlen);
 
             if(n < 0)
             {
@@ -853,6 +876,8 @@ public:
 private:
     /* data */
     int icmp_fd;
+    ip_icmp_packet icmp_send;
+    const uint16_t icmp_packet_size = 64;        // 64 byte icmp packet size up to a mx of 76 bytes for replies
 };
 
 
@@ -863,23 +888,37 @@ public:
     tcp_detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
                  uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                  std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
-                 uint32_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
+                 uint32_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = full,
                  transport_type trans_proto = transport_type::tcp, uint16_t syn_port_in = 22223)
         : detector(src_ip, dest_ip, tos, data_length + sizeof(tcphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
                    check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
                    trans_proto),
           syn_port(syn_port_in)
     {
+        setup_packet_train();
     }
 
+    virtual void fix_data_train()
+    {
+        int num = 0;
+        for(auto& item : data_train)
+        {
+            tcphdr* tcp = (tcphdr*)(item->data.data() + sizeof(iphdr));        //->data[trans_offset];
+            num += item->data.size() - sizeof(iphdr);
+            tcp->seq = htonl(num);
+        }
+    }
     virtual void populate_full()
     {
         data_train.reserve(num_packets);
         for(int i = 0; i < num_packets; ++i)
-            data_train.push_back(std::make_shared<ip_tcp_packet>(
-              ip_header, payload_size, sport, dport, tcp_header.seq, tcp_header.ack_seq, tcp_header.window,
-              tcp_header.urg_ptr, (uint16_t)tcp_header.ack, (uint16_t)tcp_header.syn, (uint16_t)tcp_header.doff));
+            data_train.push_back(std::make_shared<ip_tcp_packet>(ip_header, payload_size, sport, dport, tcp_header.seq,
+                                                                 tcp_header.ack_seq, (1 << 15) - 1, tcp_header.urg_ptr,
+                                                                 1, 0, 5));
+
+        fix_data_train();
     }
+
     virtual void populate_trans()
     {
         data_train.reserve(num_packets);
@@ -887,6 +926,8 @@ public:
             data_train.push_back(std::make_shared<tcp_packet>(
               payload_size, sport, dport, tcp_header.seq, tcp_header.ack_seq, tcp_header.window, tcp_header.urg_ptr,
               (uint16_t)tcp_header.ack, (uint16_t)tcp_header.syn, (uint16_t)tcp_header.doff));
+
+        fix_data_train();
     }
     virtual void populate_none()
     {
@@ -991,32 +1032,44 @@ public:
 #endif
     }
 
-    virtual void send_train()
+    virtual void setup_syn_packets()
+    {
+        pseudo_header syn_ps = {};
+        syn_ps.source        = ip_header.saddr;
+        syn_ps.dest          = ip_header.daddr;
+        syn_ps.zero          = 0;
+        syn_ps.len           = htons(sizeof(tcphdr));
+        syn_ps.proto         = IPPROTO_TCP;
+
+        syn_packet_1.reset(new ip_tcp_packet(ip_header, 0, sport, dport, 0, 0, (1 << 15) - 1, 0, false, true, 5));
+        syn_packet_1->checksum(syn_ps);
+
+        syn_packet_2.reset(
+          new ip_tcp_packet(ip_header, 0, sport + 1, syn_port, 0, 0, (1 << 15) - 1, 0, false, true, 5));
+        syn_packet_2->checksum(syn_ps);
+    }
+
+    virtual void prepare() { setup_syn_packets(); }
+
+
+    virtual void send_timestamp()
     {
         int n;
-        struct timespec tail_wait_tv;
 
-        // tail wait is in milliseconds, so multiply by 10^6 to convert to nanoseconds
-        tail_wait_tv.tv_nsec = tail_wait * 1000000;
+        // set up the buffer to receive the reply into
+        struct ip* ip            = (struct ip*)buff.data();
+        struct tcphdr* tcp_reply = (struct tcphdr*)(ip + 1);
 
-        ip_tcp_packet syn_packet_1(ip_header, 1, sport, dport, 1, 0, (1 << 15) - 1, 0, 0, 1, 5);
-        ip_tcp_packet syn_packet_2(ip_header, 1, sport + 1, syn_port, 1, 0, (1 << 15) - 1, 0, 0, 1, 5);
-
-        char buff[1500] = {0};
-
-        n = sendto(send_fd, syn_packet_1.data.data(), syn_packet_1.data.size(), 0, res->ai_addr, res->ai_addrlen);
+        n = sendto(send_fd, syn_packet_1->data.data(), syn_packet_1->data.size(), 0, res->ai_addr, res->ai_addrlen);
         if(n == -1)
         {
             perror("Call to sendto() failed: tcp syn");
             exit(EXIT_FAILURE);
         }
-        // set up the buffer to receive the reply into
-        struct ip* ip            = (struct ip*)buff;
-        struct tcphdr* tcp_reply = (struct tcphdr*)(ip + 1);
 
         do
         {
-            if((recvfrom(send_fd, buff, sizeof(buff), 0, 0, 0)) == -1)
+            if((recvfrom(send_fd, buff.data(), buff.size(), 0, 0, 0)) == -1)
             {
                 perror("call to recvfrom() failed: tcp SYN-ACK");
                 exit(EXIT_FAILURE);
@@ -1024,16 +1077,30 @@ public:
 
         } while((tcp_reply->dest != htons(sport)) || (ip_header.saddr != ip->ip_src.s_addr));
 
+
         if(verbose)
         {
             printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
             printf("TCP SYN reply from port: %d to port: %d\n", ntohs(tcp_reply->source), ntohs(tcp_reply->dest));
         }
-        milliseconds = get_time();        // time stamp just before we begin sending
 
+        milliseconds = get_time();        // time stamp just before we begin sending
+    }
+
+
+    virtual void send_train()
+    {
+        int n;
+        // uint32_t ack_seq = ntohl(tcp_reply->seq);
+        // tcphdr* tcp;
+        //        uint32_t uniform_data_len = sizeof(tcphdr) + payload_size;
         /*send data train*/
         for(auto item : data_train)
         {
+            //         tcp      = (tcphdr*)&item->data[((ip_tcp_packet*)item.get())->transport_offset];
+            //          tcp->ack_seq = htonl(ack_seq);// += uniform_data_len);
+            //           item->checksum(ps);
+
             n = sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
             if(n == -1)
             {
@@ -1043,17 +1110,20 @@ public:
         }
 
         {
-            std::lock_guard<std::mutex> read_guard(recv_ready_mutex);        // acquire lock
+            std::lock_guard<std::mutex> recv_guard(recv_ready_mutex);        // acquire lock
             recv_ready = true;
         }
 
         recv_ready_cv.notify_all();
+    }
 
-
+    virtual void send_tail()
+    {
+        int n;
         std::unique_lock<std::mutex> stop_lock(stop_mutex);        // acquire lock
         for(int i = 0; i < num_tail && !stop; ++i)
         {
-            n = sendto(send_fd, syn_packet_2.data.data(), syn_packet_2.data.size(), 0, res->ai_addr, res->ai_addrlen);
+            n = sendto(send_fd, syn_packet_2->data.data(), syn_packet_2->data.size(), 0, res->ai_addr, res->ai_addrlen);
             if(n == -1)
             {
                 perror("Call to sendto() failed: TCP Tail Syn");
@@ -1077,8 +1147,7 @@ public:
 
         socklen_t adrlen = sizeof(addr);
 
-        char packet_rcv[1500] = {0};        // buffer for receiving replies
-                                            /* length of address */
+        buff.fill(0);
 
         std::unique_lock<std::mutex> recv_ready_lock(recv_ready_mutex);
         // while(!recv_ready)
@@ -1089,11 +1158,11 @@ public:
                            });
         //}
 
-        struct ip* ip      = (struct ip*)packet_rcv;
+        struct ip* ip      = (struct ip*)buff.data();
         struct tcphdr* tcp = (struct tcphdr*)(ip + 1);
         do
         {
-            n = recvfrom(send_fd, packet_rcv, sizeof(packet_rcv), 0, (struct sockaddr*)&addr, &adrlen);
+            n = recvfrom(send_fd, buff.data(), buff.size(), 0, (struct sockaddr*)&addr, &adrlen);
             if(n < 0)
             {
                 perror("recvfrom() failed");
@@ -1124,5 +1193,7 @@ private:
     /* data */
     int icmp_fd;
     uint16_t syn_port;
+    std::unique_ptr<ip_tcp_packet> syn_packet_1;
+    std::unique_ptr<ip_tcp_packet> syn_packet_2;
 };
 

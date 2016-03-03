@@ -185,11 +185,13 @@ int check_args(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
 check_args(argc, argv);
-std::shared_ptr<udp_detector> test(nullptr);
+std::shared_ptr<detector> test(nullptr);
 switch (trans) {
     case transport_type::udp:
         test= std::make_shared<udp_detector>("", dest_ip, tos,0,0,255,IPPROTO_UDP,0,sport, dport);
         break;
+    case transport_type::tcp:
+        test= std::make_shared<tcp_detector>("", dest_ip, tos,0,0,255,IPPROTO_TCP,0,sport, dport);
     default:
         break;
 }
