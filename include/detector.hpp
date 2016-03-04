@@ -571,7 +571,7 @@ class udp_detector : public detector
 public:
     udp_detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
                  uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
-                 std::string filename = "/dev/urandom", uint16_t num_packets = 10, uint16_t data_length = 512,
+                 std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
                  uint32_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
                  transport_type trans_proto = transport_type::udp)
         : detector(src_ip, dest_ip, tos, data_length + sizeof(udphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
