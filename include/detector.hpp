@@ -64,8 +64,21 @@
 #include "ip_checksum.h"
 #include "bitset.h"
 
+/* define a buffer type 
+ * we use a vector of char in place of a char array
+ * to get a byte addressable region of raw memory that can have varying size
+ * 
+ */
 typedef std::vector<char> buffer_t;
 
+
+/**
+ * strongly typed enumeration
+ *
+ * lists transport protocols directly supported
+ * extend the enum class to support more protocols
+ *
+ */
 enum class transport_type
 {
     udp,
@@ -86,14 +99,42 @@ struct __attribute__((__packed__)) pseudo_header
 };
 
 
+
+/**
+ * provides a base class for managing packets
+ * this class ponly provides a single raw buffer to use
+ * and doesn't directly support transport or network headers
+ */
 class packet
 {
 public:
+  /**
+   * constructor
+   *
+   * TODO: change the constructor to add data_offset to the initializer for data and
+   * make derived classes only wory about setting the offset, ie where the next packet type down starts
+   *
+   * @param payload_length the length of the buffer -- should probably change inheriting classes to 
+   * only pass the offset w/o woring about increasing the buffer size
+   *
+   * @param data_offset the offset from the start of the buffer that the data (read payload) begins
+   * The payload is exptected not to hold any header information above the application layer (ie http headers are
+   * OK since they are application layer headers, but TCP headers generally should be set using a subclass
+   */
     packet(size_t payload_length, size_t data_offset = 0)
-        : data(payload_length), filled(false), data_offset(data_offset)
+        : data(payload_length + data_offset), filled(false), data_offset(data_offset)
     {
     }
+
+    /* destructor */
     virtual ~packet() {}
+
+    /**
+     * Reads data from a file into the payload region of a packet
+     *
+     *@param file a file stream to read data from into the payload region
+     *@param packet_id each packet is expected to hold a packet_id in the first 16 bits
+     */
     virtual void fill(std::ifstream& file, uint16_t packet_id)
     {
         if(data_offset >= data.size())
@@ -114,26 +155,66 @@ public:
         }
         filled = true;
     }
+
+
+    /**
+     * checksums the packet -- data only payloads don't need this
+     * Assumes that checksums require a pseudo header per UDP/TCP
+     *
+     * @param ps a pseudo_header struct used durring the checksum
+     *
+     */
     virtual void checksum(const pseudo_header& ps) {}
-    buffer_t data;
-    bool filled;
-    size_t data_offset;
+
+    /* data*/
+    buffer_t data; // a raw -- resizable -- buffer to use
+    bool filled;// boolean denotes if the payload has been filled from file yet
+    size_t data_offset;// the offset form the beggining of the packet where the payload begins
 };
 
+
+
+/**
+ * The udp_packet class is designed to simplify the initalization of udp packets
+ *
+ * This subclass of packet adds a checksum feature, and adds transport layer information to
+ * the raw packet buffer.
+ *
+ */
 class udp_packet : public packet
 {
 public:
+  /**
+   * Constructor -- sets up a udp packet
+   *
+   * Note that the checksum cannot be completed until a pseudo header is provided
+   *
+   * @param payload_length the lenght of the payload section
+   * @param sport the source port
+   * @param dport the destination port
+   * @param trans_offset the offset from the begining of the packet that the transport header begins
+   * @
+   */
     udp_packet(size_t payload_length, uint16_t sport, uint16_t dport, size_t trans_offset = 0)
-        : packet(sizeof(udphdr) + payload_length, trans_offset + sizeof(udphdr)), transport_offset(trans_offset)
+        : packet(payload_length, trans_offset + sizeof(udphdr)), transport_offset(trans_offset)
     {
         udphdr* udp_header = (udphdr*)&(data[trans_offset]);
         udp_header->source = htons(sport);
         udp_header->dest   = htons(dport);
-        udp_header->len    = htons(payload_length + sizeof(udphdr));
+        udp_header->len    = htons((uint16_t) (payload_length + sizeof(udphdr)));
     }
 
     virtual ~udp_packet() {}
 
+
+
+    /**
+     * provides the UDP checksum from the provided pseudo header
+     *
+     *
+     *@param ps the pseudo_header to used in creating the UDP checksum
+     *
+     */
     virtual void checksum(const pseudo_header& ps)
     {
         size_t offset = sizeof(ps);
@@ -149,18 +230,40 @@ public:
         udp_header->check  = ip_checksum(buff.data(), buff.size());
     }
 
-    size_t transport_offset;
+    size_t transport_offset;// the offset in bytes from the begining of the packet to the start of the transport header
 
 private:
     /* data */
 };
 
-
+/**
+ * Simplifies the setup of tcp packets
+ *
+ */
 class tcp_packet : public packet
 {
 public:
+  /**
+   *
+   * creates a packet with a valid TCP header
+   *
+   * @param payload_length the lenght of the payload section
+   * @param sport the source port
+   * @param dport the destination port
+   * @param trans_offset the offset from the begining of the packet that the transport header begins
+   * @param sequence the packets sequence number -- if set later use zero <-- doing this delays when the checksum can be done
+   *
+   * @param ack_sequence the sequence number of the ACK
+   *
+   * @param win the tcp windowsize
+   * @param urg the urgent pointer
+   * @param ack_flag the TCP ACK flag
+   * @param syn_flag the TCP SYN flag
+   * @param doff the offset that data begins after the header -- default is 5 the size of the TCP header in 32bit words
+   *
+   */
     tcp_packet(size_t payload_length, uint16_t sport, uint16_t dport, uint32_t sequence, uint32_t ack_sequence,
-               uint16_t win, uint16_t urg, bool ack_flag, bool syn_flag, char doff = 5, size_t trans_off = 0)
+               uint16_t win, uint16_t urg, bool ack_flag, bool syn_flag, unsigned char doff = 5, size_t trans_off = 0)
         : packet(payload_length + sizeof(tcphdr), trans_off + sizeof(tcphdr)), transport_offset(trans_off)
     {
         tcphdr* tcp_header  = (tcphdr*)&(data[transport_offset]);
@@ -178,6 +281,13 @@ public:
     virtual ~tcp_packet() {}
 
 
+/**
+     * provides the TCP checksum from the provided pseudo header
+     *
+     *
+     *@param ps the pseudo_header to used in creating the UDP checksum
+     *
+     */
     virtual void checksum(const pseudo_header& pseudo)
     {
         size_t offset = sizeof(pseudo);
@@ -198,10 +308,20 @@ public:
 private:
 };
 
+
+
+/**
+ * Simplifies the setup of ICMP Packets
+ */
 class icmp_packet : public packet
 {
 
 public:
+
+
+   /**
+    *
+    */
     icmp_packet(size_t length, uint8_t type, uint8_t code, uint16_t id, uint16_t seq, size_t offset = 0)
         : packet(length + sizeof(icmp), sizeof(icmp))
     {
@@ -226,7 +346,7 @@ class ip_tcp_packet : public tcp_packet
 {
 public:
     ip_tcp_packet(const iphdr& ip, size_t payload_length, uint16_t sport, uint16_t dport, uint32_t sequence,
-                  uint32_t ack_sequence, uint16_t win, uint16_t urg, bool ack_flag, bool syn_flag, char doff = 5)
+                  uint32_t ack_sequence, uint16_t win, uint16_t urg, bool ack_flag, bool syn_flag, unsigned char doff = 5)
 
         : tcp_packet(payload_length + sizeof(iphdr), sport, dport, sequence, ack_sequence, win, urg, ack_flag, syn_flag,
                      doff, sizeof(iphdr)),
@@ -313,7 +433,7 @@ public:
     detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id, uint16_t frag_off,
              uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
              std::string filename = "/dev/urandom", uint16_t num_packets = 10, uint16_t data_length = 512,
-             uint32_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
+             uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
              transport_type trans_proto = transport_type::udp)
         : src_ip(src_ip),
           dest_ip(dest_ip),
@@ -372,7 +492,7 @@ public:
             break;
         }
         ps = {ip_header.saddr, ip_header.daddr, 0, proto,
-              htons(payload_size + transport_header_size() + sizeof(pseudo_header))};
+              htons((uint16_t) (payload_size + transport_header_size() + sizeof(pseudo_header)))};
 
         uint16_t packet_id = 0;
         for(auto& item : data_train)
@@ -522,14 +642,13 @@ protected:
     std::string dest_ip;                 // string with IP address
     transport_type trans;                // enum containing the transport type
     iphdr ip_header;                     // IP header struct -- holds all the values
-    tcphdr tcp_header;                   // transport layer header --- should probably get rid of this
-    udphdr udp_header;                   // transport layer header --- should probably get rid of this
-    uint32_t sport;                      // transport layer source port -- should this be here?
-    uint32_t dport;                      // transport layer source port -- should this be here?
+    //tcphdr tcp_header;                   // transport layer header --- should probably get rid of this
+    //udphdr udp_header;                   // transport layer header --- should probably get rid of this
+    uint16_t sport;                      // transport layer source port -- should this be here?
+    uint16_t dport;                      // transport layer source port -- should this be here?
     bool verbose;                        // verbose output
     bool sql_output;                     // output minimal information for our SQL data structures
     int packets_lost;                    // number of packets lost -- for loss based approach
-    const size_t num_threads = 2;        // number of threads used by pthread
     addrinfo* res;
     packet_buffer_t data_train;
 
@@ -572,9 +691,9 @@ public:
     udp_detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
                  uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                  std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
-                 uint32_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
+                 uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
                  transport_type trans_proto = transport_type::udp)
-        : detector(src_ip, dest_ip, tos, data_length + sizeof(udphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
+        : detector(src_ip, dest_ip, tos, (uint16_t)(data_length + sizeof(udphdr) + sizeof(iphdr)), id, frag_off, ttl, proto,
                    check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
                    trans_proto),
           icmp_send(ip_header, 64 - sizeof(udphdr), ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand())
@@ -847,7 +966,7 @@ public:
         if(verbose)
         {
             printf("Missing Packets:  ");
-            int i = 0;
+            size_t i = 0;
             for(i = 0; i < num_packets; ++i)
             {
                 if(get_bs_32(bitset, i, num_packets) == 0)
@@ -888,7 +1007,7 @@ public:
     tcp_detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
                  uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                  std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
-                 uint32_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = full,
+                 uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = full,
                  transport_type trans_proto = transport_type::tcp, uint16_t syn_port_in = 22223)
         : detector(src_ip, dest_ip, tos, data_length + sizeof(tcphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
                    check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
@@ -900,7 +1019,7 @@ public:
 
     virtual void fix_data_train()
     {
-        int num = 0;
+        uint32_t num = 0;
         for(auto& item : data_train)
         {
             tcphdr* tcp = (tcphdr*)(item->data.data() + sizeof(iphdr));        //->data[trans_offset];
