@@ -37,86 +37,89 @@
 //#include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
 //#include <string.h>          /* for memcpy */
 //#include <errno.h>           /* for errno*/
-#include <unistd.h>          /* for close() */
-#include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
+#include <arpa/inet.h>       /* for inet_pton() */
+#include <netdb.h>           /* for getaddrinfo() */
 #include <netinet/ip.h>      /* for struct ip */
 #include <netinet/ip_icmp.h> /* for struct icmp */
 #include <netinet/tcp.h>     /* for struct tcphdr */
 #include <netinet/udp.h>     /* for struct udphdr */
-#include <netdb.h>           /* for getaddrinfo() */
-#include <arpa/inet.h>       /* for inet_pton() */
+#include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
+#include <unistd.h>          /* for close() */
 //#include <signal.h>          /* for kill() */
 //#include <fcntl.h>           /* for O_RDONLY */
 //#include <ctype.h>           /* for inet_pton() */
 //#include "ncd_global.h"
 
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <cstdint>
-#include <iostream>
-#include <stdexcept>
-#include <cstring>
-#include <memory>
-#include <vector>
-#include <thread>
-#include <mutex>
 #include <condition_variable>
+#include <cstdint>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <vector>
 
 
-#include "ip_checksum.h"
 #include "bitset.h"
-#include "packet.hpp"
-#include "udp_packet.hpp"
-#include "tcp_packet.hpp"
 #include "icmp_packet.hpp"
+#include "ip_checksum.h"
+#include "ip_icmp_packet.hpp"
 #include "ip_tcp_packet.hpp"
 #include "ip_udp_packet.hpp"
-#include "ip_icmp_packet.hpp"
+#include "packet.hpp"
+#include "tcp_packet.hpp"
+#include "udp_packet.hpp"
 
-namespace detection {
-
+namespace detection
+{
 
 
     typedef std::vector<std::shared_ptr<packet>> packet_buffer_t;
 
-    enum raw_level {
+    enum raw_level
+    {
         none,
         transport_only,
         full
     };
 
-/**
- * new class to manage all resources used during  discrimination detection
- * only responsible for a single train
- */
-    class detector {
+    /**
+     * new class to manage all resources used during  discrimination detection
+     * only responsible for a single train
+     */
+    class detector
+    {
     public:
         detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id,
-                 uint16_t frag_off,
-                 uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
+                 uint16_t frag_off, uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                  std::string filename = "/dev/urandom", uint16_t num_packets = 10, uint16_t data_length = 512,
                  uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
                  transport_type trans_proto = transport_type::udp)
-                : src_ip(src_ip),
-                  dest_ip(dest_ip),
-                  trans(trans_proto),
-                  ip_header{0, 0, tos, ip_length, id, frag_off, ttl, proto, check_sum, 0, 0},
-                  sport(sport),
-                  dport(dport),
-                  res(nullptr),
-                  payload_size(data_length),
-                  num_packets(num_packets),
-                  num_tail(num_tail),
-                  tail_wait(tail_wait),
-                  file(filename, std::ios::in | std::ios::binary),
-                  raw(raw_status),
-                  milliseconds(0),
-                  elapsed{},
-                  sockets_ready(false) {
+            : src_ip(src_ip),
+              dest_ip(dest_ip),
+              trans(trans_proto),
+              ip_header{0, 0, tos, ip_length, id, frag_off, ttl, proto, check_sum, 0, 0},
+              sport(sport),
+              dport(dport),
+              res(nullptr),
+              payload_size(data_length),
+              num_packets(num_packets),
+              num_tail(num_tail),
+              tail_wait(tail_wait),
+              file(filename, std::ios::in | std::ios::binary),
+              raw(raw_status),
+              milliseconds(0),
+              elapsed{},
+              sockets_ready(false)
+        {
             verbose = true;
             // get file stream to use in packet initialization;
-            if (!file.is_open()) {
+            if(!file.is_open())
+            {
                 std::string err_string = "Error: file " + filename + " could not be opened";
                 std::ios_base::failure e(err_string);
                 std::cerr << err_string << std::endl;
@@ -127,107 +130,118 @@ namespace detection {
             setup_ip_info();
         }
 
-        virtual ~detector() {
-            if (res)
+        virtual ~detector()
+        {
+            if(res)
                 freeaddrinfo(res);
             res = nullptr;
         }
 
         virtual void setup_sockets() = 0;        // pure virtual
-        virtual void setup_packet_train() {
+        virtual void setup_packet_train()
+        {
             uint8_t proto = trans == transport_type::udp ? IPPROTO_UDP : IPPROTO_TCP;
             // populate the empty data_train based on raw and transport type
-            switch (raw) {
-                case full:
-                    populate_full();
-                    break;
-                case transport_only:
-                    populate_trans();
-                    break;
-                    // none is also the current default, make appropriate changes if necessary
-                case none:
-                default:
-                    populate_none();
-                    break;
+            switch(raw)
+            {
+            case full:
+                populate_full();
+                break;
+            case transport_only:
+                populate_trans();
+                break;
+            // none is also the current default, make appropriate changes if necessary
+            case none:
+            default:
+                populate_none();
+                break;
             }
             ps = {ip_header.saddr, ip_header.daddr, 0, proto,
-                  htons((uint16_t) (payload_size + transport_header_size() + sizeof(pseudo_header)))};
+                  htons((uint16_t)(payload_size + transport_header_size() + sizeof(pseudo_header)))};
 
             uint16_t packet_id = 0;
-            for (auto &item : data_train) {
+            for(auto& item : data_train)
+            {
                 item->fill(file, packet_id++);
-                if (raw == transport_only) {
+                if(raw == transport_only)
+                {
                     item->checksum(ps);
                 }
             }
         }
 
-        virtual void populate_full() = 0;         // pure virtual
+        virtual void populate_full()  = 0;        // pure virtual
         virtual void populate_trans() = 0;        // pure virtual
-        virtual void populate_none() = 0;         // pure virtual
-        virtual void send_train() = 0;            // sends the packet train -- pure virtual;
-        virtual void receive() = 0;               // receives responses from the target IP -- pure virtual
+        virtual void populate_none()  = 0;        // pure virtual
+        virtual void send_train()     = 0;        // sends the packet train -- pure virtual;
+        virtual void receive()        = 0;        // receives responses from the target IP -- pure virtual
         virtual void send_timestamp() = 0;        // sends time stamping packets must send inital packets, can be reused
-        virtual void send_tail() = 0;             // sends the tail set of time stamping packets
+        virtual void send_tail()      = 0;        // sends the tail set of time stamping packets
         virtual int transport_header_size() = 0;        // returns size of transport header -- pure virtual
 
-        inline virtual void detect() {
+        inline virtual void detect()
+        {
             prepare();
             send_timestamp();
             send_train();
             send_tail();
         }        // end detect()
 
-        virtual void prepare() { };
+        virtual void prepare(){};
 
-        virtual void measure() {
-            if (!sockets_ready) {
+        virtual void measure()
+        {
+            if(!sockets_ready)
+            {
                 setup_sockets();
                 sockets_ready = true;
             }
             // initialize synchronization variables
-            stop = false;        // boolean false
+            stop       = false;        // boolean false
             recv_ready = false;        // boolean false
 
             std::vector<std::thread> threads;
             threads.emplace_back(&detector::receive, this);
             threads.emplace_back(&detector::detect, this);
 
-            for (auto &t : threads) {
+            for(auto& t : threads)
+            {
                 t.join();
             }        // end for
 
-            if (!sql_output)
+            if(!sql_output)
                 printf("%f sec\n", milliseconds);        // are these unit correct now???
             close(recv_fd);
 
         }        // end measure()
 
         // stay the same
-        virtual void output_results() {
+        virtual void output_results()
+        {
 
             std::stringstream out;
-            switch (trans) {
-                case transport_type::udp:
-                    out << "UDP";
-                    break;
-                case transport_type::tcp:
-                    out << "TCP";
-                default:
-                    break;
+            switch(trans)
+            {
+            case transport_type::udp:
+                out << "UDP";
+                break;
+            case transport_type::tcp:
+                out << "TCP";
+            default:
+                break;
             };
 
-            out << src_ip << " " << dest_ip << " " << sport << " " << dport << " " << num_packets << " " << num_tail <<
-            " "
-            << payload_size << " " << tail_wait << " " << packets_lost << " " << milliseconds << std::endl;
+            out << src_ip << " " << dest_ip << " " << sport << " " << dport << " " << num_packets << " " << num_tail
+                << " " << payload_size << " " << tail_wait << " " << packets_lost << " " << milliseconds << std::endl;
 
             std::cout << out.str();
         }
 
-        virtual void setup_ip_info() {
+        virtual void setup_ip_info()
+        {
             // set leading bits for version and IP header length -- can change later;
             ip_header.version = 4;
-            ip_header.ihl = 5;
+            ip_header.ihl     = 5;
 
             /* set up hints for getaddrinfo() */
             addrinfo hints = {}; /* for get addrinfo */
@@ -235,16 +249,17 @@ namespace detection {
 
 
             // choose the correct protocol
-            switch (trans) {
-                case transport_type::udp:
-                    hints.ai_protocol = IPPROTO_UDP;
-                    break;
-                case transport_type::tcp:
-                    hints.ai_protocol = IPPROTO_TCP;
-                    break;
-                default:
-                    std::cerr << "Error: the transport_type selected is not supported" << std::endl;
-                    break;
+            switch(trans)
+            {
+            case transport_type::udp:
+                hints.ai_protocol = IPPROTO_UDP;
+                break;
+            case transport_type::tcp:
+                hints.ai_protocol = IPPROTO_TCP;
+                break;
+            default:
+                std::cerr << "Error: the transport_type selected is not supported" << std::endl;
+                break;
             }
 
             /* pass a string of the destination point to getaddrinfo */
@@ -253,8 +268,9 @@ namespace detection {
 
             // get destination IP just in case it was a URL
             int err = getaddrinfo(dest_ip.c_str(), ss.str().c_str(), &hints, &res);
-            if (err) {
-                if (err == EAI_SYSTEM)
+            if(err)
+            {
+                if(err == EAI_SYSTEM)
                     std::cerr << "Error looking up " << dest_ip << ":" << errno << std::endl;
                 else
                     std::cerr << "Error looking up " << dest_ip << ":" << gai_strerror(err) << std::endl;
@@ -262,19 +278,21 @@ namespace detection {
             }
 
             // set destination address
-            ip_header.daddr = ((struct sockaddr_in *) res->ai_addr)->sin_addr.s_addr;
+            ip_header.daddr = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
 
             // get temp socket to obtain source IP -- its a hack
             {
                 struct sockaddr_in srcaddrs = {};                      // source IP address
-                socklen_t sa_len = sizeof(srcaddrs);        // size of src address
+                socklen_t sa_len            = sizeof(srcaddrs);        // size of src address
 
                 int temp_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-                if (connect(temp_sock, res->ai_addr, res->ai_addrlen) == -1) {
+                if(connect(temp_sock, res->ai_addr, res->ai_addrlen) == -1)
+                {
                     std::cerr << "Connect failed: " << errno;
                     exit(EXIT_FAILURE);
                 }
-                if (getsockname(temp_sock, (struct sockaddr *) &srcaddrs, &sa_len) == -1) {
+                if(getsockname(temp_sock, (struct sockaddr*)&srcaddrs, &sa_len) == -1)
+                {
                     std::cerr << "getsockname() failed: " << errno;
                     exit(EXIT_FAILURE);
                 }
@@ -286,18 +304,18 @@ namespace detection {
 
     protected:
         /*ip data internal */
-        std::string src_ip;                  // string with IP address
-        std::string dest_ip;                 // string with IP address
-        transport_type trans;                // enum containing the transport type
-        iphdr ip_header;                     // IP header struct -- holds all the values
-        //tcphdr tcp_header;                   // transport layer header --- should probably get rid of this
-        //udphdr udp_header;                   // transport layer header --- should probably get rid of this
-        uint16_t sport;                      // transport layer source port -- should this be here?
-        uint16_t dport;                      // transport layer source port -- should this be here?
-        bool verbose;                        // verbose output
-        bool sql_output;                     // output minimal information for our SQL data structures
-        int packets_lost;                    // number of packets lost -- for loss based approach
-        addrinfo *res;
+        std::string src_ip;          // string with IP address
+        std::string dest_ip;         // string with IP address
+        transport_type trans;        // enum containing the transport type
+        iphdr ip_header;             // IP header struct -- holds all the values
+        // tcphdr tcp_header;                   // transport layer header --- should probably get rid of this
+        // udphdr udp_header;                   // transport layer header --- should probably get rid of this
+        uint16_t sport;          // transport layer source port -- should this be here?
+        uint16_t dport;          // transport layer source port -- should this be here?
+        bool verbose;            // verbose output
+        bool sql_output;         // output minimal information for our SQL data structures
+        int packets_lost;        // number of packets lost -- for loss based approach
+        addrinfo* res;
         packet_buffer_t data_train;
 
         // file descriptors
@@ -332,7 +350,6 @@ namespace detection {
     };
 
 
+}        // end namespace detector
 
-}// end namespace detector
-
-#endif // end detector.hpp
+#endif        // end detector.hpp
