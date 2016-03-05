@@ -4,7 +4,7 @@ project(detector)
 #set (detector_VERSION_MINOR 1)
 
 include_directories(include)
-set(SOURCE_FILES src/detector_main.cpp include/detector.hpp include/ip_checksum.h include/bitset.h)
+set(SOURCE_FILES src/detector_main.cpp)
 find_package ( Threads REQUIRED )
 add_executable(detector  ${SOURCE_FILES})
 target_link_libraries ( detector ${CMAKE_THREAD_LIBS_INIT}  m)

@@ -3,7 +3,8 @@
 //
 
 #ifndef DETECTOR_PACKET_HPP
-#define DETECTOR_PACKET_HPP#include <sstream>
+#define DETECTOR_PACKET_HPP
+
 
 #include <fstream>
 #include <iostream>
