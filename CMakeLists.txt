@@ -6,7 +6,7 @@ project(detector)
 include_directories(include)
 set(detector_HEADERS include/detector.hpp  include/packet.hpp include/ip_checksum.h
         include/bitset.h include/udp_packet.hpp include/tcp_packet.hpp
-        include/icmp_packet.hpp include/ip_tcp_packet.hpp include/ip_udp_packet.hpp include/ip_icmp_packet.hpp)
+        include/icmp_packet.hpp include/ip_tcp_packet.hpp include/ip_udp_packet.hpp include/ip_icmp_packet.hpp include/udp_detector.hpp)
 set(SOURCE_FILES src/detector_main.cpp)
 find_package(Threads REQUIRED )
 add_executable(detector  ${SOURCE_FILES} ${detector_HEADERS})
