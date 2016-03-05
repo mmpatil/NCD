@@ -25,31 +25,20 @@
 
 /**
  * @author: Paul Kirth
- * @file: ncd.c
+ * @file: detector.hpp
  */
 
 
 #ifndef DETECTOR_HPP_
 #define DETECTOR_HPP_
 
-
-//#include <stdio.h>           /* for printf, fprintf, snprintf, perror, ... */
-//#include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
-//#include <string.h>          /* for memcpy */
-//#include <errno.h>           /* for errno*/
+/* Linux header files */
 #include <arpa/inet.h>       /* for inet_pton() */
 #include <netdb.h>           /* for getaddrinfo() */
-#include <netinet/ip.h>      /* for struct ip */
-#include <netinet/ip_icmp.h> /* for struct icmp */
-#include <netinet/tcp.h>     /* for struct tcphdr */
-#include <netinet/udp.h>     /* for struct udphdr */
 #include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
 #include <unistd.h>          /* for close() */
-//#include <signal.h>          /* for kill() */
-//#include <fcntl.h>           /* for O_RDONLY */
-//#include <ctype.h>           /* for inet_pton() */
-//#include "ncd_global.h"
 
+/* STL Header files */
 #include <condition_variable>
 #include <cstdint>
 #include <cstring>
@@ -63,21 +52,15 @@
 #include <thread>
 #include <vector>
 
-
+/* project header files */
 #include "bitset.h"
-#include "icmp_packet.hpp"
 #include "ip_checksum.h"
 #include "ip_icmp_packet.hpp"
 #include "ip_tcp_packet.hpp"
 #include "ip_udp_packet.hpp"
-#include "packet.hpp"
-#include "tcp_packet.hpp"
-#include "udp_packet.hpp"
 
 namespace detection
 {
-
-
     typedef std::vector<std::shared_ptr<packet>> packet_buffer_t;
 
     enum raw_level
@@ -348,7 +331,6 @@ namespace detection
         pseudo_header ps;
         std::array<char, 1500> buff;
     };
-
 
 }        // end namespace detector
 
