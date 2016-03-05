@@ -14,7 +14,7 @@
 
 
 
-namespace detector {
+namespace detection {
 
 /**
  * The udp_packet class is designed to simplify the initialization of udp packets
@@ -23,7 +23,7 @@ namespace detector {
  * the raw packet buffer.
  *
  */
-    class udp_packet : public detector::packet {
+    class udp_packet : public packet {
     public:
         /**
          * Constructor -- sets up a udp packet
@@ -54,9 +54,9 @@ namespace detector {
          *@param ps the pseudo_header to used in creating the UDP checksum
          *
          */
-        virtual void checksum(const detector::pseudo_header &ps) {
+        virtual void checksum(const pseudo_header &ps) {
             size_t offset = sizeof(ps);
-            detector::buffer_t buff(offset + data.size() - transport_offset);
+            buffer_t buff(offset + data.size() - transport_offset);
 
             // copy the pseudo header into the buffer
             memcpy(&buff[0], &ps, offset);

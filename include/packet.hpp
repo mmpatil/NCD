@@ -11,7 +11,7 @@
 #include <cstring>
 #include <vector>
 
-namespace detector {
+namespace detection {
 
 /* define a buffer type
  * we use a vector of char in place of a char array

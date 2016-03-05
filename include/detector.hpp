@@ -29,6 +29,10 @@
  */
 
 
+#ifndef DETECTOR_HPP_
+#define DETECTOR_HPP_
+
+
 //#include <stdio.h>           /* for printf, fprintf, snprintf, perror, ... */
 //#include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
 //#include <string.h>          /* for memcpy */
@@ -68,7 +72,7 @@
 #include "tcp_packet.hpp"
 
 
-namespace detector {
+namespace detection {
 
 
 /**
@@ -724,6 +728,11 @@ namespace detector {
                            check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
                            trans_proto),
                   syn_port(syn_port_in) {
+
+            tcp_header.source = sport;
+            tcp_header.dest = dport;
+            tcp_header.doff = 5;
+            //tcp_header.source = sport;
             setup_packet_train();
         }
 
@@ -998,5 +1007,8 @@ namespace detector {
         uint16_t syn_port;
         std::unique_ptr<ip_tcp_packet> syn_packet_1;
         std::unique_ptr<ip_tcp_packet> syn_packet_2;
+        tcphdr tcp_header;
     };
 }// end namespace detector
+
+#endif // end detector.hpp

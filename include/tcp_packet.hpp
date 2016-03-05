@@ -11,13 +11,13 @@
 #include "ip_checksum.h"
 #include "packet.hpp"
 
-namespace detector {
+namespace detection {
 
 /**
  * Simplifies the setup of tcp packets
  *
  */
-    class tcp_packet : public detector::packet {
+    class tcp_packet : public packet {
     public:
         /**
          *
@@ -64,9 +64,9 @@ namespace detector {
      *@param ps the pseudo_header to used in creating the UDP checksum
      *
      */
-        virtual void checksum(const detector::pseudo_header &pseudo) {
+        virtual void checksum(const pseudo_header &pseudo) {
             size_t offset = sizeof(pseudo);
-            detector::buffer_t buff(offset + data.size() - transport_offset);
+            buffer_t buff(offset + data.size() - transport_offset);
 
             // copy the pseudo header into the buffer
             memcpy(&buff[0], &pseudo, offset);

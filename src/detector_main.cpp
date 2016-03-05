@@ -2,9 +2,14 @@
 #include <memory>
 #include "../include/detector.hpp"
 
+
+using namespace detection;
+
 #define SIZE (1500 - sizeof(struct ip))
 #define UDP_DATA_SIZE (SIZE - sizeof(struct udphdr) - sizeof(uint16_t))
 #define TCP_DATA_SIZE (SIZE - sizeof(struct tcphdr) - sizeof(uint16_t))
+
+
 
 // globals used to proccess command line args
 std::string dest_ip;
