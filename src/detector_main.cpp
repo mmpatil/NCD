@@ -1,6 +1,8 @@
 #include <iostream>
 #include <memory>
+
 #include "../include/udp_detector.hpp"
+#include "../include/tcp_detector.hpp"
 
 
 using namespace detection;
