@@ -10,6 +10,8 @@
 #include <cstring>
 #include <vector>
 
+namespace detector {
+
 /* define a buffer type
  * we use a vector of char in place of a char array
  * to get a byte addressable region of raw memory that can have varying size
@@ -40,7 +42,7 @@
 
 /**
  * provides a base class for managing packets
- * this class ponly provides a single raw buffer to use
+ * this class only provides a single raw buffer to use
  * and doesn't directly support transport or network headers
  */
     class packet {
@@ -49,13 +51,13 @@
          * constructor
          *
          * TODO: change the constructor to add data_offset to the initializer for data and
-         * make derived classes only wory about setting the offset, ie where the next packet type down starts
+         * make derived classes only worry about setting the offset, ie where the next packet type down starts
          *
          * @param payload_length the length of the buffer -- should probably change inheriting classes to
-         * only pass the offset w/o woring about increasing the buffer size
+         * only pass the offset w/o worrying about increasing the buffer size
          *
          * @param data_offset the offset from the start of the buffer that the data (read payload) begins
-         * The payload is exptected not to hold any header information above the application layer (ie http headers are
+         * The payload is expected not to hold any header information above the application layer (ie http headers are
          * OK since they are application layer headers, but TCP headers generally should be set using a subclass
          */
         packet(size_t payload_length, size_t data_offset = 0)
@@ -91,10 +93,10 @@
 
 
         /**
-         * checksums the packet -- data only payloads don't need this
-         * Assumes that checksums require a pseudo header per UDP/TCP
+         * checksum the packet -- data only payloads don't need this
+         * Assumes that checksum requires a pseudo header per UDP/TCP
          *
-         * @param ps a pseudo_header struct used durring the checksum
+         * @param ps a pseudo_header struct used during the checksum
          *
          */
         virtual void checksum(const pseudo_header &ps) { }
@@ -103,9 +105,9 @@
         buffer_t data; // a raw -- resizable -- buffer to use
         bool filled;
         // boolean denotes if the payload has been filled from file yet
-        size_t data_offset;// the offset form the beggining of the packet where the payload begins
+        size_t data_offset;// the offset form the beginning of the packet where the payload begins
     };
 
 
-
+}// end namespace detector
 #endif //DETECTOR_PACKET_HPP
