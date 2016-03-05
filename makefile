@@ -40,8 +40,8 @@ $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
 detector: $(OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ) $(CLIBS)
 
-#unit_test: $(DEPS) $(OBJ) $(TESTDIR)/*.*pp
-#	$(CXX) obj/detector.o $(TESTDIR)/*.cpp -o $@ $(CXXFLAGS) $(CXXLIBS)
+unit_test: $(DEPS) $(OBJ) $(TESTDIR)/*.*pp
+	$(CXX) obj/detector.o $(TESTDIR)/*.cpp -o $@ $(CXXFLAGS) $(CXXLIBS)
 
 .PHONY: clean
 

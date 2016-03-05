@@ -1,5 +1,5 @@
 /*
- * unit_test.h
+ * ncd_unit_test.hpp
  *
  *  Created on: Dec 23, 2014
  *      Author: atlas

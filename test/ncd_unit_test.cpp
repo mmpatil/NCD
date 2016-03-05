@@ -1,9 +1,9 @@
 /**
  * @author: Paul Kirth
- * @file: ncd.c
+ * @file: ncd_unit_test.cpp
  */
 #include <gtest/gtest.h>
-#include "unit_test.hpp"
+#include "ncd_unit_test.hpp"
 
 
 TEST(get_time_test, get_time_correct)
