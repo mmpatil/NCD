@@ -53,7 +53,7 @@
 #include <vector>
 
 /* project header files */
-#include "bitset.h"
+#include "simple_bitset.h"
 #include "ip_checksum.h"
 #include "ip_icmp_packet.hpp"
 #include "ip_tcp_packet.hpp"

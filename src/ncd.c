@@ -4,7 +4,7 @@
  */
 
 #include "ncd.h"
-#include "bitset.h"
+#include "simple_bitset.h"
 
 char* packets_e       = NULL;        // empty packets
 char* packets_f       = NULL;        // filled packets

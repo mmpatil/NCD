@@ -5,7 +5,7 @@ project(detector)
 
 include_directories(include)
 set(DETECTOR_HEADERS include/detector.hpp  include/packet.hpp include/ip_checksum.h
-        include/bitset.h include/udp_packet.hpp include/tcp_packet.hpp
+        include/simple_bitset.h include/udp_packet.hpp include/tcp_packet.hpp
         include/icmp_packet.hpp include/ip_tcp_packet.hpp include/ip_udp_packet.hpp
         include/ip_icmp_packet.hpp include/udp_detector.hpp include/tcp_detector.hpp)
 set(DETECTOR_SOURCE_FILES src/detector_main.cpp)
@@ -23,7 +23,7 @@ project(ncd)
 #set (ncd_VERSION_MINOR 1)
 
 #include_directories(BEFORE include)
-set(NCD_SOURCE_FILES src/ncd.c src/ncd_main.c include/ncd_global.h include/bitset.h)
+set(NCD_SOURCE_FILES src/ncd.c src/ncd_main.c include/ncd_global.h include/simple_bitset.h)
 find_package ( Threads REQUIRED )
 add_executable(ncd_main  ${NCD_SOURCE_FILES})
 target_link_libraries ( ncd_main ${CMAKE_THREAD_LIBS_INIT}  m)
