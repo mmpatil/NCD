@@ -36,7 +36,6 @@
 //#include <stdio.h>           /* for printf, fprintf, snprintf, perror, ... */
 //#include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
 //#include <string.h>          /* for memcpy */
-#include <sys/time.h> /* for gettimeofday() */
 //#include <errno.h>           /* for errno*/
 #include <unistd.h>          /* for close() */
 #include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
@@ -70,40 +69,11 @@
 #include "packet.hpp"
 #include "udp_packet.hpp"
 #include "tcp_packet.hpp"
+#include "icmp_packet.hpp"
 
 
 namespace detection {
 
-
-/**
- * Simplifies the setup of ICMP Packets
- */
-    class icmp_packet : public packet {
-
-    public:
-
-
-        /**
-         *
-         */
-        icmp_packet(size_t length, uint8_t type, uint8_t code, uint16_t id, uint16_t seq, size_t offset = 0)
-                : packet(length + sizeof(icmp), sizeof(icmp)) {
-            /* set up icmp message header*/
-            struct icmp *icmp = (struct icmp *) &data[offset];
-            icmp->icmp_type = type;
-            icmp->icmp_code = code;
-            icmp->icmp_id = id;
-            icmp->icmp_seq = seq;
-
-            // memset(icmp->icmp_data, 0xa5, length);
-            gettimeofday((struct timeval *) icmp->icmp_data, nullptr);
-
-            icmp->icmp_cksum = 0;
-            icmp->icmp_cksum = ip_checksum(icmp, data.size() - offset);
-        }
-
-        virtual ~icmp_packet() { }
-    };
 
     class ip_tcp_packet : public tcp_packet {
     public:
