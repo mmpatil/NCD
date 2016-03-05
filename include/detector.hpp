@@ -71,47 +71,11 @@
 #include "tcp_packet.hpp"
 #include "icmp_packet.hpp"
 #include "ip_tcp_packet.hpp"
-
+#include "ip_udp_packet.hpp"
+#include "ip_icmp_packet.hpp"
 
 namespace detection {
 
-
-    class ip_udp_packet : public udp_packet {
-    public:
-        ip_udp_packet(const iphdr &ip, size_t payload_length, uint16_t sport, uint16_t dport)
-                : udp_packet(payload_length + sizeof(iphdr), sizeof(iphdr), sport, dport),
-                  ps{ip.saddr, ip.daddr, 0, IPPROTO_TCP,
-                     htons(payload_length + sizeof(pseudo_header) + sizeof(udphdr))} {
-            std::memcpy(&data[0], &ip, sizeof(iphdr));
-        }
-
-        virtual ~ip_udp_packet() { }
-
-        virtual void fill(std::ifstream &file, uint16_t packet_id) {
-            packet::fill(file, packet_id);
-
-            udp_packet::checksum(ps);
-
-            iphdr *ip = (iphdr *) &data[0];
-            ip->check = ip_checksum(&data[0], data.size());
-        }
-
-        pseudo_header ps;
-
-    private:
-        /* data */
-    };
-
-    class ip_icmp_packet : public icmp_packet {
-
-    public:
-        ip_icmp_packet(const iphdr &ip, size_t length, uint8_t type, uint8_t code, uint16_t id, uint16_t seq)
-                : icmp_packet(length + sizeof(iphdr), type, code, id, seq, sizeof(iphdr)) {
-            std::memcpy(&data[0], &ip, sizeof(iphdr));
-        }
-
-        virtual ~ip_icmp_packet() { }
-    };
 
 
     typedef std::vector<std::shared_ptr<packet>> packet_buffer_t;
