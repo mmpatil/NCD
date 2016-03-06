@@ -20,13 +20,13 @@ SANITIZER=
 ARCH?=$(shell getconf LONG_BIT)
 #DEBUG_RELEASE=-DDEBUG
 
-CLIBS =-lm -pthread
-CFLAGS= -m$(ARCH) -g -O2 -I$(IDIR) -I$(SDIR) $(GCOV) $(SANITIZER)
+CLIBS =-lm -lpthread
+CFLAGS= -m$(ARCH) -O2 -g -I$(IDIR) -I$(SDIR) $(GCOV) $(SANITIZER)
 
 CXXFLAGS=$(CFLAGS) -std=c++1y  #-stdlib=libc++
 CXXLIBS=-lgtest -lgtest_main $(CLIBS)
 
-_DEPS=detector.hpp bitset.h ip_checksum.h
+_DEPS=detector.hpp simple_bitset.h ip_checksum.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJ=detector_main.o
@@ -41,13 +41,25 @@ detector: $(OBJ)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ) $(CLIBS)
 
 unit_test: $(DEPS) $(OBJ) $(TESTDIR)/detector*.*pp
-	$(CXX) $(TESTDIR)/detector_unit_test*.cpp -o $@ $(CXXFLAGS) $(CXXLIBS)
+	$(CXX) $(TESTDIR)/detector_unit_test.cpp -o $@ $(CXXFLAGS) $(CXXLIBS)
 
 .PHONY: clean
 
 clean:
 	rm $(ODIR)/*.o detector
 
+#IDIR=ncd
+#SDIR=ncd
+#ODIR=ncd/obj
+#TESTDIR=ncd/Test
+#
+#C_DEPS=simple_bitset.h ip_checksum.h ncd.h
+#DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
+#
+#_OBJ=ncd.o ncd_main.o
+#OBJ=$(patsubst %,$(ODIR)/%,$(_OBJ))
+#
+#
 #all: ncd_main
 #
 #$(ODIR)/%.o: $(SDIR)/%.c $(DEPS)

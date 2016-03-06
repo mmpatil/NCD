@@ -3,8 +3,8 @@
  * @file: ncd.c
  */
 
+
 #include "ncd.h"
-#include "simple_bitset.h"
 
 char* packets_e       = NULL;        // empty packets
 char* packets_f       = NULL;        // filled packets
@@ -822,7 +822,8 @@ void* recv4(void* t)
         icmp               = (struct icmp*)(ip + 1);
         struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data) + sizeof(struct ip));
 
-        uint32_t* bitset = make_bs_32(num_packets);
+        uint32_t* bitset;
+        bitset = make_bs_32(num_packets);
         uint16_t* id     = (uint16_t*)(udp + 1);
         struct in_addr dest;
         inet_aton(dst_ip, &dest);

@@ -27,7 +27,14 @@
  * @file: bitset.h
  */
 
+#ifndef SIMPLE_BITSET_H_
+#define SIMPLE_BITSET_H_
+
 #include <math.h>
+#include <stdint.h>
+#include <sys/types.h>
+#include <stdlib.h>
+
 /**
  * returns the value of the indexth bit in a 32 bit bitset
  * starting at buff
@@ -36,7 +43,7 @@
  * @param size	the number of items in the bitset
  * @return the value of the indexth bit in the bitset (o or 1)
  */
-inline int get_bs_32(uint32_t* buff, size_t index, size_t size)
+static inline int get_bs_32(uint32_t* buff, size_t index, size_t size)
 {
     if(index >= size)
         return -1;
@@ -52,7 +59,7 @@ inline int get_bs_32(uint32_t* buff, size_t index, size_t size)
  * @param num_items the number of items in the bitset
  * @return a pointer to the beginning of the bitset
  */
-inline uint32_t* make_bs_32(size_t num_items)
+static inline uint32_t* make_bs_32(size_t num_items)
 {
     int len = (int)ceil(num_items / 32.0);
     return (uint32_t*)calloc(len, sizeof(uint32_t));
@@ -65,7 +72,7 @@ inline uint32_t* make_bs_32(size_t num_items)
  * @param size the size of the bitset
  * @return 0 for success, -1 for failure/error
  */
-inline int clear_bs_32(uint32_t* buff, size_t index, size_t size)
+static inline int clear_bs_32(uint32_t* buff, size_t index, size_t size)
 {
     if(index >= size)
         return -1;
@@ -84,7 +91,7 @@ inline int clear_bs_32(uint32_t* buff, size_t index, size_t size)
  * @param size the size of the bitset
  * @return 0 for success, -1 for failure/error
  */
-inline int set_bs_32(uint32_t* buff, size_t index, size_t size)
+static inline int set_bs_32(uint32_t* buff, size_t index, size_t size)
 {
     if(index > size)
         return -1;
@@ -96,3 +103,5 @@ inline int set_bs_32(uint32_t* buff, size_t index, size_t size)
     (*ptr) |= mask;
     return 0;
 }
+
+#endif

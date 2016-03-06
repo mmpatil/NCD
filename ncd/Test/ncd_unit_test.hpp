@@ -7,6 +7,7 @@
 
 #ifndef UNIT_TEST_H_
 #define UNIT_TEST_H_
+
 extern "C" {
 #include "ncd.h"
 }

@@ -110,7 +110,7 @@ TEST(fill_data_test, fill_data_bad_input)
     EXPECT_DEATH_IF_SUPPORTED(fill_data(NULL, 100), "Error opening file");
     file            = str;
     char buff[1500] = {0};
-    EXPECT_DEATH_IF_SUPPORTED(fill_data(NULL, 100), "Error reading file");
+    EXPECT_DEATH_IF_SUPPORTED(fill_data(buff, 100), "Error reading file");
 }
 
 TEST_F(DetectionInitTest, test_init)

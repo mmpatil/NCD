@@ -27,8 +27,11 @@
 #include <unistd.h>          /* for _________ */
 #include <ctype.h>           /* for inet_pton() */
 #include <pthread.h>         /* for pthread */
+
 #include "ncd_global.h"
+#include "simple_bitset.h"
 //#include <vector>
+
 /**
  * Favor the BSD style UDP & IP headers
  */
