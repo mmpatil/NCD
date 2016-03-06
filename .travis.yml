@@ -19,6 +19,7 @@ install:
 script:
   - mkdir build
   - cd build
+  - cmake ..
   - cmake --build .. --target detector_unit_test
   - sudo ./detector_unit_test
 
