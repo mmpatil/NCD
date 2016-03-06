@@ -17,8 +17,6 @@ install:
 
 
 script:
-  - make
-  - make unit_test
-  - sudo ./unit_test
+  - sudo ./detector_unit_test
 
 
