@@ -8,6 +8,8 @@
 #ifndef UNIT_TEST_H_
 #define UNIT_TEST_H_
 
+#include <gtest/gtest.h>
+
 extern "C" {
 #include "ncd.h"
 }

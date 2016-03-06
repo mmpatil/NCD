@@ -15,12 +15,15 @@ PL_TARGET_IP=127.0.0.1
 #COMMAND_NAME="echo $PL_TARGET_IP "
 PROJECT=NCD
 TIMEOUT=90
+#TEST_NAME=
+#COMMAND_NAME=
+#SUCCESS=
 
 #functions
 
 # get results from file temp.txt
 get_results(){
-    ./sql_test.sh $PROJECT "$TEST_NAME" "$COMMAND_NAME" $SUCCESS $(cat $1)
+    ./sql_test.sh ${PROJECT} "$TEST_NAME" "$COMMAND_NAME" ${SUCCESS} $(cat $1)
     rm $1
 }
 
@@ -28,7 +31,7 @@ get_results(){
 udp_default(){
     TEST_NAME=${TEST_NAME:="Default UDP"}
     COMMAND_NAME="../ncd_main -o ${OPTIONS} $PL_TARGET_IP"
-    sudo timeout $TIMEOUT ${COMMAND_NAME} > temp.txt
+    sudo timeout ${TIMEOUT} ${COMMAND_NAME} > temp.txt
     if [ "$?" = 124 ]
     then
         SUCCESS=0
@@ -72,7 +75,7 @@ udp_ports(){
     fi
 
     OPTIONS=
-    sudo ./ncd_main $PL_TARGET_IP > temp.txt
+    sudo ./ncd_main ${PL_TARGET_IP} > temp.txt
     get_results temp.txt
 }
 

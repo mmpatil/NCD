@@ -8,9 +8,9 @@ EXPERIMENT_DIRECTORY=ncd
 PACKAGES=traceroute ping vim tcpdump iperf python mysql zsh
 
 # SSH into the planet lab node install required packages
-pssh -H $IP_FILE -vl ucla_triton "sudo yum install $PACKAGES"
+pssh -H ${IP_FILE} -vl ucla_triton "sudo yum install $PACKAGES"
 
 # Rsync the experimental directory on the Planet lab node
-parallel-rsync -H $IP_FILE -l $ucla_triton $EXPERIMENT_DIRECTORY ~/$EXPERIMENT_DIRECTORY
+parallel-rsync -H ${IP_FILE} -l ${ucla_triton} ${EXPERIMENT_DIRECTORY} ~/${EXPERIMENT_DIRECTORY}
 
 

@@ -1,13 +1,13 @@
 #!/bin/sh
 DATE="date +%F"
-DIRNAME=../test_data/$(hostname)/$($DATE)
+DIRNAME=../test_data/$(hostname)/$(${DATE})
 if [ -d "$DIRNAME" ]
 then
-	COUNT=`\ls -afq $DIRNAME | grep -v "_meta" | wc -l`
-	COUNT=`expr $COUNT - 1`
+	COUNT=`\ls -afq ${DIRNAME} | grep -v "_meta" | wc -l`
+	COUNT=`expr ${COUNT} - 1`
 else
 	COUNT=1
-	mkdir -p $DIRNAME
+	mkdir -p ${DIRNAME}
 fi
 
-echo $DIRNAME/"$1_$COUNT"
+echo ${DIRNAME}/"$1_$COUNT"

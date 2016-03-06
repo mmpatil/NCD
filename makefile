@@ -23,7 +23,7 @@ ARCH?=$(shell getconf LONG_BIT)
 CLIBS =-lm -lpthread
 CFLAGS= -m$(ARCH) -O2 -g -I$(IDIR) -I$(SDIR) $(GCOV) $(SANITIZER)
 
-CXXFLAGS=$(CFLAGS) -std=c++1y  #-stdlib=libc++
+CXXFLAGS=$(CFLAGS) -std=c++14  #-stdlib=libc++
 CXXLIBS=-lgtest -lgtest_main $(CLIBS)
 
 _DEPS=detector.hpp simple_bitset.h ip_checksum.h

@@ -47,8 +47,8 @@ static inline int get_bs_32(uint32_t* buff, size_t index, size_t size)
 {
     if(index >= size)
         return -1;
-    int offset    = index / 32;
-    uint32_t* ptr = (uint32_t*)buff;
+    size_t offset    = index / 32;
+    uint32_t* ptr = buff;
     ptr += offset;
     uint32_t mask = 1 << ((index) % 32);
     return (*ptr) & mask;
@@ -77,7 +77,7 @@ static inline int clear_bs_32(uint32_t* buff, size_t index, size_t size)
     if(index >= size)
         return -1;
     int offset    = index / 32;
-    uint32_t* ptr = (uint32_t*)buff;
+    uint32_t* ptr = buff;
     ptr += offset;
     uint32_t mask = 1 << (index % 32);
     *ptr &= ~mask;
@@ -95,7 +95,7 @@ static inline int set_bs_32(uint32_t* buff, size_t index, size_t size)
 {
     if(index > size)
         return -1;
-    uint32_t* ptr = (uint32_t*)buff;
+    uint32_t* ptr = buff;
     // int offset = index /32;
     ptr += (index >> 5);
     uint32_t mask = 1 << ((index % 32));

@@ -17,7 +17,7 @@ TIMEOUT=55
 IFS=$'\t'
 while read line
 do
-    arr=($line)
+    arr=(${line})
     at ${arr[0]} << ENDMARKER
     ${arr[2]} ${arr[1]}
 ENDMARKER
