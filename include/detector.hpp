@@ -33,10 +33,10 @@
 #define DETECTOR_HPP_
 
 /* Linux header files */
-#include <arpa/inet.h>       /* for inet_pton() */
-#include <netdb.h>           /* for getaddrinfo() */
-#include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
-#include <unistd.h>          /* for close() */
+#include <arpa/inet.h>  /* for inet_pton() */
+#include <netdb.h>      /* for getaddrinfo() */
+#include <sys/socket.h> /* for socket(), setsockopt(), etc...*/
+#include <unistd.h>     /* for close() */
 
 /* STL Header files */
 #include <condition_variable>
@@ -53,11 +53,11 @@
 #include <vector>
 
 /* project header files */
-#include "simple_bitset.h"
 #include "ip_checksum.h"
 #include "ip_icmp_packet.hpp"
 #include "ip_tcp_packet.hpp"
 #include "ip_udp_packet.hpp"
+#include "simple_bitset.h"
 
 namespace detection
 {

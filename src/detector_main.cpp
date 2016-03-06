@@ -1,8 +1,8 @@
 #include <iostream>
 #include <memory>
 
-#include "../include/udp_detector.hpp"
 #include "../include/tcp_detector.hpp"
+#include "../include/udp_detector.hpp"
 
 
 using namespace detection;
@@ -10,7 +10,6 @@ using namespace detection;
 #define SIZE (1500 - sizeof(struct ip))
 #define UDP_DATA_SIZE (SIZE - sizeof(struct udphdr) - sizeof(uint16_t))
 #define TCP_DATA_SIZE (SIZE - sizeof(struct tcphdr) - sizeof(uint16_t))
-
 
 
 // globals used to proccess command line args
@@ -23,7 +22,7 @@ uint16_t syn_port = 14444;
 
 /* Default to 1 kilobyte packets */
 uint16_t data_size   = 1024 - sizeof(uint16_t) - sizeof(struct tcphdr) - sizeof(struct ip);
-uint16_t num_packets = 10;                  // send 1000 packets in udp data train
+uint16_t num_packets = 10;                    // send 1000 packets in udp data train
 uint16_t ttl         = 255;                   // max ttl
 uint16_t tail_wait   = 10;                    // wait 10 ms between ICMP tail messages
 uint16_t num_tail    = 20;                    // send 20 ICMP tail messages
@@ -32,7 +31,7 @@ bool verbose         = false;
 bool sql_output      = true;
 int cooldown         = 5;
 transport_type trans = transport_type::udp;
-uint8_t tos = 0;
+uint8_t tos          = 0;
 
 // stay the same
 void print_use(char* program_name)
@@ -191,21 +190,21 @@ int check_args(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-check_args(argc, argv);
-std::shared_ptr<detector> test(nullptr);
-switch (trans) {
+    check_args(argc, argv);
+    std::shared_ptr<detector> test(nullptr);
+    switch(trans)
+    {
     case transport_type::udp:
-        test= std::make_shared<udp_detector>("", dest_ip, tos,0,0,255,IPPROTO_UDP,0,sport, dport);
+        test = std::make_shared<udp_detector>("", dest_ip, tos, 0, 0, 255, IPPROTO_UDP, 0, sport, dport);
         break;
     case transport_type::tcp:
-        test= std::make_shared<tcp_detector>("", dest_ip, tos,0,0,255,IPPROTO_TCP,0,sport, dport);
+        test = std::make_shared<tcp_detector>("", dest_ip, tos, 0, 0, 255, IPPROTO_TCP, 0, sport, dport);
     default:
         break;
-}
-if(!test)
-    return -1;
+    }
+    if(!test)
+        return -1;
 
     test->measure();
     return 0;
 }
-

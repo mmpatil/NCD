@@ -10,23 +10,23 @@
 //#include <cstdlib>
 //#include <string>
 //#include <cstring>
-#include <stdio.h>           /* for printf, fprintf, snprintf, perror, ... */
-#include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
-#include <string.h>          /* for memcpy */
-#include <sys/time.h>        /* for gettimeofday() */
+#include <arpa/inet.h>       /* for inet_pton() */
+#include <ctype.h>           /* for inet_pton() */
 #include <errno.h>           /* for errno*/
-#include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
+#include <fcntl.h>           /* for O_RDONLY */
+#include <netdb.h>           /* for getaddrinfo() */
 #include <netinet/ip.h>      /* for struct ip */
 #include <netinet/ip_icmp.h> /* for struct icmp */
 #include <netinet/tcp.h>     /* for struct tcphdr */
 #include <netinet/udp.h>     /* for struct udphdr */
-#include <netdb.h>           /* for getaddrinfo() */
-#include <arpa/inet.h>       /* for inet_pton() */
-#include <signal.h>          /* for kill() */
-#include <fcntl.h>           /* for O_RDONLY */
-#include <unistd.h>          /* for _________ */
-#include <ctype.h>           /* for inet_pton() */
 #include <pthread.h>         /* for pthread */
+#include <signal.h>          /* for kill() */
+#include <stdio.h>           /* for printf, fprintf, snprintf, perror, ... */
+#include <stdlib.h>          /* for EXIT_SUCCESS, EXIT_FAILURE, */
+#include <string.h>          /* for memcpy */
+#include <sys/socket.h>      /* for socket(), setsockopt(), etc...*/
+#include <sys/time.h>        /* for gettimeofday() */
+#include <unistd.h>          /* for _________ */
 
 #include "ncd_global.h"
 #include "simple_bitset.h"

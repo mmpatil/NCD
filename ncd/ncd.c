@@ -44,7 +44,7 @@ socklen_t sa_len            = sizeof(srcaddrs);                     // size of s
 
 /* function pointers */
 void* (*send_train)(void*) = NULL;        // function pointer to send data: UDP or TCP
-void* (*recv_data)(void*) = NULL;         // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
+void* (*recv_data)(void*)  = NULL;        // function pointer so we can select properly for IPV4 or IPV6(no IPV6 yet
 
 /*  Just returns current time as double, with most possible precision...  */
 double get_time()
@@ -76,7 +76,7 @@ int init_detection()
 
     /* set up hints for getaddrinfo() */
     struct addrinfo hints = {}; /* for get addrinfo */
-    hints.ai_flags = AI_CANONNAME;
+    hints.ai_flags        = AI_CANONNAME;
     if(tcp_bool == 1)
         hints.ai_protocol = IPPROTO_TCP;
     else
@@ -399,7 +399,7 @@ int measure()
     }        // end for
     char c        = second_train ? 'H' : 'L';
     double* value = second_train ? &high_time : &low_time;
-    *value = time_val;
+    *value        = time_val;
     if(!output_bool)
         printf("%c %f sec\n", c, time_val);
     close(recv_fd);
@@ -430,7 +430,7 @@ void mkipv4(void* buff, uint16_t size, uint8_t proto)
     ip->ip_len        = htons(size);
     ip->ip_id         = htons((uint16_t)getpid());
     ip->ip_src.s_addr = srcaddrs.sin_addr.s_addr;
-    ip->ip_dst = destip;
+    ip->ip_dst        = destip;
     ip->ip_off |= ntohs(IP_DF);
     ip->ip_ttl = ttl;
     ip->ip_p   = proto;
@@ -583,7 +583,7 @@ void mkicmpv4(void* buff, size_t datalen)
     icmp->icmp_type   = ICMP_ECHO;
     icmp->icmp_code   = 0;
     icmp->icmp_id     = (uint16_t)getpid();
-    icmp->icmp_seq = (uint16_t)rand();
+    icmp->icmp_seq    = (uint16_t)rand();
     memset(icmp->icmp_data, 0xa5, datalen);
     gettimeofday((struct timeval*)icmp->icmp_data, NULL);
     icmp->icmp_cksum = 0;
@@ -723,7 +723,7 @@ void* send_tcp(void* status)
     pthread_mutex_unlock(&stop_mutex);        // release lock
 
     tcp->source = ps_tcp->source = htons(sport);        // reset tcp sport for next train
-    status = NULL;
+    status                       = NULL;
     pthread_exit(status);
 }
 
@@ -823,8 +823,8 @@ void* recv4(void* t)
         struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data) + sizeof(struct ip));
 
         uint32_t* bitset;
-        bitset = make_bs_32(num_packets);
-        uint16_t* id     = (uint16_t*)(udp + 1);
+        bitset       = make_bs_32(num_packets);
+        uint16_t* id = (uint16_t*)(udp + 1);
         struct in_addr dest;
         inet_aton(dst_ip, &dest);
 

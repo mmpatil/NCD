@@ -2,8 +2,8 @@
  * @author: Paul Kirth
  * @file: ncd_unit_test.cpp
  */
-#include <gtest/gtest.h>
 #include "ncd_unit_test.hpp"
+#include <gtest/gtest.h>
 
 
 TEST(get_time_test, get_time_correct)
@@ -49,7 +49,7 @@ TEST(mkipv4_test, mkipv4_sets_values_correctly)
     destip    = ip.ip_dst;
 
     char buff[1024] = {0};
-    m = (struct ip*)buff;
+    m               = (struct ip*)buff;
     mkipv4(buff, 1024, IPPROTO_UDP);
     EXPECT_EQ(ip.ip_dst.s_addr, m->ip_dst.s_addr);
     EXPECT_EQ(ip.ip_id, m->ip_id);
@@ -75,7 +75,7 @@ TEST(mkicmpv4_test, mkicmpv4_sets_values_correctly)
     char str[128]     = {0};
     int datalen       = 56;
     struct icmp* icmp = (struct icmp*)buff;
-    struct icmp* m = (struct icmp*)str;
+    struct icmp* m    = (struct icmp*)str;
     EXPECT_NE(nullptr, icmp);
     EXPECT_NE(nullptr, m);
 

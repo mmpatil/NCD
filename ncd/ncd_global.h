@@ -7,10 +7,10 @@
 #ifndef NCD_NCD_GLOBAL_H
 #define NCD_NCD_GLOBAL_H
 
+#include <netinet/in.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <netinet/in.h>
 
 /**
 *  maximum ip packet size
