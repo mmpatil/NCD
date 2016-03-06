@@ -17,7 +17,4 @@ fi
     sudo cmake --build .
     sudo mv libg* /usr/local/lib/
     cd -
-    mkdir build
-    cd build
-    cmake --build .. --target detector_unit_test
 
