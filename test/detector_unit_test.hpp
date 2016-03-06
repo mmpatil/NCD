@@ -13,104 +13,60 @@
 using namespace detection;
 
 
-
-class MockDetector :public detector
+class MockDetector : public detector
 {
 
 public:
-    MockDetector(const std::string &src_ip, const std::string &dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id,
+    MockDetector(const std::string& src_ip, const std::string& dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id,
                  uint16_t frag_off, uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
-                 const std::string &filename, uint16_t num_packets, uint16_t data_length, uint16_t num_tail,
-                 uint16_t tail_wait, const raw_level &raw_status, const transport_type &trans_proto) :
-            detector(src_ip,
-                                                                                                                dest_ip,
-                                                                                                                tos,
-                                                                                                                ip_length,
-                                                                                                                id,
-                                                                                                                frag_off,
-                                                                                                                ttl,
-                                                                                                                proto,
-                                                                                                                check_sum,
-                                                                                                                sport,
-                                                                                                                dport,
-                                                                                                                filename,
-                                                                                                                num_packets,
-                                                                                                                data_length,
-                                                                                                                num_tail,
-                                                                                                                tail_wait,
-                                                                                                                raw_status,
-                                                                                                                trans_proto) { }
-
-
-    virtual void setup_sockets() override {
-
+                 const std::string& filename, uint16_t num_packets, uint16_t data_length, uint16_t num_tail,
+                 uint16_t tail_wait, const raw_level& raw_status, const transport_type& trans_proto)
+        : detector(src_ip, dest_ip, tos, ip_length, id, frag_off, ttl, proto, check_sum, sport, dport, filename,
+                   num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto)
+    {
     }
 
 
-    virtual void populate_full() override {
-
-    }
+    virtual void setup_sockets() override {}
 
 
-    virtual void populate_trans() override {
-
-    }
+    virtual void populate_full() override {}
 
 
-    virtual void populate_none() override {
-
-    }
+    virtual void populate_trans() override {}
 
 
-    virtual void send_train() override {
-
-    }
+    virtual void populate_none() override {}
 
 
-    virtual void receive() override {
-
-    }
+    virtual void send_train() override {}
 
 
-    virtual void send_timestamp() override {
-
-    }
+    virtual void receive() override {}
 
 
-    virtual void send_tail() override {
-
-    }
+    virtual void send_timestamp() override {}
 
 
-    virtual int transport_header_size() override {
-        return 0;
-    }
+    virtual void send_tail() override {}
 
 
-    virtual void prepare() override {
-        detector::prepare();
-    }
+    virtual int transport_header_size() override { return 0; }
 
 
-    virtual void output_results() override {
-        detector::output_results();
-    }
+    virtual void prepare() override { detector::prepare(); }
 
+
+    virtual void output_results() override { detector::output_results(); }
 };
-
-
-
-
 
 
 class detector_unit_test : public ::testing::Test
 {
 
 protected:
-    virtual void SetUp()
-    {
-    }
+    virtual void SetUp() {}
 };
 
 
-#endif //DETECTOR_UNIT_TEST_DETECTOR_UNIT_TEST_HPP
+#endif        // DETECTOR_UNIT_TEST_DETECTOR_UNIT_TEST_HPP
