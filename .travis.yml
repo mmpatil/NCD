@@ -31,5 +31,5 @@ script:
   - mkdir build
   - cd build
   - cmake ..
-  - cmake --build .. --target detector_unit_test
+  - cmake --build . --target detector_unit_test
   - sudo ./detector_unit_test
