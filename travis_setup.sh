@@ -2,8 +2,6 @@
 
 set -e
 
-    sudo add-apt-repository -y ppa:george-edison55/cmake-3.x
-
 if [ "$CC" = "gcc" ] ; then
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     sudo apt-get update -qq
