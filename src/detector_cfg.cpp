@@ -42,6 +42,8 @@ int main(int argc, char* argv[])
     // clang-format off
     cli.add_options()
         ("help,h", "produce help message")
+        ("config,c", po::value<string>(&cfg_file)->default_value("detector.cfg"), "Name of a configuration file")
+        ("version,v", "print version string")
         ;
     // clang-format on
 
@@ -77,6 +79,18 @@ int main(int argc, char* argv[])
         ("syn_port_in", po::value<uint16_t>(&syn_port_in)->default_value(22223), "TCP SYN Port #")
         ;
     // clang-format on
+
+
+    po::positional_options_description p;
+    p.add("dest_ip", -1);
+    po::variables_map vm;
+
+    store(po::command_line_parser(argc,argv)).options(cli).positional(p).run(),vm);
+    notify(vm);
+
+
+
+
 
     return 0;
 }
