@@ -35,6 +35,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 namespace detection
 {
@@ -45,6 +46,8 @@ namespace detection
      *
      */
     typedef std::vector<char> buffer_t;
+
+
     /**
      * strongly typed enumeration
      *
@@ -57,6 +60,42 @@ namespace detection
         udp,
         tcp
     };
+
+
+    std::istream& operator>>(std::istream& in, transport_type& val)
+    {
+        std::string token;
+
+        in >> token;
+        std::transform(token.begin(), token.end(), token.begin(), ::tolower);
+
+        if(token == "udp")
+        {
+            val = transport_type::udp;
+        }
+        else if(token == "tcp")
+        {
+            val = transport_type::tcp;
+        }
+
+        return in;
+    }
+
+    std::ostream& operator<<(std::ostream& out, const transport_type& val)
+    {
+        if(val == transport_type::udp)
+        {
+            return out << "udp";
+        }
+        else if(val == transport_type::tcp)
+        {
+            return out << "tcp";
+        }
+
+        return out;
+    }
+
+
     /**
      * struct for udp pseudo header
      */
@@ -112,7 +151,7 @@ namespace detection
             {
                 memcpy(&data[data_offset], &packet_id, sizeof(packet_id));
                 uint16_t* id = (uint16_t*)&data[data_offset];
-                *id          = packet_id;
+                *id = packet_id;
                 file.read(&data[data_offset + sizeof(packet_id)], data.size() - data_offset);
             }
             else

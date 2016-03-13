@@ -41,12 +41,12 @@ namespace detection
 
 
     public:
-        tcp_detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
+        tcp_detector(std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
                      uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                      std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
                      uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = full,
                      transport_type trans_proto = transport_type::tcp, uint16_t syn_port_in = 22223)
-            : detector(src_ip, dest_ip, tos, data_length + sizeof(tcphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
+            : detector(dest_ip, tos, data_length + sizeof(tcphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
                        check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
                        trans_proto),
               syn_port(syn_port_in)
