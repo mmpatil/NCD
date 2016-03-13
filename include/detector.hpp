@@ -39,18 +39,18 @@
 #include <unistd.h>     /* for close() */
 
 /* STL Header files */
-#include <condition_variable>
-#include <cstdint>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <mutex>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <thread>
-#include <vector>
+#include <condition_variable> /* for condition variables */
+#include <cstdint>            /* for fixed size integers */
+#include <cstring>            /* for memset */
+#include <fstream>            /* for fstream -- writing output */
+#include <iostream>           /* for standard io */
+#include <memory>             /* for std::shared_ptr */
+#include <mutex>              /* for std::mutex */
+#include <sstream>            /* for std::stringstream */
+#include <stdexcept>          /* for std::exception */
+#include <string>             /* for std::string */
+#include <thread>             /* for std::thread */
+#include <vector>             /* for std:vector*/
 
 /* project header files */
 #include "ip_checksum.h"
@@ -153,13 +153,13 @@ namespace detection
             }
         }
 
-        virtual void populate_full()  = 0;        // pure virtual
+        virtual void populate_full() = 0;         // pure virtual
         virtual void populate_trans() = 0;        // pure virtual
-        virtual void populate_none()  = 0;        // pure virtual
-        virtual void send_train()     = 0;        // sends the packet train -- pure virtual;
-        virtual void receive()        = 0;        // receives responses from the target IP -- pure virtual
+        virtual void populate_none() = 0;         // pure virtual
+        virtual void send_train() = 0;            // sends the packet train -- pure virtual;
+        virtual void receive() = 0;               // receives responses from the target IP -- pure virtual
         virtual void send_timestamp() = 0;        // sends time stamping packets must send inital packets, can be reused
-        virtual void send_tail()      = 0;        // sends the tail set of time stamping packets
+        virtual void send_tail() = 0;             // sends the tail set of time stamping packets
         virtual int transport_header_size() = 0;        // returns size of transport header -- pure virtual
 
         inline virtual void detect()

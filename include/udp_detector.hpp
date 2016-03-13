@@ -264,7 +264,7 @@ namespace detection
             struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data) + sizeof(struct ip));
 
             uint32_t* bitset = make_bs_32(num_packets);
-            uint16_t* id     = (uint16_t*)(udp + 1);
+            uint16_t* id = (uint16_t*)(udp + 1);
             for(;;)
             {
 
