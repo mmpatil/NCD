@@ -39,12 +39,12 @@ namespace detection
     {
 
     public:
-        udp_detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
+        udp_detector(std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
                      uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                      std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
                      uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
                      transport_type trans_proto = transport_type::udp)
-            : detector(src_ip, dest_ip, tos, (uint16_t)(data_length + sizeof(udphdr) + sizeof(iphdr)), id, frag_off,
+            : detector(dest_ip, tos, (uint16_t)(data_length + sizeof(udphdr) + sizeof(iphdr)), id, frag_off,
                        ttl, proto, check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait,
                        raw_status, trans_proto),
               icmp_send(ip_header, 64 - sizeof(udphdr), ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand())
@@ -262,9 +262,9 @@ namespace detection
             struct ip* ip      = (struct ip*)buff.data();
             icmp               = (struct icmp*)(ip + 1);
             struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data) + sizeof(struct ip));
+            uint32_t* bitset   = make_bs_32(num_packets);
+            uint16_t* id       = (uint16_t*)(udp + 1);
 
-            uint32_t* bitset = make_bs_32(num_packets);
-            uint16_t* id = (uint16_t*)(udp + 1);
             for(;;)
             {
 

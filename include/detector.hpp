@@ -51,6 +51,7 @@
 #include <string>             /* for std::string */
 #include <thread>             /* for std::thread */
 #include <vector>             /* for std:vector*/
+#include <algorithm>          /* for std::transform */
 
 /* project header files */
 #include "ip_checksum.h"
@@ -70,6 +71,45 @@ namespace detection
         full
     };
 
+    std::istream& operator>>(std::istream& in, raw_level& val)
+    {
+        std::string token;
+
+        in >> token;
+        std::transform(token.begin(), token.end(), token.begin(), ::tolower);
+
+        if(token == "full")
+        {
+            val = full;
+        }
+        else if(token == "transport_only")
+        {
+            val = transport_only;
+        }
+        else
+        {
+            val = none;
+        }
+        return in;
+    }
+
+    std::ostream& operator<<(std::ostream& out, const raw_level& val)
+    {
+        if(val == full)
+        {
+           return out << "full";
+        }
+        else if(val == transport_only)
+        {
+            return out << "transport_only";
+        }
+        else
+        {
+            return out << "none";
+        }
+    }
+
+
     /**
      * new class to manage all resources used during  discrimination detection
      * only responsible for a single train
@@ -77,13 +117,12 @@ namespace detection
     class detector
     {
     public:
-        detector(std::string src_ip, std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id,
+        detector(std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id,
                  uint16_t frag_off, uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                  std::string filename = "/dev/urandom", uint16_t num_packets = 10, uint16_t data_length = 512,
                  uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
                  transport_type trans_proto = transport_type::udp)
-            : src_ip(src_ip),
-              dest_ip(dest_ip),
+            : dest_ip(dest_ip),
               trans(trans_proto),
               ip_header{0, 0, tos, ip_length, id, frag_off, ttl, proto, check_sum, 0, 0},
               sport(sport),
@@ -153,13 +192,13 @@ namespace detection
             }
         }
 
-        virtual void populate_full() = 0;         // pure virtual
+        virtual void populate_full()  = 0;        // pure virtual
         virtual void populate_trans() = 0;        // pure virtual
-        virtual void populate_none() = 0;         // pure virtual
-        virtual void send_train() = 0;            // sends the packet train -- pure virtual;
-        virtual void receive() = 0;               // receives responses from the target IP -- pure virtual
+        virtual void populate_none()  = 0;        // pure virtual
+        virtual void send_train()     = 0;        // sends the packet train -- pure virtual;
+        virtual void receive()        = 0;        // receives responses from the target IP -- pure virtual
         virtual void send_timestamp() = 0;        // sends time stamping packets must send inital packets, can be reused
-        virtual void send_tail() = 0;             // sends the tail set of time stamping packets
+        virtual void send_tail()      = 0;        // sends the tail set of time stamping packets
         virtual int transport_header_size() = 0;        // returns size of transport header -- pure virtual
 
         inline virtual void detect()
