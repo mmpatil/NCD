@@ -121,12 +121,13 @@ namespace detection
                  uint16_t frag_off, uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                  std::string filename = "/dev/urandom", uint16_t num_packets = 10, uint16_t data_length = 512,
                  uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
-                 transport_type trans_proto = transport_type::udp)
+                 transport_type trans_proto = transport_type::udp,bool verbose_option = false)
             : dest_ip(dest_ip),
               trans(trans_proto),
               ip_header{0, 0, tos, ip_length, id, frag_off, ttl, proto, check_sum, 0, 0},
               sport(sport),
               dport(dport),
+              verbose(verbose_option),
               res(nullptr),
               payload_size(data_length),
               num_packets(num_packets),
@@ -137,8 +138,8 @@ namespace detection
               milliseconds(0),
               elapsed{},
               sockets_ready(false)
+
         {
-            verbose = true;
             // get file stream to use in packet initialization;
             if(!file.is_open())
             {
@@ -235,6 +236,7 @@ namespace detection
                 printf("%f sec\n", milliseconds);        // are these unit correct now???
             close(recv_fd);
 
+            output_results();
         }        // end measure()
 
         // stay the same
@@ -324,7 +326,6 @@ namespace detection
             }        // end temp socket
         }            // end setup_ip_info()
 
-    protected:
         /*ip data internal */
         std::string src_ip;          // string with IP address
         std::string dest_ip;         // string with IP address

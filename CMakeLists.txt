@@ -6,16 +6,18 @@ project(detector)
 #set (detector_VERSION_MAJOR 0)
 #set (detector_VERSION_MINOR 1)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+#set(Boost_USE_STATIC_LIBS ON)
+find_package(Threads REQUIRED)
+find_package(Boost 1.61 COMPONENTS program_options REQUIRED)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS})
 set(DETECTOR_HEADERS include/detector.hpp  include/packet.hpp include/ip_checksum.h
         include/simple_bitset.h include/udp_packet.hpp include/tcp_packet.hpp
         include/icmp_packet.hpp include/ip_tcp_packet.hpp include/ip_udp_packet.hpp
         include/ip_icmp_packet.hpp include/udp_detector.hpp include/tcp_detector.hpp)
-set(DETECTOR_SOURCE_FILES src/detector_main.cpp)
-find_package(Threads REQUIRED )
+set(DETECTOR_SOURCE_FILES src/detector_cfg.cpp)
 add_executable(detector  ${DETECTOR_SOURCE_FILES})# ${DETECTOR_HEADERS})
 target_compile_features(detector PUBLIC cxx_strong_enums cxx_thread_local)
-target_link_libraries(detector ${CMAKE_THREAD_LIBS_INIT}  m)
+target_link_libraries(detector ${CMAKE_THREAD_LIBS_INIT} m ${Boost_LIBRARIES})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 #add_custom_target(ncd_main COMMAND make)
 #execute_process(COMMAND cp ncd_main ${PROJECT_BINARY_DIR})

@@ -17,6 +17,10 @@ int main(int argc, char* argv[])
     string dest_ip;
     string cfg_file;
 
+    bool verbose= false;
+    bool sql_output = true;
+
+
     uint32_t sport;
     uint32_t dport;
 
@@ -35,7 +39,7 @@ int main(int argc, char* argv[])
     uint16_t frag_off;
     uint8_t ttl;
     uint8_t proto;
-    uint16_t check_sum;
+    //uint16_t check_sum;
     uint16_t syn_port_in = 22223;
 
     po::options_description cli("CLI Only Options");
@@ -44,7 +48,7 @@ int main(int argc, char* argv[])
     cli.add_options()
         ("help,h", "produce help message")
         ("config,c", po::value<string>(&cfg_file)->default_value("detector.cfg"), "Name of a configuration file")
-        ("version,v", "print version string")
+        ("version", "print version string")
         ;
     // clang-format on
 
@@ -62,6 +66,8 @@ int main(int argc, char* argv[])
         ("tail_wait", po::value<uint16_t>(&tail_wait)->default_value(10), "Time to wait between tail packets")
         ("raw_status", po::value<raw_level>(&raw_status)->default_value(full), "Time to wait between tail packets")
         ("trans_proto", po::value<transport_type>(&trans_proto)->zero_tokens()->implicit_value(transport_type::tcp), "Time to wait between tail packets")
+        ("verbose,v", po::value<bool>(&verbose), "Print verbose output")
+        ("sql_output,q", po::value<bool>(&sql_output), "Print output suitable for SQL parser")
         ;
     // clang-format on
 
@@ -120,6 +126,25 @@ int main(int argc, char* argv[])
         cout << "Detector, version 1.0\n";
         return 0;
     }
+
+    std::shared_ptr<detector> test(nullptr);
+    switch(trans_proto)
+    {
+    case transport_type::udp:
+        test = std::make_shared<udp_detector>(dest_ip, tos, 0, 0, 255, IPPROTO_UDP, 0, sport, dport);
+        break;
+    case transport_type::tcp:
+        test = std::make_shared<tcp_detector>(dest_ip, tos, 0, 0, 255, IPPROTO_TCP, 0, sport, dport);
+    default:
+        break;
+    }
+    if(!test)
+        return -1;
+
+    test->verbose = verbose;
+    test->sql_output = sql_output;
+    test->measure();
+
 
 
     return 0;
