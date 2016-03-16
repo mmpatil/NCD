@@ -33,19 +33,23 @@
 #include "udp_detector.hpp"
 
 
-
-
-
 namespace detection
 {
 
-    struct results
+    struct test_results
     {
-         double elapsed_time;
-         uint32_t lostpackets;
-         char losses[512];
+        double elapsed_time;
+        uint32_t lostpackets;
+        //char losses[512];
     };
 
+    struct test_params
+    {
+        uint32_t num_packets;
+        uint32_t payload_size;
+        uint16_t port;
+        uint16_t offset;
+    }
 
     class co_op_udp_detector : public udp_detector
     {
@@ -98,10 +102,10 @@ namespace detection
                 perror("call to socket() failed for SEND");
                 exit(EXIT_FAILURE);
             }        // end error check
-
         }
 
-        virtual void send_timestamp() {
+        virtual void send_timestamp()
+        {
             // send message to server indicating how many packet to expect,
             // the packet size, and other parameters, then send the data train
             int err = connect(recv_fd, res->ai_addr, res->ai_addrlen);
@@ -111,23 +115,57 @@ namespace detection
                 exit(EXIT_FAILURE);
             }
 
+            test_params p  = {};
+            p.num_packets  = num_packets;
+            p.payload_size = payload_size;
+            p.port         = dport;
+            p.offset       = 0;        // TODO: change underlying classes to write packet id to random location in payload --
+                                 // chosen at program start
 
+            int n = sendto(recv_fd, &p, sizeof(p), 0, res->ai_addr, res->ai_addrlen);
+            if(n == -1)
+            {
+                perror("Call to sendto() failed: error sending ICMP packet");
+                exit(EXIT_FAILURE);
+            }
+
+        }        // end send_timstamp()
+
+        virtual void send_train()
+        {
+            // send the train as normal
+
+        }        // end send_train()
+
+        virtual void send_tail()
+        {
+            bool done = true;
+            int n = sendto(recv_fd, &done, sizeof(done), 0, res->ai_addr, res->ai_addrlen);
+            if(n == -1)
+            {
+                perror("Call to sendto() failed: error sending ICMP packet");
+                exit(EXIT_FAILURE);
+            }
         }
 
-        virtual void send_train() {
-            //send the train as normal
+        virtual void prepare()
+        {
+            // take care of any setup
+        }        // end prepare()
 
-        }
+        virtual void receive()
+        {
+            // receive the tcp reply from the server containing the test results.
+            test_results t = {};
 
-        virtual void prepare() {
-        // take care of any setup
-        }
+            recv(recv_fd, &t, sizeof(t),0);
 
-        virtual void receive() {
-        // receive the tcp reply from the server containing the test results.
+            //bitset s = t.losses;
+            this->packets_lost =t.lostpackets;
+            milliseconds = t.elapsed_time;
 
 
-        }
+        }        // end receive()
 
 
     private:
