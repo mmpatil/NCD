@@ -235,6 +235,7 @@ namespace detection
             if(!sql_output)
                 printf("%f sec\n", milliseconds);        // are these unit correct now???
             close(recv_fd);
+            sockets_ready=false;
 
             output_results();
         }        // end measure()

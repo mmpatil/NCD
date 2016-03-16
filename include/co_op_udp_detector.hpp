@@ -163,8 +163,7 @@ namespace detection
             //bitset s = t.losses;
             this->packets_lost =t.lostpackets;
             milliseconds = t.elapsed_time;
-
-
+            close(recv_fd);
         }        // end receive()
 
 
