@@ -8,7 +8,7 @@ project(detector)
 
 #set(Boost_USE_STATIC_LIBS ON)
 find_package(Threads REQUIRED)
-find_package(Boost 1.61 COMPONENTS program_options REQUIRED)
+find_package(Boost 1.6 COMPONENTS program_options REQUIRED)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS})
 set(DETECTOR_HEADERS include/detector.hpp  include/packet.hpp include/ip_checksum.h
         include/simple_bitset.h include/udp_packet.hpp include/tcp_packet.hpp
