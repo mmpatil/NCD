@@ -31,25 +31,11 @@
 #define CO_OP_UDP_DETECTOR_HPP 1
 
 #include "udp_detector.hpp"
+#include "co_op_data.hpp"
 
 
 namespace detection
 {
-
-    struct test_results
-    {
-        double elapsed_time;
-        uint32_t lostpackets;
-        //char losses[512];
-    };
-
-    struct test_params
-    {
-        uint32_t num_packets;
-        uint32_t payload_size;
-        uint16_t port;
-        uint16_t offset;
-    }
 
     class co_op_udp_detector : public udp_detector
     {

@@ -27,4 +27,33 @@
  * @file: udp_detector.hpp
  */
 
+#ifndef DETECTOR_UNIT_TEST_CO_OP_UDP_SERVER_HPP
+#define DETECTOR_UNIT_TEST_CO_OP_UDP_SERVER_HPP
 
+#include <string>
+#include <chrono>
+#include "co_op_data.hpp"
+
+class co_op_udp_server {
+
+public:
+    co_op_udp_server();
+    virtual ~co_op_udp_server(){}
+
+    void listener();
+    void process_udp(int sock_fd);
+    void timer(std::chrono::seconds timeout);
+    void measure();
+    void capture_traffic();
+    void process_data();
+    void sync_ids();
+    void error_handler(std::string msg);
+
+private:
+
+
+
+};
+
+
+#endif //DETECTOR_UNIT_TEST_CO_OP_UDP_SERVER_HPP

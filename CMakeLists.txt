@@ -13,7 +13,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS})
 set(DETECTOR_HEADERS include/detector.hpp  include/packet.hpp include/ip_checksum.h
         include/simple_bitset.h include/udp_packet.hpp include/tcp_packet.hpp
         include/icmp_packet.hpp include/ip_tcp_packet.hpp include/ip_udp_packet.hpp
-        include/ip_icmp_packet.hpp include/udp_detector.hpp include/tcp_detector.hpp)
+        include/ip_icmp_packet.hpp include/udp_detector.hpp include/tcp_detector.hpp include/co_op_data.hpp)
 set(DETECTOR_SOURCE_FILES src/detector_cfg.cpp)
 add_executable(detector  ${DETECTOR_SOURCE_FILES})# ${DETECTOR_HEADERS})
 target_compile_features(detector PUBLIC cxx_strong_enums cxx_thread_local)
@@ -25,7 +25,7 @@ MESSAGE(STATUS "Detector headers: " ${detector_HEADERS} )
 
 
 add_subdirectory(ncd EXCLUDE_FROM_ALL)
-
+add_subdirectory(co_op_udp_server)
 ################################################################################
 ####                           TEST                                         ####
 ################################################################################
