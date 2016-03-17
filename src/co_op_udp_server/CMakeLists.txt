@@ -3,8 +3,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 11)
 
 project(udp_server)
-#set (detector_VERSION_MAJOR 0)
-#set (detector_VERSION_MINOR 1)
 
 #set(Boost_USE_STATIC_LIBS ON)
 find_package(Threads REQUIRED)
@@ -16,11 +14,6 @@ add_executable(udp_server  ${SERVER_SOURCE_FILES})# ${DETECTOR_HEADERS})
 target_compile_features(server PUBLIC cxx_strong_enums cxx_thread_local)
 target_link_libraries(detector ${CMAKE_THREAD_LIBS_INIT})# m ${Boost_LIBRARIES})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
-#add_custom_target(ncd_main COMMAND make)
-#execute_process(COMMAND cp ncd_main ${PROJECT_BINARY_DIR})
-#MESSAGE(STATUS "Detector headers: " ${detector_HEADERS} )
-
-
 
 ################################################################################
 ####                           TEST                                         ####
