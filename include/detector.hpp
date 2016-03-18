@@ -39,6 +39,7 @@
 #include <unistd.h>     /* for close() */
 
 /* STL Header files */
+#include <algorithm>          /* for std::transform */
 #include <condition_variable> /* for condition variables */
 #include <cstdint>            /* for fixed size integers */
 #include <cstring>            /* for memset */
@@ -51,7 +52,6 @@
 #include <string>             /* for std::string */
 #include <thread>             /* for std::thread */
 #include <vector>             /* for std:vector*/
-#include <algorithm>          /* for std::transform */
 
 /* project header files */
 #include "ip_checksum.h"
@@ -97,7 +97,7 @@ namespace detection
     {
         if(val == full)
         {
-           return out << "full";
+            return out << "full";
         }
         else if(val == transport_only)
         {
@@ -117,11 +117,11 @@ namespace detection
     class detector
     {
     public:
-        detector(std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id,
-                 uint16_t frag_off, uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
+        detector(std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id, uint16_t frag_off, uint8_t ttl,
+                 uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                  std::string filename = "/dev/urandom", uint16_t num_packets = 10, uint16_t data_length = 512,
                  uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
-                 transport_type trans_proto = transport_type::udp,bool verbose_option = false)
+                 transport_type trans_proto = transport_type::udp, bool verbose_option = false)
             : dest_ip(dest_ip),
               trans(trans_proto),
               ip_header{0, 0, tos, ip_length, id, frag_off, ttl, proto, check_sum, 0, 0},
@@ -235,7 +235,7 @@ namespace detection
             if(!sql_output)
                 printf("%f sec\n", milliseconds);        // are these unit correct now???
             close(recv_fd);
-            sockets_ready=false;
+            sockets_ready = false;
 
             output_results();
         }        // end measure()

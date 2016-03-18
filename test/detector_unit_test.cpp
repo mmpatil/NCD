@@ -47,14 +47,7 @@ TEST(get_time_test, get_time_correct)
 
 TEST(output_results, detector_output_results)
 {
-
-
-
-
 }
-
-
-
 
 
 int main(int argc, char** argv)

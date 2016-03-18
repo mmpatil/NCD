@@ -1,5 +1,5 @@
-#include "udp_detector.hpp"
 #include "tcp_detector.hpp"
+#include "udp_detector.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     string dest_ip;
     string cfg_file;
 
-    bool verbose= false;
+    bool verbose    = false;
     bool sql_output = true;
 
 
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
     uint16_t frag_off;
     uint8_t ttl;
     uint8_t proto;
-    //uint16_t check_sum;
+    // uint16_t check_sum;
     uint16_t syn_port_in = 22223;
 
     po::options_description cli("CLI Only Options");
@@ -141,10 +141,9 @@ int main(int argc, char* argv[])
     if(!test)
         return -1;
 
-    test->verbose = verbose;
+    test->verbose    = verbose;
     test->sql_output = sql_output;
     test->measure();
-
 
 
     return 0;

@@ -30,8 +30,8 @@
 #ifndef CO_OP_UDP_DETECTOR_HPP
 #define CO_OP_UDP_DETECTOR_HPP 1
 
-#include "udp_detector.hpp"
 #include "co_op_data.hpp"
+#include "udp_detector.hpp"
 
 
 namespace detection
@@ -105,7 +105,7 @@ namespace detection
             p.num_packets  = num_packets;
             p.payload_size = payload_size;
             p.port         = dport;
-            p.offset       = 0;        // TODO: change underlying classes to write packet id to random location in payload --
+            p.offset = 0;        // TODO: change underlying classes to write packet id to random location in payload --
                                  // chosen at program start
 
             int n = sendto(recv_fd, &p, sizeof(p), 0, res->ai_addr, res->ai_addrlen);
@@ -126,7 +126,7 @@ namespace detection
         virtual void send_tail()
         {
             bool done = true;
-            int n = sendto(recv_fd, &done, sizeof(done), 0, res->ai_addr, res->ai_addrlen);
+            int n     = sendto(recv_fd, &done, sizeof(done), 0, res->ai_addr, res->ai_addrlen);
             if(n == -1)
             {
                 perror("Call to sendto() failed: error sending ICMP packet");
@@ -144,11 +144,11 @@ namespace detection
             // receive the tcp reply from the server containing the test results.
             test_results t = {};
 
-            recv(recv_fd, &t, sizeof(t),0);
+            recv(recv_fd, &t, sizeof(t), 0);
 
-            //bitset s = t.losses;
-            this->packets_lost =t.lostpackets;
-            milliseconds = t.elapsed_time;
+            // bitset s = t.losses;
+            this->packets_lost = t.lostpackets;
+            milliseconds       = t.elapsed_time;
             close(recv_fd);
         }        // end receive()
 

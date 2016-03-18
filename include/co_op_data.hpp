@@ -4,13 +4,17 @@
 
 #ifndef DETECTOR_UNIT_TEST_CO_OP_DATA_HPP
 #define DETECTOR_UNIT_TEST_CO_OP_DATA_HPP
+
+#include <cstdint>
+
+
 namespace detection
 {
     struct test_results
     {
         double elapsed_time;
         uint32_t lostpackets;
-        //char losses[512];
+        // char losses[512];
     };
 
     struct test_params
@@ -21,4 +25,4 @@ namespace detection
         uint16_t offset;
     };
 }
-#endif //DETECTOR_UNIT_TEST_CO_OP_DATA_HPP
+#endif        // DETECTOR_UNIT_TEST_CO_OP_DATA_HPP
