@@ -138,12 +138,15 @@ void co_op_udp_server::process_udp(int sock_fd)
         std::lock_guard<std::mutex> complete_guard(complete_mutex);
         err = recv(sock_fd, &send_complete, sizeof(send_complete), 0);
 
+        // timestamp ASAP -- even before reporting errors
         auto timestamp = std::chrono::high_resolution_clock::now() - marker;
         val            = std::chrono::duration_cast<std::chrono::milliseconds>(timestamp).count();
+
         if(err < 0)
         {
             error_handler("Failure receiving experimental parameters from client");
         }
+
         if(!send_complete)
         {
             error_handler("A serious error transfering data has occured");
