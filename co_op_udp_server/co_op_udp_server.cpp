@@ -139,7 +139,7 @@ void co_op_udp_server::process_udp(int sock_fd)
         err = recv(sock_fd, &send_complete, sizeof(send_complete), 0);
 
         auto timestamp = std::chrono::high_resolution_clock::now() - marker;
-        val            = std::chrono::milliseconds(timestamp).count();
+        val            = std::chrono::duration_cast<std::chrono::milliseconds>(timestamp).count();
         if(err < 0)
         {
             error_handler("Failure receiving experimental parameters from client");
