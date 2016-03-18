@@ -8,14 +8,14 @@ project(udp_server)
 find_package(Threads REQUIRED)
 #find_package(Boost 1.6 COMPONENTS program_options REQUIRED)
 include_directories(. ../include) # ${Boost_INCLUDE_DIRS})
-set(SERVER_HEADERS co_op_udp_server.hpp co_op_data.hpp)
+set(SERVER_HEADERS co_op_udp_server.hpp)
 set(SERVER_SOURCE_FILES co_op_udp_server.cpp)
 add_library(libudpserver  ${SERVER_SOURCE_FILES})# ${DETECTOR_HEADERS})
 add_executable(server server_main.cpp)
 target_compile_features(libudpserver PUBLIC cxx_strong_enums cxx_thread_local)
 target_link_libraries(libudpserver ${CMAKE_THREAD_LIBS_INIT})# m ${Boost_LIBRARIES})
 target_link_libraries(server libudpserver)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 ################################################################################
 ####                           TEST                                         ####
