@@ -22,8 +22,8 @@ before_install:
   - source ./travis_setup.sh
   - git clone --recursive https://github.com/boostorg/boost.git
   - cd boost
-  - sudo ./bootstrap.sh --with-libraries="program_options"
-  - sudo ./b2 install
+  - sudo ./bootstrap.sh
+  - sudo ./b2 install --with-program_options
   - cd -
 
 install:
