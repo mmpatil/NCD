@@ -22,19 +22,32 @@
 DROP TABLE IF EXISTS `data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `data` (
+
+DROP TABLE IF EXISTS `experiment`;
+
+CREATE TABLE `experiment` (
+    `id` int(6)
+
+);
+
+
+
+
+CREATE TABLE `meta_data` (
   `id` int(6) unsigned NOT NULL AUTO_INCREMENT,
   `test_date` datetime DEFAULT NULL,
-  `command` varchar(128) DEFAULT NULL,
-  `host_ip` varchar(32) DEFAULT NULL,
-  `dest_ip` varchar(32) DEFAULT NULL,
+  `command_1` varchar(256) DEFAULT NULL,
+  `host_ip` varchar(128) DEFAULT NULL,
+  `dest_ip` varchar(128) DEFAULT NULL,
   `success` tinyint(1) DEFAULT '0',
-  `test_name` varchar(64) DEFAULT NULL,
-  `project` varchar(64) DEFAULT NULL,
+  `test_name` varchar(128) DEFAULT NULL,
+  `project` varchar(128) DEFAULT NULL,
   `high_time` double DEFAULT NULL,
   `low_time` double DEFAULT NULL,
-  `high_losses` varchar(256) DEFAULT NULL,
-  `low_losses` varchar(256) DEFAULT NULL,
+  `high_losses_str` varchar(1000) DEFAULT NULL,
+  `low_losses_str` varchar(1000) DEFAULT NULL,
+ /* `high_losses` varchar(256) DEFAULT NULL,
+  `low_losses` varchar(256) DEFAULT NULL,*/
   `num_tail` int(4) DEFAULT NULL,
   `dest_port` int(6) DEFAULT NULL,
   `src_port` int(6) DEFAULT NULL,

@@ -101,7 +101,10 @@ namespace detection
                 exit(EXIT_FAILURE);
             }
 
+            //TODO: Rework these default parameters and get them from elsewhere.
             test_params p  = {};
+            p.last_train = true;//TODO: this needs to be redesigned
+            p.test_id = 12345; //TODO: get the id from MYSQL
             p.num_packets  = num_packets;
             p.payload_size = payload_size;
             p.port         = dport;
