@@ -23,7 +23,7 @@ TIMEOUT=90
 
 # get results from file temp.txt
 get_results(){
-    ./sql_test.sh ${PROJECT} "$TEST_NAME" "$COMMAND_NAME" ${SUCCESS} $(cat $1)
+    SQL/sql_test.sh ${PROJECT} "$TEST_NAME" "$COMMAND_NAME" ${SUCCESS} $(cat $1)
     rm $1
 }
 

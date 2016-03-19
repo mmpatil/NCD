@@ -8,6 +8,6 @@ echo "COMMAND: $@"
 echo "TEST INFO:
 Test run from $(hostname)\n"
 
-echo "ANALYSYS: \n"
+echo "ANALYSES: \n"
 
 echo "RAW DATA:\n"
