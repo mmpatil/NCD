@@ -24,6 +24,7 @@ before_install:
   - cd boost
   - sudo ./bootstrap.sh --with-libraries="program_options"
   - sudo ./b2 install
+  - cd -
 
 install:
   - $CC --version
