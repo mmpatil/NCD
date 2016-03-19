@@ -1,6 +1,7 @@
-from __future__ import with_statement
 from __future__ import absolute_import
-import random, fileinput
+from __future__ import with_statement
+
+import random
 from datetime import datetime, date, time, timedelta
 from io import open
 from itertools import izip
@@ -23,13 +24,13 @@ class ScheduleMaker(object):
 
     def __init__(self, ip_file, start_date, end_date, period, interval, command):
         u""" initializes the class
-        :param ip_file: (string) file name of a fil that contains a list of remote host IP addresses, one per line
-        :param start_date: (date) provides the date when scheduling starts
-        :param end_date: (date) provides the date when scheduling ends
-        :param period: (timedelta) The interval at which a test should be run again for same IP
-        :param interval: (timedelta) The maximum length of a test, limits how many tests per Period
-        :param command: (string) the command string to be run on the remote host. e.g. echo 'hello world!'
-        :return:
+            :param ip_file: (string) file name of a fil that contains a list of remote host IP addresses, one per line
+            :param start_date: (date) provides the date when scheduling starts
+            :param end_date: (date) provides the date when scheduling ends
+            :param period: (timedelta) The interval at which a test should be run again for same IP
+            :param interval: (timedelta) The maximum length of a test, limits how many tests per Period
+            :param command: (string) the command string to be run on the remote host. e.g. echo 'hello world!'
+            :return:
         """
         self.ip_file = ip_file
         self.start_date = start_date
@@ -43,7 +44,7 @@ class ScheduleMaker(object):
 
         self.output_file_name = u"schedule.txt"
 
-    def create_schedule(self, use_random=False,seed=None):
+    def create_schedule(self, use_random=False, seed=None):
         days = list(per_delta(self.start_date, self.end_date, timedelta(days=1)))
         with open(self.output_file_name, u'w') as outFile:
             for day in days:
@@ -55,14 +56,15 @@ class ScheduleMaker(object):
         if seed is not None:
             random.seed(seed)
 
-        for period in per_delta(d, (d+timedelta(days=1)), self.period):
+        for period in per_delta(d, (d + timedelta(days=1)), self.period):
             # sample get me a random sample of the minutes in an hour ... up to 60
             # instead of putting that in the dictionary, we should put an actual date time
             # we should also pass in the day's date, and remove logic to make times consistent for the whole day
             # datetime removes a great deal of that calculation
 
-            if(use_random):
-                schedule = random.sample(list(per_delta(period, (period + self.period), self.interval)), len(self.target_list))
+            if use_random:
+                schedule = random.sample(list(per_delta(period, (period + self.period), self.interval)),
+                                         len(self.target_list))
             else:
                 schedule = list(per_delta(period, (period + self.period), self.interval))[: len(self.target_list)]
 
@@ -70,9 +72,11 @@ class ScheduleMaker(object):
 
         return day
 
-
-    def write_day(self,day, outFile):
-        u"""Write the schedule for the day to a file"""
+    def write_day(self, day, outFile):
+        u"""Write the schedule for the day to a file
+            :param day: The day to Schedule
+            :param outFile: the file to write to
+        """
 
         items = [(k, v) for k, v in day.items()]
         items.sort()
@@ -83,11 +87,18 @@ class ScheduleMaker(object):
 
 # taken from http://stackoverflow.com/questions/10688006/generate-a-list-of-datetimes-between-an-interval-in-python
 def per_delta(start, end, delta):
+    """generator that yields the next interval between [start, end], incremented by delta
+        :param start: The starting point for the interval
+        :param end: The end of the interval
+        :param delta: The size of the interval
+    """
     curr = start
     while curr < end:
         yield curr
         curr += delta
 
+
 if __name__ == u"__main__":
-    scheduler = ScheduleMaker(u"ip_list.txt", date(2016, 3, 15), date(2016, 3, 17), timedelta(hours=1), timedelta(minutes=1), u"start_experiment.sh")
+    scheduler = ScheduleMaker(u"ip_list.txt", date(2016, 3, 15), date(2016, 3, 17), timedelta(hours=1),
+                              timedelta(minutes=1), u"start_experiment.sh")
     scheduler.create_schedule(False, 0)
