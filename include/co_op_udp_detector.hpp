@@ -139,15 +139,15 @@ namespace detection
                 exit(EXIT_FAILURE);
             }
 
-            // TODO: Rework these default parameters and get them from elsewhere.
+            // TODO: change underlying classes to write packet id to random location in payload -- chosen at program
+            // start
             test_params p  = {};
             p.test_id      = test_id;
-            p.last_train   = last_train;        // TODO: this needs to be redesigned
+            p.last_train   = last_train;
             p.num_packets  = num_packets;
             p.payload_size = payload_size;
             p.port         = dport;
-            p.offset = 0;        // TODO: change underlying classes to write packet id to random location in payload --
-                                 // chosen at program start
+            p.offset       = 0;
 
             int n = send(recv_fd, &p, sizeof(p), 0);
             if(n == -1)
@@ -158,12 +158,6 @@ namespace detection
 
         }        // end send_timstamp()
 
-        /*virtual void send_train()
-        {
-            // send the train as normal
-
-        }        // end send_train()
-*/
         virtual void send_tail()
         {
             bool done = true;
