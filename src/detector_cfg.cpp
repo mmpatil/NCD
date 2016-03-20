@@ -1,5 +1,6 @@
 #include "tcp_detector.hpp"
 #include "udp_detector.hpp"
+#include "co_op_udp_detector.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -14,6 +15,7 @@ int main(int argc, char* argv[])
 {
     // get program options
     // common options
+    int test_id_in;
     string dest_ip;
     string cfg_file;
 
@@ -56,8 +58,9 @@ int main(int argc, char* argv[])
 
     // clang-format off
     general.add_options()
+        ("test_id_in", po::value<int>(&test_id_in), "Experimental ID number")
         ("dest_ip", po::value<string>(&dest_ip), "Destination IP Address")
-        ("sport,s", po::value<unsigned int>(&sport)->default_value(9876), "Source Port #")
+        ("sport,s", po::value<uint32_t>(&sport)->default_value(9876), "Source Port #")
         ("dport,p", po::value<uint32_t>(&dport)->default_value(33434), "Destination Port #")
         ("filename,f", po::value<string>(&filename)->default_value("/dev/urandom"), "Filename for packet data")
         ("num_packets,n", po::value<uint16_t>(&num_packets)->default_value(20), "Number of packets in the data train")
@@ -131,10 +134,10 @@ int main(int argc, char* argv[])
     switch(trans_proto)
     {
     case transport_type::udp:
-        test = std::make_shared<udp_detector>(dest_ip, tos, 0, 0, 255, IPPROTO_UDP, 0, sport, dport);
+        test = std::make_shared<udp_detector>(test_id_in, dest_ip, tos, 0, 0, 255, IPPROTO_UDP, 0, sport, dport);
         break;
     case transport_type::tcp:
-        test = std::make_shared<tcp_detector>(dest_ip, tos, 0, 0, 255, IPPROTO_TCP, 0, sport, dport);
+        test = std::make_shared<tcp_detector>(test_id_in, dest_ip, tos, 0, 0, 255, IPPROTO_TCP, 0, sport, dport);
     default:
         break;
     }

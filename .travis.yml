@@ -21,11 +21,6 @@ before_install:
   - sudo apt-get update -y
   - chmod u+x travis_setup.sh
   - source ./travis_setup.sh
-  - git clone --recursive https://github.com/boostorg/boost.git
-  - cd boost
-  - sudo ./bootstrap.sh
-  - sudo ./b2 install --with-program_options
-  - cd -
 
 install:
   - $CC --version
