@@ -132,7 +132,6 @@ namespace detection
               num_packets(num_packets),
               num_tail(num_tail),
               tail_wait(tail_wait),
-              file(filename, std::ios::in | std::ios::binary),
               raw(raw_status),
               milliseconds(0),
               elapsed{},
@@ -140,6 +139,7 @@ namespace detection
               test_id(test_id_in)
 
         {
+            file.open("/dev/zero", std::ios::in | std::ios::binary);
             // get file stream to use in packet initialization;
             if(!file.is_open())
             {

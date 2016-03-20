@@ -150,7 +150,7 @@ namespace detection
             if(file.is_open())
             {
                 memcpy(&data[data_offset], &packet_id, sizeof(packet_id));
-                uint16_t* id = (uint16_t*)&data[data_offset];
+                uint16_t* id = reinterpret_cast<uint16_t*>(&data[data_offset]);
                 *id          = packet_id;
                 file.read(&data[data_offset + sizeof(packet_id)], data.size() - data_offset);
             }

@@ -299,7 +299,7 @@ void co_op_udp_server::process_udp(int sock_fd)
 
     // timestamp ASAP -- even before reporting errors
     auto timestamp = std::chrono::high_resolution_clock::now() - marker;
-    val            = std::chrono::duration_cast<std::chrono::milliseconds>(timestamp).count();
+    val            = std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count() / 1000.0;
 
     if(err < 0)
     {

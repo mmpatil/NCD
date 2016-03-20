@@ -162,22 +162,33 @@ int main(int argc, char* argv[])
     switch(trans_proto)
     {
     case transport_type::udp:
-        base = std::make_shared<udp_detector>(test_id_in, dest_ip, tos_base, id_base, frag_off_base, ttl_base, IPPROTO_UDP, 0, sport_base, dport_base, filename_base,num_packets, data_length, num_tail, tail_wait,raw_status,trans_proto);
-        disc = std::make_shared<udp_detector>(test_id_in, dest_ip, tos_disc, id_disc, frag_off_base, ttl_disc, IPPROTO_UDP, 0, sport_disc, dport_disc, filename_disc,num_packets, data_length, num_tail, tail_wait,raw_status,trans_proto);
+        base = std::make_shared<udp_detector>(test_id_in, dest_ip, tos_base, id_base, frag_off_base, ttl_base,
+                                              IPPROTO_UDP, 0, sport_base, dport_base, filename_base, num_packets,
+                                              data_length, num_tail, tail_wait, raw_status, trans_proto);
+        disc = std::make_shared<udp_detector>(test_id_in, dest_ip, tos_disc, id_disc, frag_off_base, ttl_disc,
+                                              IPPROTO_UDP, 0, sport_disc, dport_disc, filename_disc, num_packets,
+                                              data_length, num_tail, tail_wait, raw_status, trans_proto);
         break;
     case transport_type::tcp:
-        base = std::make_shared<tcp_detector>(test_id_in, dest_ip, tos_base, id_base, frag_off_base, ttl_base, IPPROTO_TCP, 0, sport_base, dport_base, filename_base,num_packets, data_length, num_tail, tail_wait,raw_status,trans_proto, syn_port_in_base);
-        disc = std::make_shared<tcp_detector>(test_id_in, dest_ip, tos_disc, id_disc, frag_off_base, ttl_disc, IPPROTO_TCP, 0, sport_disc, dport_disc, filename_disc,num_packets, data_length, num_tail, tail_wait,raw_status,trans_proto, syn_port_in_disc);
+        base = std::make_shared<tcp_detector>(
+          test_id_in, dest_ip, tos_base, id_base, frag_off_base, ttl_base, IPPROTO_TCP, 0, sport_base, dport_base,
+          filename_base, num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto, syn_port_in_base);
+        disc = std::make_shared<tcp_detector>(
+          test_id_in, dest_ip, tos_disc, id_disc, frag_off_base, ttl_disc, IPPROTO_TCP, 0, sport_disc, dport_disc,
+          filename_disc, num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto, syn_port_in_disc);
     default:
         break;
     }
-    if(!base || !disc) {
-        std::cerr << "There was an error configuring the experiment. Please check the configuration file, and your commandline invocation." <<std::endl;
+    if(!base || !disc)
+    {
+        std::cerr << "There was an error configuring the experiment. Please check the configuration file, and your "
+                     "commandline invocation."
+                  << std::endl;
         return -1;
     }
 
-    base->verbose    = disc ->verbose =verbose;
-    base->sql_output = disc->sql_output  =sql_output;
+    base->verbose = disc->verbose = verbose;
+    base->sql_output = disc->sql_output = sql_output;
     base->measure();
 
     std::this_thread::sleep_for(std::chrono::seconds(cooldown));

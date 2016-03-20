@@ -41,12 +41,13 @@ namespace detection
     {
     public:
         co_op_udp_detector(int test_id_in, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off,
-                           uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
+                           uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport, bool last,
                            std::string filename = "/dev/urandom", uint16_t num_packets = 1000,
                            uint16_t data_length = 512, uint16_t num_tail = 20, uint16_t tail_wait = 10,
                            raw_level raw_status = none, transport_type trans_proto = transport_type::udp)
             : udp_detector(test_id_in, dest_ip, tos, id, frag_off, ttl, proto, check_sum, sport, dport, filename,
-                           num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto)
+                           num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto),
+              last_train(last)
         {
             tcp_res = NULL;
         }
@@ -141,8 +142,7 @@ namespace detection
             // TODO: Rework these default parameters and get them from elsewhere.
             test_params p  = {};
             p.test_id      = test_id;
-            p.last_train   = true;         // TODO: this needs to be redesigned
-            p.test_id      = 12345;        // TODO: get the id from MYSQL
+            p.last_train   = last_train;        // TODO: this needs to be redesigned
             p.num_packets  = num_packets;
             p.payload_size = payload_size;
             p.port         = dport;
@@ -201,6 +201,7 @@ namespace detection
     private:
         /* data */
         addrinfo* tcp_res;
+        bool last_train;
     };
 }
 
