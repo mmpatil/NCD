@@ -186,7 +186,7 @@ namespace detection
             test_results t = {};
 
             std::unique_lock<std::mutex> lk(recv_ready_mutex);
-            recv_ready_cv.wait(lk, [this](){return this->recv_ready;});
+            recv_ready_cv.wait(lk, [this]() { return this->recv_ready; });
             lk.release();
 
             recv(recv_fd, &t, sizeof(t), 0);

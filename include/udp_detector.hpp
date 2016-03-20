@@ -40,7 +40,7 @@ namespace detection
 
     public:
         udp_detector(int test_id_in, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
-                     uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
+                     uint8_t proto, uint16_t check_sum, uint16_t sport, uint16_t dport,
                      std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
                      uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
                      transport_type trans_proto = transport_type::udp)

@@ -348,6 +348,6 @@ void co_op_udp_server::process_data()
     if(p.last_train)
     {
         // we don't need the file anymore, remove it.
-        //std::ofstream o("results.txt")
+        // std::ofstream o("results.txt")
     }
 }
