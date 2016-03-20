@@ -340,6 +340,7 @@ void co_op_udp_server::process_data()
 
     out.close();        // close file
 
+    std::cout << "Done processing data ....\n";
 
     // sync with database -- consider firing off child process that executes a script
 
@@ -347,5 +348,6 @@ void co_op_udp_server::process_data()
     if(p.last_train)
     {
         // we don't need the file anymore, remove it.
+        //std::ofstream o("results.txt")
     }
 }

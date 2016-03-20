@@ -302,6 +302,7 @@ namespace detection
                 exit(EXIT_FAILURE);
             }
 
+
             // set destination address
             ip_header.daddr = ((struct sockaddr_in*)res->ai_addr)->sin_addr.s_addr;
 

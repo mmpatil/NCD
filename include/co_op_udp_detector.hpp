@@ -48,9 +48,25 @@ namespace detection
             : udp_detector(test_id_in, dest_ip, tos, id, frag_off, ttl, proto, check_sum, sport, dport, filename,
                            num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto)
         {
+            tcp_res = NULL;
         }
 
-        virtual ~co_op_udp_detector(){}
+        virtual ~co_op_udp_detector()
+        {
+            if(tcp_res)
+                freeaddrinfo(tcp_res);
+        }
+
+        inline virtual void detect()
+        {
+            std::lock_guard<std::mutex> lk(recv_ready_mutex);
+            prepare();
+            send_timestamp();
+            send_train();
+            send_tail();
+            recv_ready = true;
+            recv_ready_cv.notify_all();
+        }        // end detect()
 
         virtual void setup_sockets()
         {
@@ -81,6 +97,24 @@ namespace detection
             setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 
             // set up TCP socket
+            /* set up hints for getaddrinfo() */
+            addrinfo tcp_hints    = {}; /* for get addrinfo */
+            tcp_hints.ai_flags    = AI_CANONNAME;
+            tcp_hints.ai_protocol = IPPROTO_TCP;
+            std::stringstream ss;
+            ss << dport;
+
+            int err = getaddrinfo(dest_ip.c_str(), ss.str().c_str(), &tcp_hints, &tcp_res);
+            if(err)
+            {
+                if(err == EAI_SYSTEM)
+                    std::cerr << "Error looking up " << dest_ip << ":" << errno << std::endl;
+                else
+                    std::cerr << "Error looking up " << dest_ip << ":" << gai_strerror(err) << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+
             recv_fd = socket(res->ai_family, SOCK_STREAM, IPPROTO_TCP);
 
             if(send_fd == -1)
@@ -95,10 +129,11 @@ namespace detection
             // send message to server indicating how many packet to expect,
             // the packet size, and other parameters, then send the data train
 
-            int err = connect(recv_fd, res->ai_addr, res->ai_addrlen);
+
+            int err = connect(recv_fd, tcp_res->ai_addr, tcp_res->ai_addrlen);
             if(err == -1)
             {
-                std::cerr << "Connect failed: " << errno;
+                std::cerr << "Connect failed: " << errno << std::endl;
                 perror("help:");
                 exit(EXIT_FAILURE);
             }
@@ -106,7 +141,7 @@ namespace detection
             // TODO: Rework these default parameters and get them from elsewhere.
             test_params p  = {};
             p.test_id      = test_id;
-            p.last_train   = true;        // TODO: this needs to be redesigned
+            p.last_train   = true;         // TODO: this needs to be redesigned
             p.test_id      = 12345;        // TODO: get the id from MYSQL
             p.num_packets  = num_packets;
             p.payload_size = payload_size;
@@ -114,7 +149,7 @@ namespace detection
             p.offset = 0;        // TODO: change underlying classes to write packet id to random location in payload --
                                  // chosen at program start
 
-            int n = sendto(recv_fd, &p, sizeof(p), 0, res->ai_addr, res->ai_addrlen);
+            int n = send(recv_fd, &p, sizeof(p), 0);
             if(n == -1)
             {
                 perror("Call to sendto() failed: error sending ICMP packet");
@@ -123,12 +158,12 @@ namespace detection
 
         }        // end send_timstamp()
 
-        virtual void send_train()
+        /*virtual void send_train()
         {
             // send the train as normal
 
         }        // end send_train()
-
+*/
         virtual void send_tail()
         {
             bool done = true;
@@ -150,6 +185,10 @@ namespace detection
             // receive the tcp reply from the server containing the test results.
             test_results t = {};
 
+            std::unique_lock<std::mutex> lk(recv_ready_mutex);
+            recv_ready_cv.wait(lk, [this](){return this->recv_ready;});
+            lk.release();
+
             recv(recv_fd, &t, sizeof(t), 0);
 
             // bitset s = t.losses;
@@ -161,6 +200,7 @@ namespace detection
 
     private:
         /* data */
+        addrinfo* tcp_res;
     };
 }
 
