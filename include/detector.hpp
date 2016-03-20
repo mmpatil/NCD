@@ -118,9 +118,9 @@ namespace detection
     {
     public:
         detector(int test_id_in, std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id, uint16_t frag_off,
-                         uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport, std::string filename,
-                         uint16_t num_packets, uint16_t data_length, uint16_t num_tail, uint16_t tail_wait, raw_level raw_status,
-                         transport_type trans_proto, bool verbose_option)
+                 uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport, std::string filename,
+                 uint16_t num_packets, uint16_t data_length, uint16_t num_tail, uint16_t tail_wait,
+                 raw_level raw_status, transport_type trans_proto, bool verbose_option)
             : dest_ip(dest_ip),
               trans(trans_proto),
               ip_header{0, 0, tos, ip_length, id, frag_off, ttl, proto, check_sum, 0, 0},
@@ -136,7 +136,8 @@ namespace detection
               raw(raw_status),
               milliseconds(0),
               elapsed{},
-              sockets_ready(false), test_id(test_id_in)
+              sockets_ready(false),
+              test_id(test_id_in)
 
         {
             // get file stream to use in packet initialization;

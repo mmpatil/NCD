@@ -46,8 +46,8 @@ public:
                  uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport,
                  const std::string& filename, uint16_t num_packets, uint16_t data_length, uint16_t num_tail,
                  uint16_t tail_wait, const raw_level& raw_status, const transport_type& trans_proto)
-        : detector(0, dest_ip, tos, ip_length, id, frag_off, ttl, proto, check_sum, sport, dport,
-                   filename, num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto, false)
+        : detector(0, dest_ip, tos, ip_length, id, frag_off, ttl, proto, check_sum, sport, dport, filename, num_packets,
+                   data_length, num_tail, tail_wait, raw_status, trans_proto, false)
     {
     }
 

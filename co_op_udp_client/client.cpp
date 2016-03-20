@@ -157,11 +157,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    std::shared_ptr<detector> test(nullptr);
-    co_op_udp_detector test(test_id_in, dest_ip, tos, 0, 0, 255, IPPROTO_UDP, 0, sport, dport);
-
-    if(!test)
-        return -1;
+    detection::co_op_udp_detector test(test_id_in, dest_ip, tos, 0, 0, 255, IPPROTO_UDP, 0, sport, dport);
 
     test.verbose    = verbose;
     test.sql_output = sql_output;

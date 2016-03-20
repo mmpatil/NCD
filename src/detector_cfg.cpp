@@ -1,6 +1,6 @@
+#include "co_op_udp_detector.hpp"
 #include "tcp_detector.hpp"
 #include "udp_detector.hpp"
-#include "co_op_udp_detector.hpp"
 
 #include <boost/program_options.hpp>
 
