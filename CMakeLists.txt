@@ -26,6 +26,7 @@ MESSAGE(STATUS "Detector headers: " ${detector_HEADERS} )
 
 add_subdirectory(ncd EXCLUDE_FROM_ALL)
 add_subdirectory(co_op_udp_server)
+add_subdirectory(co_op_udp_client)
 ################################################################################
 ####                           TEST                                         ####
 ################################################################################

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.12)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 11)
 
-project(udp_server)
+project(co_op_udp_server)
 
 #set(Boost_USE_STATIC_LIBS ON)
 find_package(Threads REQUIRED)

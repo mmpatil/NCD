@@ -136,7 +136,7 @@ namespace detection
               raw(raw_status),
               milliseconds(0),
               elapsed{},
-              sockets_ready(false)
+              sockets_ready(false), test_id(test_id_in)
 
         {
             // get file stream to use in packet initialization;
@@ -370,6 +370,7 @@ namespace detection
         bool sockets_ready;
         pseudo_header ps;
         std::array<char, 1500> buff;
+        int test_id;
     };
 
 }        // end namespace detector
