@@ -63,6 +63,7 @@ namespace detection
             std::lock_guard<std::mutex> lk(recv_ready_mutex);
             prepare();
             send_timestamp();
+            sleep(5);
             send_train();
             send_tail();
             recv_ready = true;

@@ -126,7 +126,8 @@ public:
         {
             error_handler("failed to acquire socket for UDP data train");
         }
-
+        std::cout <<  "UDP port number: " << params.port <<std::endl;
+        std::cout <<  "Packets to expect: " << params.num_packets <<std::endl;
         int err = bind(udp_fd, (sockaddr*)&serv_addr, sizeof(serv_addr));
         if(err < 0)
         {
@@ -135,12 +136,13 @@ public:
 
         socklen_t client_len = sizeof(client_addr);
 
+
         // recv data
         uint32_t packets_received = 0;
         boost::dynamic_bitset<> bitset(params.num_packets);
         uint16_t* id = reinterpret_cast<uint16_t*>(buff + params.offset);
         int n;
-        while((packets_received < params.num_packets))
+        while(packets_received < params.num_packets)
         {
             {
                 std::lock_guard<std::mutex> complete_guard(complete_mutex);
