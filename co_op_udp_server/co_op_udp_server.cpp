@@ -61,12 +61,13 @@ class experiment
 {
 public:
     experiment(const detection::test_params& params_in, const sockaddr_in& cliaddr) : params(params_in), client(cliaddr) {}
-    virtual ~experiment() {}
+    virtual ~experiment() {send_complete = false;
+        abort=false;}
 
     bool run()
     {
-        measure();
-        //timer(std::chrono::seconds(60));
+        //measure();
+        timer(std::chrono::seconds(60));
         std::lock_guard<std::mutex> abt_lk(abort_mutex);
         return !abort;
     }
@@ -78,24 +79,26 @@ public:
      */
     detection::test_results timer(std::chrono::seconds timeout)
     {
-        std::mutex timeout_mutex;
-        std::condition_variable timeout_cv;
-        std::unique_lock<std::mutex> timeout_lk(timeout_mutex);
-        bool complete = false;
+
+
+        std::unique_lock<std::mutex> timeout_lk(complete_mutex);
+
+
 
         // spawn child threads
         std::thread t1(&experiment::measure, this);
         std::thread t2(&experiment::capture_traffic, this);
 
         // wait until they signal or timer expires
-        timeout_cv.wait_until(timeout_lk, std::chrono::high_resolution_clock::now() + timeout);
+        complete_cv.wait_until(timeout_lk, std::chrono::high_resolution_clock::now() + timeout);
 
-        if(!complete)
+        if(!send_complete)
         {
             // signal child threads to complete
             std::lock_guard<std::mutex> abort_guard(abort_mutex);
             abort = true;
             abort_cv.notify_all();
+            tcpdump_cv.notify_all();
         }
 
         // wait for child threads to complete
@@ -107,6 +110,7 @@ public:
 
     void measure()
     {
+
         char buff[1500];
 
         // setup connection params
@@ -136,14 +140,20 @@ public:
         boost::dynamic_bitset<> bitset(params.num_packets);
         uint16_t* id = reinterpret_cast<uint16_t*>(buff + params.offset);
         int n;
-        while(!send_complete && (packets_received < params.num_packets))
+        while((packets_received < params.num_packets))
         {
+            {
+                std::lock_guard<std::mutex> complete_guard(complete_mutex);
+                if(send_complete)
+                    break;
+            }
+#if 0
             {
                 std::lock_guard<std::mutex> guard(abort_mutex);        // acquire lock
                 if(abort)
                     return;
             }
-
+#endif
             n = recvfrom(udp_fd, buff, sizeof(buff), 0, reinterpret_cast<sockaddr*>(&client_addr), &client_len);
 
             if(n < 0)
@@ -163,16 +173,19 @@ public:
 
         {
             std::lock_guard<std::mutex> lk(complete_mutex);
-            send_complete = true;
+            //send_complete = true;
+            complete_cv.notify_all();
+            tcpdump_cv.notify_all();
         }
 
-        complete_cv.notify_all();
+
 
         // log all missing packets
         std::string packet_state;
         to_string(bitset, packet_state);
 
         results.lostpackets = params.num_packets - packets_received;
+        std::cout << "Packets recived: " <<packets_received << std::endl;
         // results.lost_string =packet_state;
         // results.bitset = bitset;
 
@@ -182,30 +195,29 @@ public:
     void capture_traffic()
     {
         // spawn child process -- tcpdump
-        pid_t id = fork();
+        pid_t tcpdump_id = fork();
 
         std::ostringstream convert;
         convert << params.port;
         std::string port = convert.str();
         //std::stringstream str;
         //str << " -i eth0 "<< " src ip " << inet_ntoa(client.sin_addr) <<" and (udp dest port " << port << " and src port " << client.sin_port << ")";
-        if(id == 0)
+        if(tcpdump_id == 0)
         {
-            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "eth0", "udp", "port ", port.data(), "-w",
+            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "udp and src port ", port.data(), "-w",
                   "temp.pcap", (char*)0);
+            return;
         }
-
+        std::cout <<"Waiting to kill tcpdump..." <<std::endl;
         // wait to be signaled
-        std::unique_lock<std::mutex> lk(complete_mutex);
-        complete_cv.wait(lk, [this]() {
-            std::lock_guard<std::mutex> mylk(this->abort_mutex);
-            return this->send_complete && !this->abort;
-        });
+        std::unique_lock<std::mutex> lk(tcpdump_mutex);
+        tcpdump_cv.wait(lk, [this](){ return this->abort || this->send_complete;});
 
         lk.release();
 
         // then kill child process -- tcpdump
-        kill(id, SIGINT);
+        //kill(tcpdump_id, SIGINT);
+        std::cout <<"killing tcpdump" <<std::endl;
 
         // exit
     }
@@ -219,6 +231,7 @@ public:
             std::lock_guard<std::mutex> lk(complete_mutex);
             send_complete = true;
             complete_cv.notify_all();
+            tcpdump_cv.notify_all();
         }
     }
 
@@ -244,6 +257,9 @@ private:
     std::mutex abort_mutex;
     std::condition_variable abort_cv;
     bool abort;        // used when signaling child threads to abort execution
+    std::mutex tcpdump_mutex;
+    std::condition_variable tcpdump_cv;
+
     sockaddr_in client;
 };
 
@@ -256,6 +272,7 @@ co_op_udp_server::co_op_udp_server()
 {
     listen_fd = 0;
     open = false;
+    abort = false;
 }
 
 
@@ -288,10 +305,13 @@ void co_op_udp_server::listener()
         throw e;
     }
 
-    listen(listen_fd, 2);
+    listen(listen_fd, 4);
     socklen_t client_len = 0;
+
     while(true)
     {
+        if(this->abort)
+            break;
         int temp_fd = accept(listen_fd, (sockaddr*)&client_addr, &client_len);
         std::thread th(&co_op_udp_server::process_udp, this, temp_fd, client_addr);
         th.detach();
@@ -350,7 +370,7 @@ void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
 
     // report back the results
     detection::test_results ret = exp.get_results();
-    ret.success                 = value.get();
+    ret.success                 = value.get(); // synchronization point with call to async
     ret.elapsed_time            = val;
     if(params->test_id == 0)
     {
@@ -371,7 +391,7 @@ void co_op_udp_server::error_handler(std::string msg)
 {        // handle errors and report messages
 
     std::cerr << msg << std::endl;
-    exit(-1);
+    abort = true;
 }
 
 

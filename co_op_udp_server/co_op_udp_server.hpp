@@ -57,6 +57,7 @@ public:
 private:
     int listen_fd;
     bool open;
+    bool abort;
 };
 
 
