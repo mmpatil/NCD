@@ -52,7 +52,7 @@ namespace detection
         uint32_t payload_size;
         uint16_t port;
         uint16_t offset;
-        uint64_t test_id;
+        uint32_t test_id;
         bool last_train;
     };
 }

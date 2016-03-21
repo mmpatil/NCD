@@ -33,7 +33,7 @@
 #include <fstream>
 #include <future>
 #include <iostream>
-#include <netinet/in.h>
+
 #include <signal.h>
 #include <sstream>
 #include <arpa/inet.h>
@@ -44,12 +44,14 @@
 using namespace detection;
 
 
-int32_t get_pcap_id()
+uint32_t get_pcap_id(uint32_t expID)
 {
-    std::string command = "python ~/workspace/ncd/scripts/SQL/python/ExperimentSQL/pcap_script.py";
-    FILE* in = popen(command.c_str(), "r");
+    std::stringstream command;
+    command <<"~/workspace/ncd/scripts/SQL/python/ExperimentSQL/pcap_script.py "  << expID;
+    FILE* in = popen(command.str().c_str(), "r");
     uint32_t pcap_id;
-    fscanf(in, "%d", &pcap_id);
+    fscanf(in, "%u", &pcap_id);
+    pclose(in);
 
     return pcap_id;
 }
@@ -62,7 +64,8 @@ public:
 
     bool run()
     {
-        timer(std::chrono::seconds(60));
+        measure();
+        //timer(std::chrono::seconds(60));
         std::lock_guard<std::mutex> abt_lk(abort_mutex);
         return !abort;
     }
@@ -255,6 +258,11 @@ void co_op_udp_server::listener()
 {
     // start listening on a specific , non-reserved port
     int listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if(listen_fd < 0)
+    {
+        std::ios_base::failure e("Failed to aquire socket for listen()");
+        throw e;
+    }
 
     // setup struct for server address
     sockaddr_in serv_addr   = {};
@@ -278,6 +286,7 @@ void co_op_udp_server::listener()
         std::thread th(&co_op_udp_server::process_udp, this, temp_fd, client_addr);
         th.detach();
     }
+    close(listen_fd);
 }
 
 void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
@@ -332,11 +341,13 @@ void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
     detection::test_results ret = exp.get_results();
     ret.success                 = value.get();
     ret.elapsed_time            = val;
-    ret.pcap_id = get_pcap_id();
+
+    ret.pcap_id = get_pcap_id(params->test_id);
 
     send(sock_fd, &ret, sizeof(ret), 0);
+    close(sock_fd);
 
-    process_data();
+    //process_data();
 }
 
 
