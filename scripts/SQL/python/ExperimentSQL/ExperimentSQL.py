@@ -1,8 +1,6 @@
+import MySQLdb
 import socket
 import subprocess
-import MySQLdb
-import fileinput
-import os
 
 
 def getCfg(filename):

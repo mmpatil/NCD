@@ -36,20 +36,33 @@
 #include <netinet/in.h>
 #include <signal.h>
 #include <sstream>
-#include <unistd.h>
+#include <arpa/inet.h>
 
 #include "co_op_data.hpp"
 #include "co_op_udp_server.hpp"
 
 using namespace detection;
 
+
+int32_t get_pcap_id()
+{
+    std::string command = "python ~/workspace/ncd/scripts/SQL/python/ExperimentSQL/pcap_script.py";
+    FILE* in = popen(command.c_str(), "r");
+    uint32_t pcap_id;
+    fscanf(in, "%d", &pcap_id);
+
+    return pcap_id;
+}
+
 class experiment
 {
 public:
-    experiment(const detection::test_params& params_in) : params(params_in) {}
+    experiment(const detection::test_params& params_in, const sockaddr_in& cliaddr) : params(params_in), client(cliaddr) {}
     virtual ~experiment() {}
+
     bool run()
     {
+        timer(std::chrono::seconds(60));
         std::lock_guard<std::mutex> abt_lk(abort_mutex);
         return !abort;
     }
@@ -61,14 +74,13 @@ public:
      */
     detection::test_results timer(std::chrono::seconds timeout)
     {
-
         std::mutex timeout_mutex;
         std::condition_variable timeout_cv;
         std::unique_lock<std::mutex> timeout_lk(timeout_mutex);
         bool complete = false;
+
         // spawn child threads
         std::thread t1(&experiment::measure, this);
-
         std::thread t2(&experiment::capture_traffic, this);
 
         // wait until they signal or timer expires
@@ -83,8 +95,6 @@ public:
         }
 
         // wait for child threads to complete
-
-
         t1.join();
         t2.join();
 
@@ -124,7 +134,6 @@ public:
         int n;
         while(!send_complete && (packets_received < params.num_packets))
         {
-
             {
                 std::lock_guard<std::mutex> guard(abort_mutex);        // acquire lock
                 if(abort)
@@ -173,6 +182,8 @@ public:
         std::ostringstream convert;
         convert << params.port;
         std::string port = convert.str();
+        //std::stringstream str;
+        //str << " -i eth0 "<< " src ip " << inet_ntoa(client.sin_addr) <<" and (udp dest port " << port << " and src port " << client.sin_port << ")";
         if(id == 0)
         {
             execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "eth0", "udp", "port ", port.data(), "-w",
@@ -193,6 +204,8 @@ public:
 
         // exit
     }
+
+
 
     void complete()
     {
@@ -226,6 +239,7 @@ private:
     std::mutex abort_mutex;
     std::condition_variable abort_cv;
     bool abort;        // used when signaling child threads to abort execution
+    sockaddr_in client;
 };
 
 // global constants
@@ -261,14 +275,13 @@ void co_op_udp_server::listener()
     while(true)
     {
         int temp_fd = accept(listen_fd, (sockaddr*)&client_addr, &client_len);
-        std::thread th(&co_op_udp_server::process_udp, this, temp_fd);
+        std::thread th(&co_op_udp_server::process_udp, this, temp_fd, client_addr);
         th.detach();
     }
 }
 
-void co_op_udp_server::process_udp(int sock_fd)
+void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
 {
-
     // zero initialize tcp message buffer;
     char buff[1500] = {};
 
@@ -283,7 +296,8 @@ void co_op_udp_server::process_udp(int sock_fd)
         return;
     }
 
-    experiment exp(*params);
+    experiment exp(*params, client);
+
 
     bool send_complete = false;
 
@@ -312,10 +326,13 @@ void co_op_udp_server::process_udp(int sock_fd)
     }
 
 
+
+
     // report back the results
     detection::test_results ret = exp.get_results();
     ret.success                 = value.get();
     ret.elapsed_time            = val;
+    ret.pcap_id = get_pcap_id();
 
     send(sock_fd, &ret, sizeof(ret), 0);
 
@@ -329,6 +346,12 @@ void co_op_udp_server::error_handler(std::string msg)
     std::cerr << msg << std::endl;
 }
 
+
+
+
+/**
+ * maybe not needed.... we might not need to process the file outside of executing an external script
+ */
 void co_op_udp_server::process_data()
 {
     // write everything to a file
@@ -349,5 +372,8 @@ void co_op_udp_server::process_data()
     {
         // we don't need the file anymore, remove it.
         // std::ofstream o("results.txt")
+
+
+
     }
 }

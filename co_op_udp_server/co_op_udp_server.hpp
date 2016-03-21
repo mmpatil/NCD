@@ -42,7 +42,7 @@ public:
     virtual ~co_op_udp_server() {}
 
     void listener();
-    void process_udp(int sock_fd);
+    void process_udp(int sock_fd, sockaddr_in client);
     /*detection::test_results timer(std::chrono::seconds timeout);
     void measure();
     void capture_traffic();
