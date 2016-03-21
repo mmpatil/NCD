@@ -122,6 +122,7 @@ namespace detection
                  uint16_t num_packets, uint16_t data_length, uint16_t num_tail, uint16_t tail_wait,
                  raw_level raw_status, transport_type trans_proto, bool verbose_option)
             : dest_ip(dest_ip),
+              filename(filename),
               trans(trans_proto),
               ip_header{0, 0, tos, ip_length, id, frag_off, ttl, proto, check_sum, 0, 0},
               sport(sport),
@@ -248,16 +249,18 @@ namespace detection
             switch(trans)
             {
             case transport_type::udp:
-                out << "UDP";
+                out << "UDP ";
                 break;
             case transport_type::tcp:
-                out << "TCP";
+                out << "TCP ";
             default:
                 break;
             };
 
             out << src_ip << " " << dest_ip << " " << sport << " " << dport << " " << num_packets << " " << num_tail
-                << " " << payload_size << " " << tail_wait << " " << packets_lost << " " << milliseconds << std::endl;
+                << " " << payload_size << " " << tail_wait << " " << filename << " " << ntohs(ip_header.tos) << " " << (int)ip_header.id
+                << " " << (int)ip_header.ttl << " " << (int)ntohs(ip_header.frag_off) << " " << packets_lost << " "
+                << milliseconds << " " << pcap_id << std::endl;
 
             std::cout << out.str();
         }
@@ -331,6 +334,7 @@ namespace detection
         /*ip data internal */
         std::string src_ip;          // string with IP address
         std::string dest_ip;         // string with IP address
+        std::string filename;       //filename that packet data comes from
         transport_type trans;        // enum containing the transport type
         iphdr ip_header;             // IP header struct -- holds all the values
         // tcphdr tcp_header;                   // transport layer header --- should probably get rid of this
@@ -373,6 +377,7 @@ namespace detection
         pseudo_header ps;
         std::array<char, 1500> buff;
         int test_id;
+        uint32_t pcap_id;
     };
 
 }        // end namespace detector

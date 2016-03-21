@@ -41,6 +41,7 @@ namespace detection
         bool success;
         double elapsed_time;
         uint32_t lostpackets;
+        uint32_t pcap_id;
         // char losses[512];
     };
 
@@ -61,7 +62,7 @@ std::ostream& operator<<(std::ostream& os, const detection::test_results& res)
 {
     std::string s = res.success ? "true" : "false";
 
-    os << res.lostpackets << " " << res.elapsed_time << s;
+    os << res.lostpackets << " " << res.elapsed_time << " " << res.pcap_id << s;
     return os;
 }
 
@@ -69,7 +70,8 @@ std::ostream& operator<<(std::ostream& os, const detection::test_params& par)
 {
     std::string s = par.last_train ? "Last" : "not last";
 
-    os << par.num_packets << " " << par.payload_size << " " << par.port << " " << par.offset << " " << s;
+    os << par.num_packets << " " << par.payload_size << " " << par.port << " " << par.offset << " " << par.test_id
+       << " " << s;
     return os;
 }
 #endif        // DETECTOR_UNIT_TEST_CO_OP_DATA_HPP

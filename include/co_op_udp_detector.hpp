@@ -138,6 +138,17 @@ namespace detection
                 perror("help:");
                 exit(EXIT_FAILURE);
             }
+            sockaddr_in srcaddrs = {};
+            socklen_t sa_len = sizeof(srcaddrs);
+            if(getsockname(recv_fd, (struct sockaddr*)&srcaddrs, &sa_len) == -1)
+            {
+                perror("getsockname() failed");
+                exit(EXIT_FAILURE);
+            }
+            char str[32] = {};
+
+            inet_ntop(AF_INET, &(srcaddrs.sin_addr), str, INET_ADDRSTRLEN);
+            src_ip = str;
 
             // TODO: change underlying classes to write packet id to random location in payload -- chosen at program
             // start
@@ -188,6 +199,7 @@ namespace detection
             // bitset s = t.losses;
             this->packets_lost = t.lostpackets;
             milliseconds       = t.elapsed_time;
+            pcap_id            = t.pcap_id;
             close(recv_fd);
         }        // end receive()
 
