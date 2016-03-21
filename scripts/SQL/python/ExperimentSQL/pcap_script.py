@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import sys
+import MySQLdb
 
-from ExperimentSQL import *
+from ExperimentSQL import getCfg
 
 
 def getPcapID(expID):
@@ -14,7 +15,7 @@ def getPcapID(expID):
 
     # obtain method to interact with DB
     cursor = db.cursor()
-    return insertPcapSQL(cursor, expID, "new type")
+    print insertPcapSQL(cursor, expID, "new type")
 
 
 

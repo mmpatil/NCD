@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 
     // clang-format off
     general.add_options()
-        ("test_id_in", po::value<int>(&test_id_in), "Experimental ID number")
+        ("test_id_in", po::value<int>(&test_id_in)->default_value(77777), "Experimental ID number")
         ("cooldown", po::value<int>(&cooldown)->default_value(2), "The time in seconds to wait between tests")
         ("dest_ip", po::value<string>(&dest_ip), "Destination IP Address")
         ("sport_base", po::value<uint32_t>(&sport_base)->default_value(9876), "Source Port # for Base stream")

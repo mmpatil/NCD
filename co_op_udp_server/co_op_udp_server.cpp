@@ -48,6 +48,7 @@ uint32_t get_pcap_id(uint32_t expID)
 {
     std::stringstream command;
     command <<"~/workspace/ncd/scripts/SQL/python/ExperimentSQL/pcap_script.py "  << expID;
+    //command <<"python pcap_script.py "  << expID;
     FILE* in = popen(command.str().c_str(), "r");
     uint32_t pcap_id;
     fscanf(in, "%u", &pcap_id);
@@ -109,23 +110,23 @@ public:
         char buff[1500];
 
         // setup connection params
-        sockaddr_in serv_addr   = {0};
+        sockaddr_in serv_addr   = {};
         sockaddr_in client_addr = {};
 
         serv_addr.sin_family      = AF_INET;
-        serv_addr.sin_addr.s_addr = INADDR_ANY;
+        serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
         serv_addr.sin_port        = htons(params.port);
 
         int udp_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
         if(udp_fd < 0)
         {
-            error_handler("failed to aquire socket for UDP data train");
+            error_handler("failed to acquire socket for UDP data train");
         }
 
         int err = bind(udp_fd, (sockaddr*)&serv_addr, sizeof(serv_addr));
         if(err < 0)
         {
-            error_handler("Failed to bind socket for listen()");
+            error_handler("Failed to bind socket for data train");
         }
 
         socklen_t client_len = sizeof(client_addr);
@@ -158,6 +159,7 @@ public:
                 bitset.set(*id);
             }
         }
+        close(udp_fd);
 
         {
             std::lock_guard<std::mutex> lk(complete_mutex);
@@ -252,17 +254,25 @@ const std::chrono::seconds max_time(time_to_quit);
 
 co_op_udp_server::co_op_udp_server()
 {
+    listen_fd = 0;
+    open = false;
 }
+
+
+co_op_udp_server::~co_op_udp_server()
+{ if(open)
+        close(listen_fd);}
 
 void co_op_udp_server::listener()
 {
     // start listening on a specific , non-reserved port
-    int listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    listen_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(listen_fd < 0)
     {
-        std::ios_base::failure e("Failed to aquire socket for listen()");
+        std::ios_base::failure e("Failed to acquire socket for listen()");
         throw e;
     }
+    open = true;
 
     // setup struct for server address
     sockaddr_in serv_addr   = {};
@@ -287,6 +297,7 @@ void co_op_udp_server::listener()
         th.detach();
     }
     close(listen_fd);
+    open = false;
 }
 
 void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
@@ -341,6 +352,11 @@ void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
     detection::test_results ret = exp.get_results();
     ret.success                 = value.get();
     ret.elapsed_time            = val;
+    if(params->test_id == 0)
+    {
+        std::cerr << "TEST ID has no value!!!!" <<std::endl;
+        throw;
+    }
 
     ret.pcap_id = get_pcap_id(params->test_id);
 
@@ -355,6 +371,7 @@ void co_op_udp_server::error_handler(std::string msg)
 {        // handle errors and report messages
 
     std::cerr << msg << std::endl;
+    exit(-1);
 }
 
 

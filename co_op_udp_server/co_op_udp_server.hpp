@@ -40,7 +40,8 @@ class co_op_udp_server
 
 public:
     co_op_udp_server();
-    virtual ~co_op_udp_server() {}
+
+    virtual ~co_op_udp_server();
 
     void listener();
     void process_udp(int sock_fd, sockaddr_in client);
@@ -54,6 +55,8 @@ public:
     void process_data();
 
 private:
+    int listen_fd;
+    bool open;
 };
 
 

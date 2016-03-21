@@ -103,7 +103,7 @@ namespace detection
             tcp_hints.ai_flags    = AI_CANONNAME;
             tcp_hints.ai_protocol = IPPROTO_TCP;
             std::stringstream ss;
-            ss << dport;
+            ss << 15555;
 
             int err = getaddrinfo(dest_ip.c_str(), ss.str().c_str(), &tcp_hints, &tcp_res);
             if(err)
@@ -116,11 +116,11 @@ namespace detection
             }
 
 
-            recv_fd = socket(res->ai_family, SOCK_STREAM, IPPROTO_TCP);
+            recv_fd = socket(tcp_res->ai_family, SOCK_STREAM, IPPROTO_TCP);
 
-            if(send_fd == -1)
+            if(recv_fd == -1)
             {
-                perror("call to socket() failed for SEND");
+                perror("call to socket() failed for Recv");
                 exit(EXIT_FAILURE);
             }        // end error check
         }
@@ -163,7 +163,7 @@ namespace detection
             int n = send(recv_fd, &p, sizeof(p), 0);
             if(n == -1)
             {
-                perror("Call to sendto() failed: error sending ICMP packet");
+                perror("Call to send() failed: error with TCP connection");
                 exit(EXIT_FAILURE);
             }
 
@@ -172,10 +172,10 @@ namespace detection
         virtual void send_tail()
         {
             bool done = true;
-            int n     = sendto(recv_fd, &done, sizeof(done), 0, res->ai_addr, res->ai_addrlen);
+            int n     = send(recv_fd, &done, sizeof(done), 0);
             if(n == -1)
             {
-                perror("Call to sendto() failed: error sending ICMP packet");
+                perror("Call to send() failed: error with TCP connection");
                 exit(EXIT_FAILURE);
             }
         }
@@ -200,6 +200,7 @@ namespace detection
             this->packets_lost = t.lostpackets;
             milliseconds       = t.elapsed_time;
             pcap_id            = t.pcap_id;
+            //t.success;
             close(recv_fd);
         }        // end receive()
 
