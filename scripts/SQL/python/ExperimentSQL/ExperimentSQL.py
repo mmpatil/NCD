@@ -1,6 +1,9 @@
+#!/usr/bin/env python
+
 import MySQLdb
 import socket
 import subprocess
+import sys
 
 
 def getCfg(filename):
@@ -19,20 +22,16 @@ def getCfg(filename):
     return hash
 
 
-def clientExperiment():
+def clientExperiment(args):
     """start the experiment and get the experimental id"""
 
     # Create base experiment in DB
 
     pocfg = getCfg("/home/atlas/workspace/ncd/detector.cfg")
 
-    print "program_options config:"
-    print pocfg
-    print
-
     hash = getCfg("sql.cfg")
 
-    print hash
+
     # connect to the database
     # db = MySQLdb.connect(host="localhost", user="root", passwd="", db="testdb")
     db = MySQLdb.connect(hash["host"], hash["user"], hash["passwd"], hash["db"])
@@ -50,11 +49,11 @@ def clientExperiment():
         # print "Error creating a new experiment in the database... aborting"
         handleExperimentFailure()
 
-    print "Experiment ID: %d\n" % expID
 
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     with open("output.txt", 'w+') as outfile:
-        ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)], stdout=outfile)
+        ret_code = subprocess.call(args[1:], stdout=outfile)
+        #ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)], stdout=outfile)
 
     # track the success of the experiment
     # TODO: evaluate the possible return codes from timeout, and other commands to be sure success is correct
@@ -66,19 +65,11 @@ def clientExperiment():
         # print "Error creating a new experiment in the database... aborting"
         handleExperimentFailure()
 
-    print "Metadata ID: %d\n" % metadataID
-
     (commonID, success) = insertCommonDataSQL(db, cursor, expID, pocfg)
 
     if not success:
         # print "Error creating a new experiment in the database... aborting"
         handleExperimentFailure()
-
-    print "CommonData ID: %d\n" % commonID
-
-    pcapID = insertPcapSQL(cursor, expID, "Base")
-
-    print "PcapID = %d" % pcapID
 
     cursor.close()
     cursor= db.cursor()
@@ -91,18 +82,11 @@ def clientExperiment():
         # print "Error creating a new experiment in the database... aborting"
         handleExperimentFailure()
 
-    print "BaseResult ID: %d\n" % baseID
-
     discID, success = insertDiscriminationResultSQL(db, cursor, expID, disc)
 
     if not success:
         # print "Error creating a new experiment in the database... aborting"
         handleExperimentFailure()
-
-    print "DiscriminationResult ID: %d\n" % discID
-
-
-    print "\n...Ending Test"
 
 
 def insertBaseResultSQL(db, cursor, testID, ret_hash):
@@ -241,4 +225,4 @@ def processDetectionOutput(filename):
 
 
 if __name__ == "__main__":
-    clientExperiment()
+    clientExperiment(sys.argv)
