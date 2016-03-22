@@ -31,8 +31,8 @@
 #define DETECTOR_UNIT_TEST_CO_OP_UDP_SERVER_HPP
 
 #include <chrono>
-#include <string>
 #include <netinet/in.h>
+#include <string>
 
 
 class co_op_udp_server

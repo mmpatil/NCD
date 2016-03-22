@@ -258,9 +258,9 @@ namespace detection
             };
 
             out << src_ip << " " << dest_ip << " " << sport << " " << dport << " " << num_packets << " " << num_tail
-                << " " << payload_size << " " << tail_wait << " " << filename << " " << ntohs(ip_header.tos) << " " << (int)ip_header.id
-                << " " << (int)ip_header.ttl << " " << (int)ntohs(ip_header.frag_off) << " " << packets_lost << " "
-                << milliseconds << " " << pcap_id << std::endl;
+                << " " << payload_size << " " << tail_wait << " " << filename << " " << ntohs(ip_header.tos) << " "
+                << (int)ip_header.id << " " << (int)ip_header.ttl << " " << (int)ntohs(ip_header.frag_off) << " "
+                << packets_lost << " " << milliseconds << " " << pcap_id << std::endl;
 
             std::cout << out.str();
         }
@@ -332,9 +332,9 @@ namespace detection
         }            // end setup_ip_info()
 
         /*ip data internal */
-        std::string src_ip;          // string with IP address
-        std::string dest_ip;         // string with IP address
-        std::string filename;       //filename that packet data comes from
+        std::string src_ip;         // string with IP address
+        std::string dest_ip;        // string with IP address
+        std::string filename;        // filename that packet data comes from
         transport_type trans;        // enum containing the transport type
         iphdr ip_header;             // IP header struct -- holds all the values
         // tcphdr tcp_header;                   // transport layer header --- should probably get rid of this

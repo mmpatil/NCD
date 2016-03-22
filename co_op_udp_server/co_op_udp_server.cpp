@@ -34,9 +34,9 @@
 #include <future>
 #include <iostream>
 
+#include <arpa/inet.h>
 #include <signal.h>
 #include <sstream>
-#include <arpa/inet.h>
 
 #include "co_op_data.hpp"
 #include "co_op_udp_server.hpp"
@@ -47,8 +47,8 @@ using namespace detection;
 uint32_t get_pcap_id(uint32_t expID)
 {
     std::stringstream command;
-    command <<"~/workspace/ncd/scripts/SQL/python/ExperimentSQL/pcap_script.py "  << expID;
-    //command <<"python pcap_script.py "  << expID;
+    command << "~/workspace/ncd/scripts/SQL/python/ExperimentSQL/pcap_script.py " << expID;
+    // command <<"python pcap_script.py "  << expID;
     FILE* in = popen(command.str().c_str(), "r");
     uint32_t pcap_id;
     fscanf(in, "%u", &pcap_id);
@@ -60,13 +60,18 @@ uint32_t get_pcap_id(uint32_t expID)
 class experiment
 {
 public:
-    experiment(const detection::test_params& params_in, const sockaddr_in& cliaddr) : params(params_in), client(cliaddr) {}
-    virtual ~experiment() {send_complete = false;
-        abort=false;}
+    experiment(const detection::test_params& params_in, const sockaddr_in& cliaddr) : params(params_in), client(cliaddr)
+    {
+    }
+    virtual ~experiment()
+    {
+        send_complete = false;
+        abort         = false;
+    }
 
     bool run()
     {
-        //measure();
+        // measure();
         timer(std::chrono::seconds(60));
         std::lock_guard<std::mutex> abt_lk(abort_mutex);
         return !abort;
@@ -82,7 +87,6 @@ public:
 
 
         std::unique_lock<std::mutex> timeout_lk(complete_mutex);
-
 
 
         // spawn child threads
@@ -114,8 +118,8 @@ public:
         char buff[1500];
 
         // setup connection params
-        sockaddr_in serv_addr   = {};
-        sockaddr_in client_addr = {};
+        sockaddr_in serv_addr = {};
+
 
         serv_addr.sin_family      = AF_INET;
         serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -126,15 +130,16 @@ public:
         {
             error_handler("failed to acquire socket for UDP data train");
         }
-        std::cout <<  "UDP port number: " << params.port <<std::endl;
-        std::cout <<  "Packets to expect: " << params.num_packets <<std::endl;
+        std::cout << "UDP port number: " << params.port << std::endl;
+        std::cout << "Packets to expect: " << params.num_packets << std::endl;
+        std::cout << "Value of send_complete: " << (send_complete ? "true" : "false") << std::endl;
         int err = bind(udp_fd, (sockaddr*)&serv_addr, sizeof(serv_addr));
         if(err < 0)
         {
             error_handler("Failed to bind socket for data train");
         }
 
-        socklen_t client_len = sizeof(client_addr);
+        socklen_t client_len = sizeof(client);
 
 
         // recv data
@@ -149,14 +154,14 @@ public:
                 if(send_complete)
                     break;
             }
-#if 0
+
             {
                 std::lock_guard<std::mutex> guard(abort_mutex);        // acquire lock
                 if(abort)
                     return;
             }
-#endif
-            n = recvfrom(udp_fd, buff, sizeof(buff), 0, reinterpret_cast<sockaddr*>(&client_addr), &client_len);
+
+            n = recvfrom(udp_fd, buff, sizeof(buff), 0, reinterpret_cast<sockaddr*>(&client), &client_len);
 
             if(n < 0)
             {
@@ -175,19 +180,17 @@ public:
 
         {
             std::lock_guard<std::mutex> lk(complete_mutex);
-            //send_complete = true;
+            // send_complete = true;
             complete_cv.notify_all();
             tcpdump_cv.notify_all();
         }
-
-
 
         // log all missing packets
         std::string packet_state;
         to_string(bitset, packet_state);
 
         results.lostpackets = params.num_packets - packets_received;
-        std::cout << "Packets recived: " <<packets_received << std::endl;
+        std::cout << "Packets recived: " << packets_received << std::endl;
         // results.lost_string =packet_state;
         // results.bitset = bitset;
 
@@ -202,28 +205,29 @@ public:
         std::ostringstream convert;
         convert << params.port;
         std::string port = convert.str();
-        //std::stringstream str;
-        //str << " -i eth0 "<< " src ip " << inet_ntoa(client.sin_addr) <<" and (udp dest port " << port << " and src port " << client.sin_port << ")";
+        // std::stringstream str;
+        // str << " -i eth0 "<< " src ip " << inet_ntoa(client.sin_addr) <<" and (udp dest port " << port << " and src
+        // port " << client.sin_port << ")";
         if(tcpdump_id == 0)
         {
-            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "udp and src port ", port.data(), "-w",
-                  "temp.pcap", (char*)0);
+            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "lo", "udp and port ", port.data(), "-w", "temp.pcap",
+                  (char*)0);
             return;
         }
-        std::cout <<"Waiting to kill tcpdump..." <<std::endl;
+        std::cout << "Waiting to kill tcpdump..." << std::endl;
         // wait to be signaled
         std::unique_lock<std::mutex> lk(tcpdump_mutex);
-        tcpdump_cv.wait(lk, [this](){ return this->abort || this->send_complete;});
+        tcpdump_cv.wait(lk, [this]() { return this->abort || this->send_complete; });
 
         lk.release();
+        std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // then kill child process -- tcpdump
-        //kill(tcpdump_id, SIGINT);
-        std::cout <<"killing tcpdump" <<std::endl;
+        kill(tcpdump_id, SIGINT);
+        std::cout << "killed tcpdump" << std::endl;
 
         // exit
     }
-
 
 
     void complete()
@@ -273,14 +277,16 @@ const std::chrono::seconds max_time(time_to_quit);
 co_op_udp_server::co_op_udp_server()
 {
     listen_fd = 0;
-    open = false;
-    abort = false;
+    open      = false;
+    abort     = false;
 }
 
 
 co_op_udp_server::~co_op_udp_server()
-{ if(open)
-        close(listen_fd);}
+{
+    if(open)
+        close(listen_fd);
+}
 
 void co_op_udp_server::listener()
 {
@@ -292,6 +298,9 @@ void co_op_udp_server::listener()
         throw e;
     }
     open = true;
+
+    int val;
+    setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
 
     // setup struct for server address
     sockaddr_in serv_addr   = {};
@@ -345,38 +354,38 @@ void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
 
     auto marker = std::chrono::high_resolution_clock::now();
     // spawn worker threads
-    auto value = std::async(&experiment::run, &exp);
+    auto value = std::async(std::launch::async, &experiment::run, &exp);
 
     double val = 0;
     // listen for when send is complete and signal that it is
-    err = recv(sock_fd, &send_complete, sizeof(send_complete), 0);
+    while(!send_complete)
+    {
+        err = recv(sock_fd, &send_complete, sizeof(send_complete), 0);
+        if(err < 0)
+        {
+            error_handler("Failure receiving experimental parameters from client");
+        }
+    }
 
     exp.complete();
 
     // timestamp ASAP -- even before reporting errors
     auto timestamp = std::chrono::high_resolution_clock::now() - marker;
-    val            = std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count() / 100000.0;
+    val            = std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count() / 1000000.0;
 
-    if(err < 0)
-    {
-        error_handler("Failure receiving experimental parameters from client");
-    }
 
     if(!send_complete)
     {
         error_handler("A serious error transferring data has occurred");
     }
 
-
-
-
     // report back the results
     detection::test_results ret = exp.get_results();
-    ret.success                 = value.get(); // synchronization point with call to async
+    ret.success                 = value.get();        // synchronization point with call to async
     ret.elapsed_time            = val;
     if(params->test_id == 0)
     {
-        std::cerr << "TEST ID has no value!!!!" <<std::endl;
+        std::cerr << "TEST ID has no value!!!!" << std::endl;
         throw;
     }
 
@@ -385,7 +394,7 @@ void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
     send(sock_fd, &ret, sizeof(ret), 0);
     close(sock_fd);
 
-    //process_data();
+    // process_data();
 }
 
 
@@ -395,8 +404,6 @@ void co_op_udp_server::error_handler(std::string msg)
     std::cerr << msg << std::endl;
     abort = true;
 }
-
-
 
 
 /**
@@ -422,8 +429,5 @@ void co_op_udp_server::process_data()
     {
         // we don't need the file anymore, remove it.
         // std::ofstream o("results.txt")
-
-
-
     }
 }

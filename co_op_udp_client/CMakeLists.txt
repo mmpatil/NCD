@@ -8,7 +8,7 @@ find_package(Threads REQUIRED)
 find_package(Boost 1.6 COMPONENTS program_options REQUIRED)
 
 include_directories(../include)
-set(CLIENT_SOURCE_FILES client.cpp)
+set(CLIENT_SOURCE_FILES client.cpp ../include/co_op_udp_detector.hpp)
 
 add_executable(client ${CLIENT_SOURCE_FILES})
 target_compile_features(client PUBLIC cxx_strong_enums cxx_thread_local)

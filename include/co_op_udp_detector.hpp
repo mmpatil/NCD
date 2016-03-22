@@ -63,7 +63,7 @@ namespace detection
             std::lock_guard<std::mutex> lk(recv_ready_mutex);
             prepare();
             send_timestamp();
-            sleep(5);
+            sleep(2);
             send_train();
             send_tail();
             recv_ready = true;
@@ -140,7 +140,7 @@ namespace detection
                 exit(EXIT_FAILURE);
             }
             sockaddr_in srcaddrs = {};
-            socklen_t sa_len = sizeof(srcaddrs);
+            socklen_t sa_len     = sizeof(srcaddrs);
             if(getsockname(recv_fd, (struct sockaddr*)&srcaddrs, &sa_len) == -1)
             {
                 perror("getsockname() failed");
@@ -201,7 +201,7 @@ namespace detection
             this->packets_lost = t.lostpackets;
             milliseconds       = t.elapsed_time;
             pcap_id            = t.pcap_id;
-            //t.success;
+            // t.success;
             close(recv_fd);
         }        // end receive()
 
