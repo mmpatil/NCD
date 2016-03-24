@@ -3,7 +3,11 @@ cmake_minimum_required(VERSION 2.8.4)
 project(co_op_udp_client)
 #set (ncd_VERSION_MAJOR 0)
 #set (ncd_VERSION_MINOR 1)
+<<<<<<< HEAD
 set (Boost_USE_STATIC_LIBS ON)
+=======
+set(Boost_USE_STATIC_LIBS ON)
+>>>>>>> 28771faa587da836d889d102f2ee4470453d47da
 find_package(Threads REQUIRED)
 find_package(Boost 1.6 COMPONENTS program_options REQUIRED)
 
