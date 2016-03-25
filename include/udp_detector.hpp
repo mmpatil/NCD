@@ -212,9 +212,11 @@ namespace detection
 
         virtual void send_tail()
         {
+#if 0
             struct icmp* icmp = (struct icmp*)(icmp_send.data.data() + sizeof(struct ip));
 
             /*send tail ICMP Packets with timer*/
+
             std::unique_lock<std::mutex> stop_lock(stop_mutex);        // acquire lock
             for(int i = 0; i < num_tail && !stop; ++i)
             {
@@ -233,6 +235,7 @@ namespace detection
             }        // end for
 
             stop_lock.unlock();        // release lock
+#endif
         }
 
 
@@ -297,9 +300,9 @@ namespace detection
                     else
                     {
                         milliseconds = get_time() - milliseconds;
-                        std::lock_guard<std::mutex> guard(stop_mutex);        // acquire lock
-                        stop = true;
-                        stop_cv.notify_all();
+//                        std::lock_guard<std::mutex> guard(stop_mutex);        // acquire lock
+//                        stop = true;
+//                        stop_cv.notify_all();
                         break;        // release lock
                     }                 // end if
                 }
