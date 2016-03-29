@@ -138,6 +138,7 @@ public:
         std::cout << "Packets to expect: " << params.num_packets << std::endl;
         std::cout << "Value of send_complete: " << (send_complete ? "true" : "false") << std::endl;
         int err = bind(udp_fd, (sockaddr*)&serv_addr, sizeof(serv_addr));
+
         if(err < 0)
         {
             error_handler("Failed to bind socket for data train");
@@ -226,7 +227,10 @@ public:
         // std::cout << "Waiting to kill tcpdump..." << std::endl;
         // wait to be signaled
         std::unique_lock<std::mutex> lk(tcpdump_mutex);
-        tcpdump_cv.wait(lk, [this]() { return this->abort_session || this->send_complete; });
+        tcpdump_cv.wait(lk, [this]()
+                        {
+                            return this->abort_session || this->send_complete;
+                        });
 
         lk.release();
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -310,13 +314,13 @@ void co_op_udp_server::listener()
     setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
 
     // setup struct for server address
-    sockaddr_in serv_addr   = {};
-    sockaddr_in client_addr = {};
-
+    sockaddr_in serv_addr     = {};
+    sockaddr_in client_addr   = {};
     serv_addr.sin_family      = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port        = htons(port);
     int err                   = bind(listen_fd, (sockaddr*)&serv_addr, sizeof(serv_addr));
+
     if(err < 0)
     {
         std::ios_base::failure e("Failed to bind socket for listen()");
@@ -391,6 +395,7 @@ void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
     detection::test_results ret = exp.get_results();
     ret.success                 = value.get();        // synchronization point with call to async
     ret.elapsed_time            = val;
+
     if(params->test_id == 0)
     {
         std::cerr << "TEST ID has no value!!!!" << std::endl;
