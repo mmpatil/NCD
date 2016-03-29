@@ -50,7 +50,7 @@
 #include <sstream>            /* for std::stringstream */
 #include <stdexcept>          /* for std::exception */
 #include <string>             /* for std::string */
-//#include <thread>             /* for std::thread */
+#include <thread>             /* for std::thread */
 #include <vector>             /* for std:vector*/
 
 /* project header files */
@@ -194,13 +194,13 @@ namespace detection
             }
         }
 
-        virtual void populate_full()  = 0;        // pure virtual
+        virtual void populate_full() = 0;         // pure virtual
         virtual void populate_trans() = 0;        // pure virtual
-        virtual void populate_none()  = 0;        // pure virtual
-        virtual void send_train()     = 0;        // sends the packet train -- pure virtual;
-        virtual void receive()        = 0;        // receives responses from the target IP -- pure virtual
+        virtual void populate_none() = 0;         // pure virtual
+        virtual void send_train() = 0;            // sends the packet train -- pure virtual;
+        virtual void receive() = 0;               // receives responses from the target IP -- pure virtual
         virtual void send_timestamp() = 0;        // sends time stamping packets must send inital packets, can be reused
-        virtual void send_tail()      = 0;        // sends the tail set of time stamping packets
+        virtual void send_tail() = 0;             // sends the tail set of time stamping packets
         virtual int transport_header_size() = 0;        // returns size of transport header -- pure virtual
 
         inline virtual void detect()
@@ -214,7 +214,7 @@ namespace detection
         virtual void prepare(){};
 
         virtual void measure()
-        {/*
+        {
             if(!sockets_ready)
             {
                 setup_sockets();
@@ -237,7 +237,7 @@ namespace detection
                 printf("%f sec\n", milliseconds);        // are these unit correct now???
             close(recv_fd);
             sockets_ready = false;
-*/
+
             output_results();
         }        // end measure()
 
@@ -332,8 +332,8 @@ namespace detection
         }            // end setup_ip_info()
 
         /*ip data internal */
-        std::string src_ip;         // string with IP address
-        std::string dest_ip;        // string with IP address
+        std::string src_ip;          // string with IP address
+        std::string dest_ip;         // string with IP address
         std::string filename;        // filename that packet data comes from
         transport_type trans;        // enum containing the transport type
         iphdr ip_header;             // IP header struct -- holds all the values
@@ -361,12 +361,11 @@ namespace detection
         // threading items
         bool recv_ready;        // bool for receiving SYN packets -- denotes if the program is ready to receive traffic
         bool stop;              // boolean for if the send thread can stop (receive thread has received second response.
-        /*
+
         std::mutex stop_mutex;                        // mutex for stop
         std::mutex recv_ready_mutex;                  // mutex for recv_ready
         std::condition_variable stop_cv;              // condition variable for stop -- denotes
         std::condition_variable recv_ready_cv;        // condition variable for recv_ready mutex
-*/
 
         // internal data
         std::ifstream file;        // file to read payload in from -- could also be file with entire train pre made

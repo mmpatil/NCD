@@ -47,7 +47,7 @@ using namespace detection;
 uint32_t get_pcap_id(uint32_t expID)
 {
     std::stringstream command;
-    command << "~/workspace/ncd/scripts/SQL/python/ExperimentSQL/pcap_script.py " << expID;
+    command << "~/experiment/pcap_script.py " << expID;
     // command <<"python pcap_script.py "  << expID;
     FILE* in = popen(command.str().c_str(), "r");
     uint32_t pcap_id;
@@ -66,15 +66,19 @@ public:
     virtual ~experiment()
     {
         send_complete = false;
-        abort         = false;
+        abort_session = false;
     }
 
     bool run()
     {
-        // measure();
+#if 1
+        measure();
+#else
         timer(std::chrono::seconds(60));
+        std::cout << "Timer has exited\n";
+#endif
         std::lock_guard<std::mutex> abt_lk(abort_mutex);
-        return !abort;
+        return !abort_session;
     }
 
     /**
@@ -84,15 +88,13 @@ public:
      */
     detection::test_results timer(std::chrono::seconds timeout)
     {
-
-
         std::unique_lock<std::mutex> timeout_lk(complete_mutex);
 
-
         // spawn child threads
-        std::thread t1(&experiment::measure, this);
-        std::thread t2(&experiment::capture_traffic, this);
-
+        // std::thread t1(&experiment::measure, this);
+        auto measure_future = std::async(std::launch::async, &experiment::measure, this);
+// std::thread t2(&experiment::capture_traffic, this);
+#if 0
         // wait until they signal or timer expires
         complete_cv.wait_until(timeout_lk, std::chrono::high_resolution_clock::now() + timeout);
 
@@ -100,32 +102,34 @@ public:
         {
             // signal child threads to complete
             std::lock_guard<std::mutex> abort_guard(abort_mutex);
-            abort = true;
+            abort_session = true;
             abort_cv.notify_all();
             tcpdump_cv.notify_all();
         }
 
+        timeout_lk.release();
+#endif
         // wait for child threads to complete
-        t1.join();
-        t2.join();
+        // t1.join();
+        measure_future.wait_for(timeout);
 
+        // t2.join();
+        std::cout << "Timer is Exiting..\n";
         return results;
     }
 
     void measure()
     {
-
         char buff[1500];
 
         // setup connection params
         sockaddr_in serv_addr = {};
 
-
         serv_addr.sin_family      = AF_INET;
         serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
         serv_addr.sin_port        = htons(params.port);
 
-        int udp_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        int udp_fd = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
         if(udp_fd < 0)
         {
             error_handler("failed to acquire socket for UDP data train");
@@ -141,7 +145,6 @@ public:
 
         socklen_t client_len = sizeof(client);
 
-
         // recv data
         uint32_t packets_received = 0;
         boost::dynamic_bitset<> bitset(params.num_packets);
@@ -149,23 +152,26 @@ public:
         int n;
         while(packets_received < params.num_packets)
         {
-            {
-                std::lock_guard<std::mutex> complete_guard(complete_mutex);
-                if(send_complete)
-                    break;
-            }
+
+            std::lock_guard<std::mutex> complete_guard(complete_mutex);
+            if(send_complete)
+                break;
+
 
             {
                 std::lock_guard<std::mutex> guard(abort_mutex);        // acquire lock
-                if(abort)
-                    return;
+                if(abort_session)
+                {
+                    close(udp_fd);
+                    break;
+                }
             }
 
             n = recvfrom(udp_fd, buff, sizeof(buff), 0, reinterpret_cast<sockaddr*>(&client), &client_len);
 
             if(n < 0)
             {
-                if(errno == EINTR)
+                if(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
                     continue;
                 std::cerr << "recvfrom() in data train failed" << std::endl;
                 continue;
@@ -180,7 +186,7 @@ public:
 
         {
             std::lock_guard<std::mutex> lk(complete_mutex);
-            // send_complete = true;
+            send_complete = true;
             complete_cv.notify_all();
             tcpdump_cv.notify_all();
         }
@@ -191,6 +197,8 @@ public:
 
         results.lostpackets = params.num_packets - packets_received;
         std::cout << "Packets recived: " << packets_received << std::endl;
+        std::cout << "Exiting Meausre()" << std::endl;
+
         // results.lost_string =packet_state;
         // results.bitset = bitset;
 
@@ -214,27 +222,27 @@ public:
                   (char*)0);
             return;
         }
-        std::cout << "Waiting to kill tcpdump..." << std::endl;
+
+        // std::cout << "Waiting to kill tcpdump..." << std::endl;
         // wait to be signaled
         std::unique_lock<std::mutex> lk(tcpdump_mutex);
-        tcpdump_cv.wait(lk, [this]() { return this->abort || this->send_complete; });
+        tcpdump_cv.wait(lk, [this]() { return this->abort_session || this->send_complete; });
 
         lk.release();
         std::this_thread::sleep_for(std::chrono::seconds(1));
 
         // then kill child process -- tcpdump
         kill(tcpdump_id, SIGINT);
-        std::cout << "killed tcpdump" << std::endl;
+        // std::cout << "killed tcpdump" << std::endl;
 
         // exit
     }
 
-
     void complete()
     {
+        std::lock_guard<std::mutex> lk(complete_mutex);
         if(!send_complete)
         {
-            std::lock_guard<std::mutex> lk(complete_mutex);
             send_complete = true;
             complete_cv.notify_all();
             tcpdump_cv.notify_all();
@@ -246,9 +254,8 @@ public:
     {
         // handle errors and report messages
         std::lock_guard<std::mutex> guard(abort_mutex);
-        abort = true;
+        abort_session = true;
         std::cerr << msg << std::endl;
-
         abort_cv.notify_all();
     }
 
@@ -262,7 +269,7 @@ private:
     detection::test_results results;
     std::mutex abort_mutex;
     std::condition_variable abort_cv;
-    bool abort;        // used when signaling child threads to abort execution
+    bool abort_session;        // used when signaling child threads to abort execution
     std::mutex tcpdump_mutex;
     std::condition_variable tcpdump_cv;
 
@@ -276,9 +283,9 @@ const std::chrono::seconds max_time(time_to_quit);
 
 co_op_udp_server::co_op_udp_server()
 {
-    listen_fd = 0;
-    open      = false;
-    abort     = false;
+    listen_fd     = 0;
+    open          = false;
+    abort_session = false;
 }
 
 
@@ -321,7 +328,7 @@ void co_op_udp_server::listener()
 
     while(true)
     {
-        if(this->abort)
+        if(this->abort_session)
             break;
         int temp_fd = accept(listen_fd, (sockaddr*)&client_addr, &client_len);
         std::thread th(&co_op_udp_server::process_udp, this, temp_fd, client_addr);
@@ -379,6 +386,7 @@ void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
         error_handler("A serious error transferring data has occurred");
     }
 
+    std::cout << "send is complete... waiting for future results\n";
     // report back the results
     detection::test_results ret = exp.get_results();
     ret.success                 = value.get();        // synchronization point with call to async
@@ -393,7 +401,7 @@ void co_op_udp_server::process_udp(int sock_fd, sockaddr_in client)
 
     send(sock_fd, &ret, sizeof(ret), 0);
     close(sock_fd);
-
+    std::cout << "process udp is exiting, sock_fd is closed..." << std::endl;
     // process_data();
 }
 
@@ -402,7 +410,7 @@ void co_op_udp_server::error_handler(std::string msg)
 {        // handle errors and report messages
 
     std::cerr << msg << std::endl;
-    abort = true;
+    abort_session = true;
 }
 
 

@@ -33,6 +33,7 @@
 
 #include <cstdint>
 #include <ostream>
+#include <istream>
 
 namespace detection
 {
@@ -42,7 +43,22 @@ namespace detection
         double elapsed_time;
         uint32_t lostpackets;
         uint32_t pcap_id;
-        // char losses[512];
+        friend std::ostream& operator<<(std::ostream& os, const detection::test_results& res)
+        {
+            std::string s = res.success ? "true" : "false";
+
+            os << res.lostpackets << " " << res.elapsed_time << " " << res.pcap_id << s;
+            return os;
+        }        // char losses[512];
+
+        friend std::istream& operator>>(std::istream& is, detection::test_results& res)
+        {
+            std::string s;        // = res.success ? "true" : "false";
+
+            is >> res.lostpackets >> res.elapsed_time >> res.pcap_id >> s;
+            res.success = (s == "true");
+            return is;
+        }
     };
 
 
@@ -54,24 +70,25 @@ namespace detection
         uint16_t offset;
         uint32_t test_id;
         bool last_train;
+
+        friend std::ostream& operator<<(std::ostream& os, const detection::test_params& par)
+        {
+            std::string s = par.last_train ? "last" : "not last";
+
+            os << par.num_packets << " " << par.payload_size << " " << par.port << " " << par.offset << " "
+               << par.test_id << " " << s;
+            return os;
+        }
+
+        friend std::istream& operator>>(std::istream& is, detection::test_params& par)
+        {
+            std::string s;        // =
+
+            is >> par.num_packets >> par.payload_size >> par.port >> par.offset >> par.test_id >> s;
+
+            par.last_train = (s == "last");
+            return is;
+        }
     };
-}
-
-
-std::ostream& operator<<(std::ostream& os, const detection::test_results& res)
-{
-    std::string s = res.success ? "true" : "false";
-
-    os << res.lostpackets << " " << res.elapsed_time << " " << res.pcap_id << s;
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const detection::test_params& par)
-{
-    std::string s = par.last_train ? "Last" : "not last";
-
-    os << par.num_packets << " " << par.payload_size << " " << par.port << " " << par.offset << " " << par.test_id
-       << " " << s;
-    return os;
 }
 #endif        // DETECTOR_UNIT_TEST_CO_OP_DATA_HPP

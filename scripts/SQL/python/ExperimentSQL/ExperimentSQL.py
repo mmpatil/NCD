@@ -27,7 +27,7 @@ def clientExperiment(args):
 
     # Create base experiment in DB
 
-    pocfg = getCfg("/home/atlas/workspace/ncd/detector.cfg")
+    pocfg = getCfg("~/workspace/ncd/detector.cfg")
 
     hash = getCfg("sql.cfg")
 

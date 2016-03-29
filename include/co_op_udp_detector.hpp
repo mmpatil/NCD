@@ -66,6 +66,7 @@ namespace detection
             sleep(2);
             send_train();
             send_tail();
+            std::cout << "tail Sent ..\n";
             recv_ready = true;
             recv_ready_cv.notify_all();
         }        // end detect()
@@ -140,7 +141,7 @@ namespace detection
                 exit(EXIT_FAILURE);
             }
             sockaddr_in srcaddrs = {};
-            socklen_t sa_len     = sizeof(srcaddrs);
+            socklen_t sa_len = sizeof(srcaddrs);
             if(getsockname(recv_fd, (struct sockaddr*)&srcaddrs, &sa_len) == -1)
             {
                 perror("getsockname() failed");
@@ -161,7 +162,11 @@ namespace detection
             p.port         = dport;
             p.offset       = 0;
 
+            /*std::stringstream ss;*/
+            /*ss << p;*/
+
             int n = send(recv_fd, &p, sizeof(p), 0);
+            /*int n = send(recv_fd, ss.str().data(), ss.str().size(), 0);*/
             if(n == -1)
             {
                 perror("Call to send() failed: error with TCP connection");
@@ -173,7 +178,7 @@ namespace detection
         virtual void send_tail()
         {
             bool done = true;
-            int n     = send(recv_fd, &done, sizeof(done), 0);
+            int n = send(recv_fd, &done, sizeof(done), 0);
             if(n == -1)
             {
                 perror("Call to send() failed: error with TCP connection");
@@ -192,7 +197,10 @@ namespace detection
             test_results t = {};
 
             std::unique_lock<std::mutex> lk(recv_ready_mutex);
-            recv_ready_cv.wait(lk, [this]() { return this->recv_ready; });
+            recv_ready_cv.wait(lk, [this]()
+                               {
+                                   return this->recv_ready;
+                               });
             lk.release();
 
             recv(recv_fd, &t, sizeof(t), 0);
