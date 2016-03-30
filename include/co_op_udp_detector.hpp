@@ -66,7 +66,7 @@ namespace detection
             sleep(2);
             send_train();
             send_tail();
-            std::cout << "tail Sent ..\n";
+//            std::cout << "tail Sent ..\n";
             recv_ready = true;
             recv_ready_cv.notify_all();
         }        // end detect()
@@ -132,7 +132,6 @@ namespace detection
             // send message to server indicating how many packet to expect,
             // the packet size, and other parameters, then send the data train
 
-
             int err = connect(recv_fd, tcp_res->ai_addr, tcp_res->ai_addrlen);
             if(err == -1)
             {
@@ -164,8 +163,10 @@ namespace detection
 
             /*std::stringstream ss;*/
             /*ss << p;*/
+            char param_buffer[12] = {};
+            p.serialize(param_buffer);
 
-            int n = send(recv_fd, &p, sizeof(p), 0);
+            int n = send(recv_fd, param_buffer, sizeof(p), 0);
             /*int n = send(recv_fd, ss.str().data(), ss.str().size(), 0);*/
             if(n == -1)
             {
@@ -203,8 +204,10 @@ namespace detection
                                });
             lk.release();
 
-            recv(recv_fd, &t, sizeof(t), 0);
+            char results_buff[sizeof(t)];
+            recv(recv_fd, results_buff, sizeof(t), 0);
 
+            t.deserialize(results_buff);
             // bitset s = t.losses;
             this->packets_lost = t.lostpackets;
             milliseconds       = t.elapsed_time;

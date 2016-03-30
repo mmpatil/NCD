@@ -52,8 +52,9 @@ void SingleThreadedServer::acceptor()
     int err = bind(listen_fd, (sockaddr *) &serv_addr, sizeof(serv_addr));
 
     if(err < 0) {
-        std::ios_base::failure e("Failed to bind socket for listen()");
-        throw e;
+        close(listen_fd);
+        terminate("Failed to bind socket for listen()");
+
     }
 
     listen(listen_fd, 4);
@@ -62,6 +63,8 @@ void SingleThreadedServer::acceptor()
 //    while(true)
     {
         int temp_fd = accept(listen_fd, (sockaddr *) &client_addr, &client_len);
+        if(temp_fd < 0)
+            exit(-1);
 //        fork_id = fork();
 //        if(fork_id == 0)
         {
@@ -73,8 +76,6 @@ void SingleThreadedServer::acceptor()
 
     }
     close(listen_fd);
-    open = false;
-
 }
 
 
@@ -174,13 +175,13 @@ test_results SingleThreadedServer::receive_tcp_parameters(int sock_fd)
     test_params params;
 
     // get experiment parameters from client
-    long err = recv(sock_fd, &buff, sizeof(buff), 0);
+    int err = recv(sock_fd, &buff, sizeof(buff), 0);
     if(err < 0) {
         terminate("Failure receiving experimental parameters from client");
         return t;
     }
 
-    if(err >= sizeof(test_params)) {
+    if(err >= (int)sizeof(test_params)) {
         params.deserialize(buff);
     }
     else {
@@ -191,6 +192,7 @@ test_results SingleThreadedServer::receive_tcp_parameters(int sock_fd)
     pid_t capture_id = fork();
     if(capture_id == 0)
     {
+        // child process
         capture_packets(params);
         _exit(0);
     }
@@ -200,8 +202,9 @@ test_results SingleThreadedServer::receive_tcp_parameters(int sock_fd)
         //child logic;
         // do the udp train.
         receive_train(params, (sockaddr_in()));
-        // maybe read from pope to synchonize....
-        return t;
+        _exit(0);
+        // maybe read from pipe to synchronize....
+        //return t;
     }
     else {
         //parent logic;
@@ -238,7 +241,6 @@ test_results SingleThreadedServer::receive_tcp_parameters(int sock_fd)
         return t;
     }
 
-
     //experiment exp(*params, client);
 
 
@@ -249,11 +251,19 @@ test_results SingleThreadedServer::receive_tcp_parameters(int sock_fd)
 
 void SingleThreadedServer::terminate(std::string msg)
 {
-
+    std::cerr << msg << std::endl;
+    exit(-1);
 }
 
 void SingleThreadedServer::send_tcp_reply(int sock_fd, test_results results)
 {
+    char buff[sizeof(test_results)] = {};
+    results.serialize(buff);
+    int n =send(sock_fd, buff, sizeof(buff),0);
+    if(n <0)
+    {
+        terminate("Error sending results to client");
+    }
 
 }
 
@@ -280,7 +290,7 @@ void SingleThreadedServer::capture_packets(test_params params)
         bool stop = false;
     int n;
     do {
-        read(capture_fd[1], &stop, sizeof(stop));
+        n = read(capture_fd[1], &stop, sizeof(stop));
         if(n < 0)
         {
             if(errno == EAGAIN || errno == EWOULDBLOCK)

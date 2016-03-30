@@ -117,7 +117,7 @@ namespace detection
     class detector
     {
     public:
-        detector(int test_id_in, std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id, uint16_t frag_off,
+        detector(uint16_t test_id_in, std::string dest_ip, uint8_t tos, uint16_t ip_length, uint16_t id, uint16_t frag_off,
                  uint8_t ttl, uint8_t proto, uint16_t check_sum, uint16_t sport, uint16_t dport, std::string filename,
                  uint16_t num_packets, uint16_t data_length, uint16_t num_tail, uint16_t tail_wait,
                  raw_level raw_status, transport_type trans_proto, bool verbose_option)
@@ -376,7 +376,7 @@ namespace detection
         bool sockets_ready;
         pseudo_header ps;
         std::array<char, 1500> buff;
-        int test_id;
+        uint16_t test_id;
         uint32_t pcap_id;
     };
 

@@ -27,7 +27,7 @@ def clientExperiment(args):
 
     # Create base experiment in DB
 
-    pocfg = getCfg("~/workspace/ncd/detector.cfg")
+    pocfg = getCfg("detector.cfg")
 
     hash = getCfg("sql.cfg")
 
@@ -52,8 +52,8 @@ def clientExperiment(args):
 
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     with open("output.txt", 'w+') as outfile:
-        ret_code = subprocess.call(args[1:], stdout=outfile)
-        #ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)], stdout=outfile)
+        #ret_code = subprocess.call(args[1:], stdout=outfile)
+        ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)], stdout=outfile)
 
     # track the success of the experiment
     # TODO: evaluate the possible return codes from timeout, and other commands to be sure success is correct
@@ -206,7 +206,8 @@ def insertExperimentSQL(db, cursor):
 
 
 def handleExperimentFailure():
-    pass
+    print "EXPERIMENT FAILED!!! --EXIT"
+    raise
 
 
 def processDetectionOutput(filename):

@@ -3,7 +3,7 @@
 import sys
 import MySQLdb
 
-from ExperimentSQL import getCfg
+from ExperimentSQL import getCfg, insertToSQL
 
 
 def getPcapID(expID):
@@ -15,14 +15,14 @@ def getPcapID(expID):
 
     # obtain method to interact with DB
     cursor = db.cursor()
-    print insertPcapSQL(cursor, expID, "new type")
+    print insertPcapSQL(db, cursor, expID, "new type")
 
 
 
-def insertPcapSQL(cursor, expID, type):
-    cursor.callproc('pcap_insert', (expID, type))
-    res = cursor.fetchall()
-    pcapID = res[0][0]
+def insertPcapSQL(db,cursor, expID, type):
+    sql = "INSERT INTO `pcap_data` (`id_Experiments`,`Measurement Type`) VALUES('%s','%s');" % (expID, type)
+    pcapID, success = insertToSQL(db, cursor, sql)
+
     return pcapID
 
 
