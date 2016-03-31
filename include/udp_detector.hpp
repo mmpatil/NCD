@@ -30,7 +30,7 @@
 #ifndef DETECTOR_UDP_DETECTOR_HPP
 #define DETECTOR_UDP_DETECTOR_HPP
 
-#include "base_upd_detector.hpp"
+#include "base_udp_detector.hpp"
 
 namespace detection
 {
@@ -44,7 +44,7 @@ namespace detection
                      std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
                      uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
                      transport_type trans_proto = transport_type::udp)
-            : base_detector(test_id_in, dest_ip, tos, (uint16_t)(data_length + sizeof(udphdr) + sizeof(iphdr)), id, frag_off,
+            : base_udp_detector(test_id_in, dest_ip, tos, id, frag_off,
                        ttl, proto, check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait,
                        raw_status, trans_proto, false),
               icmp_send(ip_header, 64 - sizeof(udphdr), ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand())
@@ -53,28 +53,7 @@ namespace detection
             // setup_sockets();
         }
 
-        virtual void populate_full()
-        {
-            data_train.reserve(num_packets);
-            for(int i = 0; i < num_packets; ++i)
-                data_train.push_back(std::make_shared<ip_udp_packet>(ip_header, payload_size, sport, dport));
-        }
 
-        virtual void populate_trans()
-        {
-            data_train.reserve(num_packets);
-            for(int i = 0; i < num_packets; ++i)
-                data_train.push_back(std::make_shared<udp_packet>(payload_size, sport, dport));
-        }
-
-        virtual void populate_none()
-        {
-            data_train.reserve(num_packets);
-            for(int i = 0; i < num_packets; ++i)
-                data_train.push_back(std::make_shared<packet>(payload_size));
-        }
-
-        virtual int transport_header_size() { return sizeof(udphdr); }
 
         virtual void setup_sockets()
         {
@@ -93,7 +72,7 @@ namespace detection
                 printf("Buffer size requested %u\n", size);
 #endif
 
-            base_udp_detector::
+
 
             /* acquire socket for icmp messages*/
             icmp_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
@@ -160,11 +139,11 @@ namespace detection
               ip_icmp_packet(icmp_ip_header, icmp_data_len, ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand());
         }
 
-        virtual void run() const override
+        virtual void run()
         {
             std::vector<std::thread> threads;
-            threads.emplace_back(&receive, this);
-            threads.emplace_back(&detect, this);
+            threads.emplace_back(&udp_detector::receive, this);
+            threads.emplace_back(&udp_detector::detect, this);
 
             for(auto& t : threads)
             {
@@ -185,20 +164,6 @@ namespace detection
         }
 
 
-        virtual void send_train()
-        {
-            int n;
-            /*send data train*/
-            for(const auto& item : data_train)
-            {
-                n = sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
-                if(n == -1)
-                {
-                    perror("call to sendto() failed: error sending UDP udp train");
-                    exit(EXIT_FAILURE);
-                }        // end if
-            }            // end for
-        }                // end send_train()
 
 
         virtual void prepare() { setup_icmp_packet(); }

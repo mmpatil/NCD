@@ -81,11 +81,11 @@ namespace detection
             fix_data_train();
         }
 
-        virtual void run() const override
+        virtual void run()
         {
             std::vector<std::thread> threads;
-            threads.emplace_back(&receive, this);
-            threads.emplace_back(&detect, this);
+            threads.emplace_back(&tcp_detector::receive, this);
+            threads.emplace_back(&tcp_detector::detect, this);
 
             for(auto &t : threads) {
                 t.join();

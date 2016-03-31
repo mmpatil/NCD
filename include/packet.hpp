@@ -182,5 +182,5 @@ namespace detection
     };
 
 
-}        // end namespace detector
+}        // end namespace detection
 #endif        // DETECTOR_PACKET_HPP

@@ -31,7 +31,7 @@
 #define CO_OP_UDP_DETECTOR_HPP 1
 
 #include "co_op_data.hpp"
-#include "base_upd_detector.hpp"
+#include "base_udp_detector.hpp"
 
 
 namespace detection
@@ -70,6 +70,8 @@ namespace detection
             recv_ready = true;
             recv_ready_cv.notify_all();
         }        // end detect()
+
+        virtual void run()override {}
 
         virtual void setup_sockets() override
         {
