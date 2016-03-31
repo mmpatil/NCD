@@ -31,10 +31,10 @@
 #ifndef DETECTOR_UNIT_TEST_CO_OP_DATA_HPP
 #define DETECTOR_UNIT_TEST_CO_OP_DATA_HPP
 
-#include <cstdint>
-#include <ostream>
-#include <istream>
 #include <arpa/inet.h>
+#include <cstdint>
+#include <istream>
+#include <ostream>
 
 namespace detection
 {
@@ -64,34 +64,34 @@ namespace detection
 
         void serialize(void* dest)
         {
-            uint16_t* d = reinterpret_cast<uint16_t *>(dest);
-            uint16_t* time = reinterpret_cast<uint16_t *>(&elapsed_time);
+            uint16_t* d    = reinterpret_cast<uint16_t*>(dest);
+            uint16_t* time = reinterpret_cast<uint16_t*>(&elapsed_time);
 
-            *d= htons(success);
+            *d = htons(success);
             d++;
             // serialize the double
-            *d= htons(time[0]);
+            *d = htons(time[0]);
             d++;
-            *d= htons(time[1]);
+            *d = htons(time[1]);
             d++;
-            *d= htons(time[2]);
+            *d = htons(time[2]);
             d++;
-            *d= htons(time[3]);
+            *d = htons(time[3]);
             d++;
 
-            *d= htons(lostpackets);
+            *d = htons(lostpackets);
             d++;
-            *d= htons(pcap_id);
+            *d = htons(pcap_id);
         }
 
         test_results deserialize(void* source)
         {
             test_results ret;
-            uint16_t* d = reinterpret_cast<uint16_t *>(source);
+            uint16_t* d = reinterpret_cast<uint16_t*>(source);
 
-            uint16_t* time = reinterpret_cast<uint16_t *>(&ret.elapsed_time);
+            uint16_t* time = reinterpret_cast<uint16_t*>(&ret.elapsed_time);
 
-            ret.success =ntohs(*d);
+            ret.success = ntohs(*d);
             d++;
 
             // deserialize the double;
@@ -104,16 +104,11 @@ namespace detection
             time[3] = ntohs(*d);
             d++;
 
-            ret.lostpackets =ntohs(*d);
+            ret.lostpackets = ntohs(*d);
             d++;
-            ret.pcap_id =ntohs(*d);
+            ret.pcap_id = ntohs(*d);
             return ret;
         }
-
-
-
-
-
     };
 
 
@@ -147,39 +142,36 @@ namespace detection
 
         void serialize(void* dest)
         {
-            uint16_t* d = reinterpret_cast<uint16_t *>(dest);
-            *d= htons(num_packets);
+            uint16_t* d = reinterpret_cast<uint16_t*>(dest);
+            *d          = htons(num_packets);
             d++;
-            *d= htons(payload_size);
+            *d = htons(payload_size);
             d++;
-            *d= htons(port);
+            *d = htons(port);
             d++;
-            *d= htons(offset);
+            *d = htons(offset);
             d++;
-            *d= htons(test_id);
+            *d = htons(test_id);
             d++;
-            *d= htons(last_train);
+            *d = htons(last_train);
         }
 
         test_params deserialize(void* source)
         {
-            test_params ret;
-            uint16_t* d = reinterpret_cast<uint16_t *>(source);
-            ret.num_packets =ntohs(*d);
+            uint16_t* d = reinterpret_cast<uint16_t*>(source);
+            num_packets = ntohs(*d);
             d++;
-            ret.payload_size =ntohs(*d);
+            payload_size = ntohs(*d);
             d++;
-            ret.port =ntohs(*d);
+            port = ntohs(*d);
             d++;
-            ret.offset =ntohs(*d);
+            offset = ntohs(*d);
             d++;
-            ret.test_id =ntohs(*d);
+            test_id = ntohs(*d);
             d++;
-            ret.last_train =ntohs(*d);
-            return ret;
+            last_train = ntohs(*d);
+            return *this;
         }
-
-
     };
 }
 #endif        // DETECTOR_UNIT_TEST_CO_OP_DATA_HPP

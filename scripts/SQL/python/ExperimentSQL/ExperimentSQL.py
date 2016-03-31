@@ -216,7 +216,7 @@ def processDetectionOutput(filename):
 
     f = open(filename)
     line = f.readline().split()
-    print line
+    #print line
 
     base = dict(zip(columns, line))
 

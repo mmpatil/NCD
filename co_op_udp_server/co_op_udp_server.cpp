@@ -227,10 +227,7 @@ public:
         // std::cout << "Waiting to kill tcpdump..." << std::endl;
         // wait to be signaled
         std::unique_lock<std::mutex> lk(tcpdump_mutex);
-        tcpdump_cv.wait(lk, [this]()
-                        {
-                            return this->abort_session || this->send_complete;
-                        });
+        tcpdump_cv.wait(lk, [this]() { return this->abort_session || this->send_complete; });
 
         lk.release();
         std::this_thread::sleep_for(std::chrono::seconds(1));

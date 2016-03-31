@@ -316,10 +316,7 @@ namespace detection
             std::unique_lock<std::mutex> recv_ready_lock(recv_ready_mutex);
             // while(!recv_ready)
             //{
-            recv_ready_cv.wait(recv_ready_lock, [this]()
-                               {
-                                   return this->recv_ready;
-                               });
+            recv_ready_cv.wait(recv_ready_lock, [this]() { return this->recv_ready; });
             //}
 
             struct ip* ip      = (struct ip*)buff.data();

@@ -66,7 +66,7 @@ namespace detection
             sleep(2);
             send_train();
             send_tail();
-//            std::cout << "tail Sent ..\n";
+            //            std::cout << "tail Sent ..\n";
             recv_ready = true;
             recv_ready_cv.notify_all();
         }        // end detect()
@@ -140,7 +140,7 @@ namespace detection
                 exit(EXIT_FAILURE);
             }
             sockaddr_in srcaddrs = {};
-            socklen_t sa_len = sizeof(srcaddrs);
+            socklen_t sa_len     = sizeof(srcaddrs);
             if(getsockname(recv_fd, (struct sockaddr*)&srcaddrs, &sa_len) == -1)
             {
                 perror("getsockname() failed");
@@ -163,8 +163,16 @@ namespace detection
 
             /*std::stringstream ss;*/
             /*ss << p;*/
+            /*
+            if(!testSerialization(p))
+            {
+                std::cout << "Serialization test failed!" << std::endl;
+                exit(-1);
+            }
+*/
             char param_buffer[12] = {};
             p.serialize(param_buffer);
+            //            std::cout << "The actual params: " << p <<std::endl;
 
             int n = send(recv_fd, param_buffer, sizeof(p), 0);
             /*int n = send(recv_fd, ss.str().data(), ss.str().size(), 0);*/
@@ -174,12 +182,14 @@ namespace detection
                 exit(EXIT_FAILURE);
             }
 
+            //           std::cout << "Serialized params: " << *((test_params*)param_buffer) <<std::endl;
+
         }        // end send_timstamp()
 
         virtual void send_tail()
         {
             bool done = true;
-            int n = send(recv_fd, &done, sizeof(done), 0);
+            int n     = send(recv_fd, &done, sizeof(done), 0);
             if(n == -1)
             {
                 perror("Call to send() failed: error with TCP connection");
@@ -198,10 +208,7 @@ namespace detection
             test_results t = {};
 
             std::unique_lock<std::mutex> lk(recv_ready_mutex);
-            recv_ready_cv.wait(lk, [this]()
-                               {
-                                   return this->recv_ready;
-                               });
+            recv_ready_cv.wait(lk, [this]() { return this->recv_ready; });
             lk.release();
 
             char results_buff[sizeof(t)];
@@ -216,6 +223,26 @@ namespace detection
             close(recv_fd);
         }        // end receive()
 
+        bool testSerialization(test_params p)
+        {
+            char buff[12] = {};
+            p.serialize(buff);
+            test_params q = {};
+            q.deserialize(buff);
+            if(p.num_packets != q.num_packets)
+                return false;
+            if(p.offset != q.offset)
+                return false;
+            if(p.test_id != q.test_id)
+                return false;
+            if(p.port != q.port)
+                return false;
+            if(p.payload_size != q.payload_size)
+                return false;
+            if(p.last_train != q.last_train)
+                return false;
+            return true;
+        }
 
     private:
         /* data */
