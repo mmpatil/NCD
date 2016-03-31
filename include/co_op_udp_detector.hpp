@@ -30,8 +30,8 @@
 #ifndef CO_OP_UDP_DETECTOR_HPP
 #define CO_OP_UDP_DETECTOR_HPP 1
 
-#include "co_op_data.hpp"
 #include "base_udp_detector.hpp"
+#include "co_op_data.hpp"
 
 
 namespace detection
@@ -46,7 +46,7 @@ namespace detection
                            uint16_t data_length = 512, uint16_t num_tail = 20, uint16_t tail_wait = 10,
                            raw_level raw_status = none, transport_type trans_proto = transport_type::udp)
             : base_udp_detector(test_id_in, dest_ip, tos, id, frag_off, ttl, proto, check_sum, sport, dport, filename,
-                           num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto),
+                                num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto),
               last_train(last)
         {
             tcp_res = NULL;
@@ -71,7 +71,7 @@ namespace detection
             recv_ready_cv.notify_all();
         }        // end detect()
 
-        virtual void run()override {}
+        virtual void run() override {}
 
         virtual void setup_sockets() override
         {

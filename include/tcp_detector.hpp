@@ -46,16 +46,15 @@ namespace detection
                      std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
                      uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = full,
                      transport_type trans_proto = transport_type::tcp, uint16_t syn_port_in = 22223)
-                : detector(test_id_in, dest_ip, tos, data_length + sizeof(tcphdr) + sizeof(iphdr), id, frag_off, ttl,
-                           proto,
-                           check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
-                           trans_proto, false),
-                  syn_port(syn_port_in)
+            : detector(test_id_in, dest_ip, tos, data_length + sizeof(tcphdr) + sizeof(iphdr), id, frag_off, ttl, proto,
+                       check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait, raw_status,
+                       trans_proto, false),
+              syn_port(syn_port_in)
         {
 
             tcp_header.source = sport;
-            tcp_header.dest = dport;
-            tcp_header.doff = 5;
+            tcp_header.dest   = dport;
+            tcp_header.doff   = 5;
             // tcp_header.source = sport;
             setup_packet_train();
         }
@@ -63,8 +62,9 @@ namespace detection
         virtual void fix_data_train()
         {
             uint32_t num = 0;
-            for(auto &item : data_train) {
-                tcphdr *tcp = (tcphdr *) (item->data.data() + sizeof(iphdr));        //->data[trans_offset];
+            for(auto& item : data_train)
+            {
+                tcphdr* tcp = (tcphdr*)(item->data.data() + sizeof(iphdr));        //->data[trans_offset];
                 num += item->data.size() - sizeof(iphdr);
                 tcp->seq = htonl(num);
             }
@@ -87,7 +87,8 @@ namespace detection
             threads.emplace_back(&tcp_detector::receive, this);
             threads.emplace_back(&tcp_detector::detect, this);
 
-            for(auto &t : threads) {
+            for(auto& t : threads)
+            {
                 t.join();
             }        // end for
 
@@ -97,9 +98,8 @@ namespace detection
             data_train.reserve(num_packets);
             for(int i = 0; i < num_packets; ++i)
                 data_train.push_back(std::make_shared<tcp_packet>(
-                        payload_size, sport, dport, tcp_header.seq, tcp_header.ack_seq, tcp_header.window,
-                        tcp_header.urg_ptr,
-                        (uint16_t) tcp_header.ack, (uint16_t) tcp_header.syn, (uint16_t) tcp_header.doff));
+                  payload_size, sport, dport, tcp_header.seq, tcp_header.ack_seq, tcp_header.window, tcp_header.urg_ptr,
+                  (uint16_t)tcp_header.ack, (uint16_t)tcp_header.syn, (uint16_t)tcp_header.doff));
 
             fix_data_train();
         }
@@ -111,27 +111,29 @@ namespace detection
                 data_train.push_back(std::make_shared<packet>(payload_size));
         };
 
-        virtual int transport_header_size() override
-        { return sizeof(tcphdr); }
+        virtual int transport_header_size() override { return sizeof(tcphdr); }
 
         virtual void setup_sockets() override
         {
 
             /*get root privileges */
             int err = setuid(0);
-            if(err < 0) {
+            if(err < 0)
+            {
                 perror("Elevated privileges not acquired...");
                 exit(EXIT_FAILURE);
             }
 
             send_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
 
-            if(send_fd == -1) {
+            if(send_fd == -1)
+            {
                 perror("call to socket() failed for SEND");
                 exit(EXIT_FAILURE);
             }        // end error check
 
-            if(res->ai_family != AF_INET) {
+            if(res->ai_family != AF_INET)
+            {
                 errno = EAFNOSUPPORT;
                 perror("ncd only supports IPV4 at this time");
                 exit(EXIT_FAILURE);
@@ -149,31 +151,36 @@ namespace detection
 
             setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
 
-            if(raw == full) {
+            if(raw == full)
+            {
                 /* set up our own IP header*/
                 int tcp_hdrincl = 1;
-                if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &tcp_hdrincl, sizeof(tcp_hdrincl)) == -1) {
+                if(setsockopt(send_fd, IPPROTO_IP, IP_HDRINCL, &tcp_hdrincl, sizeof(tcp_hdrincl)) == -1)
+                {
                     perror("setsockopt() failed icmp");
                 }
             }
 
             /*give up privileges */
             err = setuid(getuid());
-            if(err < 0) {
+            if(err < 0)
+            {
                 perror("Elevated privileges not released");
                 exit(EXIT_FAILURE);
             }
 
             recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_TCP);
 
-            if(recv_fd == -1) {
+            if(recv_fd == -1)
+            {
                 perror("call to socket() failed");
                 exit(EXIT_FAILURE);
             }
 
             /* give up root privileges */
             err = setuid(getuid());
-            if(err < 0) {
+            if(err < 0)
+            {
                 perror("Elevated privileges not released...");
                 exit(EXIT_FAILURE);
             }
@@ -203,22 +210,21 @@ namespace detection
         virtual void setup_syn_packets()
         {
             pseudo_header syn_ps = {};
-            syn_ps.source = ip_header.saddr;
-            syn_ps.dest = ip_header.daddr;
-            syn_ps.zero = 0;
-            syn_ps.len = htons(sizeof(tcphdr));
-            syn_ps.proto = IPPROTO_TCP;
+            syn_ps.source        = ip_header.saddr;
+            syn_ps.dest          = ip_header.daddr;
+            syn_ps.zero          = 0;
+            syn_ps.len           = htons(sizeof(tcphdr));
+            syn_ps.proto         = IPPROTO_TCP;
 
             syn_packet_1.reset(new ip_tcp_packet(ip_header, 0, sport, dport, 0, 0, (1 << 15) - 1, 0, false, true, 5));
             syn_packet_1->checksum(syn_ps);
 
             syn_packet_2.reset(
-                    new ip_tcp_packet(ip_header, 0, sport + 1, syn_port, 0, 0, (1 << 15) - 1, 0, false, true, 5));
+              new ip_tcp_packet(ip_header, 0, sport + 1, syn_port, 0, 0, (1 << 15) - 1, 0, false, true, 5));
             syn_packet_2->checksum(syn_ps);
         }
 
-        virtual void prepare() override
-        { setup_syn_packets(); }
+        virtual void prepare() override { setup_syn_packets(); }
 
 
         virtual void send_timestamp() override
@@ -226,17 +232,20 @@ namespace detection
             int n;
 
             // set up the buffer to receive the reply into
-            struct ip *ip = (struct ip *) buff.data();
-            struct tcphdr *tcp_reply = (struct tcphdr *) (ip + 1);
+            struct ip* ip            = (struct ip*)buff.data();
+            struct tcphdr* tcp_reply = (struct tcphdr*)(ip + 1);
 
             n = sendto(send_fd, syn_packet_1->data.data(), syn_packet_1->data.size(), 0, res->ai_addr, res->ai_addrlen);
-            if(n == -1) {
+            if(n == -1)
+            {
                 perror("Call to sendto() failed: tcp syn");
                 exit(EXIT_FAILURE);
             }
 
-            do {
-                if((recvfrom(send_fd, buff.data(), buff.size(), 0, 0, 0)) == -1) {
+            do
+            {
+                if((recvfrom(send_fd, buff.data(), buff.size(), 0, 0, 0)) == -1)
+                {
                     perror("call to recvfrom() failed: tcp SYN-ACK");
                     exit(EXIT_FAILURE);
                 }
@@ -244,7 +253,8 @@ namespace detection
             } while((tcp_reply->dest != htons(sport)) || (ip_header.saddr != ip->ip_src.s_addr));
 
 
-            if(verbose) {
+            if(verbose)
+            {
                 printf("TCP SYN reply from IP: %s\n", inet_ntoa(ip->ip_src));
                 printf("TCP SYN reply from port: %d to port: %d\n", ntohs(tcp_reply->source), ntohs(tcp_reply->dest));
             }
@@ -260,13 +270,15 @@ namespace detection
             // tcphdr* tcp;
             //        uint32_t uniform_data_len = sizeof(tcphdr) + payload_size;
             /*send data train*/
-            for(auto item : data_train) {
+            for(auto item : data_train)
+            {
                 //         tcp      = (tcphdr*)&item->data[((ip_tcp_packet*)item.get())->transport_offset];
                 //          tcp->ack_seq = htonl(ack_seq);// += uniform_data_len);
                 //           item->checksum(ps);
 
                 n = sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
-                if(n == -1) {
+                if(n == -1)
+                {
                     perror("call to sendto() failed: error sending TCP train");
                     exit(EXIT_FAILURE);
                 }
@@ -284,10 +296,12 @@ namespace detection
         {
             int n;
             std::unique_lock<std::mutex> stop_lock(stop_mutex);        // acquire lock
-            for(int i = 0; i < num_tail && !stop; ++i) {
+            for(int i = 0; i < num_tail && !stop; ++i)
+            {
                 n = sendto(send_fd, syn_packet_2->data.data(), syn_packet_2->data.size(), 0, res->ai_addr,
                            res->ai_addrlen);
-                if(n == -1) {
+                if(n == -1)
+                {
                     perror("Call to sendto() failed: TCP Tail Syn");
                     exit(EXIT_FAILURE);
                 }
@@ -314,14 +328,16 @@ namespace detection
             std::unique_lock<std::mutex> recv_ready_lock(recv_ready_mutex);
             // while(!recv_ready)
             //{
-            recv_ready_cv.wait(recv_ready_lock, [this](){ return this->recv_ready; });
+            recv_ready_cv.wait(recv_ready_lock, [this]() { return this->recv_ready; });
             //}
 
-            struct ip *ip = (struct ip *) buff.data();
-            struct tcphdr *tcp = (struct tcphdr *) (ip + 1);
-            do {
-                n = recvfrom(send_fd, buff.data(), buff.size(), 0, (struct sockaddr *) &addr, &adrlen);
-                if(n < 0) {
+            struct ip* ip      = (struct ip*)buff.data();
+            struct tcphdr* tcp = (struct tcphdr*)(ip + 1);
+            do
+            {
+                n = recvfrom(send_fd, buff.data(), buff.size(), 0, (struct sockaddr*)&addr, &adrlen);
+                if(n < 0)
+                {
                     perror("recvfrom() failed");
                     exit(EXIT_FAILURE);
                 }
@@ -336,7 +352,8 @@ namespace detection
 
             stop_cv.notify_all();
 
-            if(verbose) {
+            if(verbose)
+            {
                 printf("TCP reply from IP: %s\n", inet_ntoa(ip->ip_src));
 
                 printf("TCP reply from port: %d to port: %d\n", ntohs(tcp->source), ntohs(tcp->dest));

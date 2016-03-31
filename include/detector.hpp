@@ -202,7 +202,7 @@ namespace detection
         virtual void send_timestamp() = 0;        // sends time stamping packets must send inital packets, can be reused
         virtual void send_tail()      = 0;        // sends the tail set of time stamping packets
         virtual int transport_header_size() = 0;        // returns size of transport header -- pure virtual
-        virtual void run() = 0; // single or multithreaded  implementation
+        virtual void run()                  = 0;        // single or multithreaded  implementation
 
         inline virtual void detect()
         {

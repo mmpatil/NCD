@@ -51,6 +51,6 @@ namespace detection
             sockaddr_in server;        // maybe we can remove this...
             socklen_t client_len;
         };
-    }// end namespace server
-}// end namespace detection
+    }        // end namespace server
+}        // end namespace detection
 #endif        // DETECTOR_UNIT_TEST_SESSION_HPP
