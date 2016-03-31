@@ -31,13 +31,13 @@
 #define CO_OP_UDP_DETECTOR_HPP 1
 
 #include "co_op_data.hpp"
-#include "udp_detector.hpp"
+#include "base_upd_detector.hpp"
 
 
 namespace detection
 {
 
-    class co_op_udp_detector : public udp_detector
+    class co_op_udp_detector : public base_udp_detector
     {
     public:
         co_op_udp_detector(int test_id_in, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off,
@@ -45,7 +45,7 @@ namespace detection
                            std::string filename = "/dev/urandom", uint16_t num_packets = 1000,
                            uint16_t data_length = 512, uint16_t num_tail = 20, uint16_t tail_wait = 10,
                            raw_level raw_status = none, transport_type trans_proto = transport_type::udp)
-            : udp_detector(test_id_in, dest_ip, tos, id, frag_off, ttl, proto, check_sum, sport, dport, filename,
+            : base_udp_detector(test_id_in, dest_ip, tos, id, frag_off, ttl, proto, check_sum, sport, dport, filename,
                            num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto),
               last_train(last)
         {
@@ -58,7 +58,7 @@ namespace detection
                 freeaddrinfo(tcp_res);
         }
 
-        inline virtual void detect()
+        inline virtual void detect() override
         {
             std::lock_guard<std::mutex> lk(recv_ready_mutex);
             prepare();
@@ -71,7 +71,7 @@ namespace detection
             recv_ready_cv.notify_all();
         }        // end detect()
 
-        virtual void setup_sockets()
+        virtual void setup_sockets() override
         {
             send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
             if(send_fd == -1)
@@ -127,7 +127,7 @@ namespace detection
             }        // end error check
         }
 
-        virtual void send_timestamp()
+        virtual void send_timestamp() override
         {
             // send message to server indicating how many packet to expect,
             // the packet size, and other parameters, then send the data train
@@ -186,7 +186,7 @@ namespace detection
 
         }        // end send_timstamp()
 
-        virtual void send_tail()
+        virtual void send_tail() override
         {
             bool done = true;
             int n     = send(recv_fd, &done, sizeof(done), 0);
@@ -197,12 +197,12 @@ namespace detection
             }
         }
 
-        virtual void prepare()
+        virtual void prepare() override
         {
             // take care of any setup
         }        // end prepare()
 
-        virtual void receive()
+        virtual void receive() override
         {
             // receive the tcp reply from the server containing the test results.
             test_results t = {};

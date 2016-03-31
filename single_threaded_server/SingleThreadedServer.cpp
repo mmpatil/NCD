@@ -3,7 +3,7 @@
 //
 
 #include "SingleThreadedServer.hpp"
-#include "session.hpp"
+#include "server_session.hpp"
 #include <arpa/inet.h>
 #include <boost/dynamic_bitset.hpp>
 #include <chrono>
@@ -72,7 +72,7 @@ void SingleThreadedServer::acceptor()
             //        if(fork_id == 0)
 
 
-            session s(temp_fd, client_addr);
+            server::server_session s(temp_fd, client_addr);
             s.run();
             n++;
 

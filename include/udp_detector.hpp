@@ -30,12 +30,12 @@
 #ifndef DETECTOR_UDP_DETECTOR_HPP
 #define DETECTOR_UDP_DETECTOR_HPP
 
-#include "detector.hpp"
+#include "base_upd_detector.hpp"
 
 namespace detection
 {
 
-    class udp_detector : public detector
+    class udp_detector : public base_udp_detector
     {
 
     public:
@@ -44,7 +44,7 @@ namespace detection
                      std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
                      uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
                      transport_type trans_proto = transport_type::udp)
-            : detector(test_id_in, dest_ip, tos, (uint16_t)(data_length + sizeof(udphdr) + sizeof(iphdr)), id, frag_off,
+            : base_detector(test_id_in, dest_ip, tos, (uint16_t)(data_length + sizeof(udphdr) + sizeof(iphdr)), id, frag_off,
                        ttl, proto, check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait,
                        raw_status, trans_proto, false),
               icmp_send(ip_header, 64 - sizeof(udphdr), ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand())
@@ -87,32 +87,13 @@ namespace detection
                 exit(EXIT_FAILURE);
             }
 
-            send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
-
-            if(send_fd == -1)
-            {
-                perror("call to socket() failed for SEND");
-                exit(EXIT_FAILURE);
-            }        // end error check
-
-            if(res->ai_family != AF_INET)
-            {
-                errno = EAFNOSUPPORT;
-                perror("ncd only supports IPV4 at this time");
-                exit(EXIT_FAILURE);
-            }        // end error check
-
-            // set TTL
-            setsockopt(send_fd, IPPROTO_IP, IP_TTL, &ip_header.ttl, sizeof(ip_header.ttl));
-
-            socklen_t size = 1500U * num_packets;
 
 #if DEBUG
             if(verbose)
                 printf("Buffer size requested %u\n", size);
 #endif
 
-            setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
+            base_udp_detector::
 
             /* acquire socket for icmp messages*/
             icmp_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
@@ -179,6 +160,18 @@ namespace detection
               ip_icmp_packet(icmp_ip_header, icmp_data_len, ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand());
         }
 
+        virtual void run() const override
+        {
+            std::vector<std::thread> threads;
+            threads.emplace_back(&receive, this);
+            threads.emplace_back(&detect, this);
+
+            for(auto& t : threads)
+            {
+                t.join();
+            }        // end for
+
+        }        // end measure()
 
         inline virtual void send_timestamp()
         {
