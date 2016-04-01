@@ -239,7 +239,6 @@ namespace detection
         // stay the same
         virtual void output_results()
         {
-
             std::stringstream out;
             switch(trans)
             {
@@ -357,10 +356,6 @@ namespace detection
         bool recv_ready;        // bool for receiving SYN packets -- denotes if the program is ready to receive traffic
         bool stop;              // boolean for if the send thread can stop (receive thread has received second response.
 
-        std::mutex stop_mutex;                        // mutex for stop
-        std::mutex recv_ready_mutex;                  // mutex for recv_ready
-        std::condition_variable stop_cv;              // condition variable for stop -- denotes
-        std::condition_variable recv_ready_cv;        // condition variable for recv_ready mutex
 
         // internal data
         std::ifstream file;        // file to read payload in from -- could also be file with entire train pre made

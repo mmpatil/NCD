@@ -60,7 +60,7 @@ namespace detection
 
         inline virtual void detect() override
         {
-            std::lock_guard<std::mutex> lk(recv_ready_mutex);
+            //     std::lock_guard<std::mutex> lk(recv_ready_mutex);
             prepare();
             send_timestamp();
             sleep(2);
@@ -68,10 +68,14 @@ namespace detection
             send_tail();
             //            std::cout << "tail Sent ..\n";
             recv_ready = true;
-            recv_ready_cv.notify_all();
+            //       recv_ready_cv.notify_all();
         }        // end detect()
 
-        virtual void run() override {}
+        virtual void run() override
+        {
+            detect();
+            receive();
+        }
 
         virtual void setup_sockets() override
         {
@@ -209,9 +213,9 @@ namespace detection
             // receive the tcp reply from the server containing the test results.
             test_results t = {};
 
-            std::unique_lock<std::mutex> lk(recv_ready_mutex);
-            recv_ready_cv.wait(lk, [this]() { return this->recv_ready; });
-            lk.release();
+            //            std::unique_lock<std::mutex> lk(recv_ready_mutex);
+            //          recv_ready_cv.wait(lk, [this]() { return this->recv_ready; });
+            //        lk.release();
 
             char results_buff[sizeof(t)];
             recv(recv_fd, results_buff, sizeof(t), 0);

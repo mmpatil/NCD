@@ -363,6 +363,11 @@ namespace detection
 
 
     private:
+        std::mutex stop_mutex;                        // mutex for stop
+        std::mutex recv_ready_mutex;                  // mutex for recv_ready
+        std::condition_variable stop_cv;              // condition variable for stop -- denotes
+        std::condition_variable recv_ready_cv;        // condition variable for recv_ready mutex
+
         /* data */
         int icmp_fd;
         uint16_t syn_port;

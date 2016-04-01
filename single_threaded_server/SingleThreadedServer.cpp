@@ -16,10 +16,6 @@ using namespace detection;
 
 SingleThreadedServer::SingleThreadedServer()
 {
-
-    send_complete_fd[2] = {};
-
-    capture_fd[2] = {};
 }
 
 void SingleThreadedServer::run()
@@ -38,7 +34,6 @@ void SingleThreadedServer::acceptor()
         std::ios_base::failure e("Failed to acquire socket for listen()");
         throw e;
     }
-    open = true;
 
     int val;
     setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
@@ -67,18 +62,13 @@ void SingleThreadedServer::acceptor()
         {
             int temp_fd = accept(listen_fd, (sockaddr*)&client_addr, &client_len);
             if(temp_fd < 0)
+            {
+                terminate("Error: the call to accept() has failed...");
                 exit(-1);
-            //        fork_id = fork();
-            //        if(fork_id == 0)
-
-
+            }
             server::server_session s(temp_fd, client_addr);
             s.run();
             n++;
-
-            // test_results results = receive_tcp_parameters(temp_fd, client_addr);
-            // receive_train((detection::test_params()));
-            // send_tcp_reply(temp_fd, results);
         }
         //        close(temp_fd);
     }
