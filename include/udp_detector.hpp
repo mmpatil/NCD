@@ -89,8 +89,8 @@ namespace detection
             : base_udp_detector(test_id_in, dest_ip, tos, id, frag_off, ttl, proto, check_sum, sport, dport, filename,
                                 num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto, false),
               icmp_send(ip_header, 64 - sizeof(udphdr), ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand()),
-              recv_ready(false),
-              stop(false)
+              stop(false),
+              recv_ready(false)
         {
             // setup_sockets();
         }
@@ -387,14 +387,18 @@ namespace detection
         }        // end receive()
 
     private:
-        std::mutex stop_mutex;                        /// mutex for stop
-        std::mutex recv_ready_mutex;                  /// mutex for recv_ready
-        std::condition_variable stop_cv;              /// condition variable for stop -- denotes
-        std::condition_variable recv_ready_cv;        /// condition variable for recv_ready mutex
         /* data */
         int icmp_fd;                                 /// the socket file descriptor for ICMP replies
         ip_icmp_packet icmp_send;                    /// the ICMP packet to send for timestamps
         const uint16_t icmp_packet_size = 64;        /// 64 byte icmp packet size up to a mx of 76 bytes for replies
+
+        /* Synchronization Variables */
+        bool stop;                                    // boolean to stop reciveing data and timestamp
+        std::mutex stop_mutex;                        /// mutex for stop
+        std::mutex recv_ready_mutex;                  /// mutex for recv_ready
+        bool recv_ready;                              // boolean that the receive thread has completed preparations
+        std::condition_variable stop_cv;              /// condition variable for stop -- denotes
+        std::condition_variable recv_ready_cv;        /// condition variable for recv_ready mutex
     };
 
 }        // end namespace detection

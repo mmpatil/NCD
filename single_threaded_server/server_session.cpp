@@ -14,16 +14,33 @@ namespace detection
 {
     namespace server
     {
+        /**
+         * Calls a python script for getting a UUID for the pcap file to associate the measurement with
+         *
+         * @method get_pcap_id
+         *
+         * @param  expID       The UUID of the experiment.
+         *
+         * @return returns the UUID for the pcap file
+         */
         uint32_t get_pcap_id(uint32_t expID)
         {
+#if DEBUG
             std::cout << "Experimental ID = " << expID << std::endl;
             sleep(2);
+#endif
+            // create the command string to pass to popen()
             std::stringstream command;
             command << "~/experiment/pcap_script.py " << expID;
-            // command <<"python pcap_script.py "  << expID;
+
+            // make the call to the external program to consult the MYSQL database
             FILE* in = popen(command.str().c_str(), "r");
             uint32_t pcap_id;
+
+            // read results back
             fscanf(in, "%u", &pcap_id);
+
+            // close pipe
             pclose(in);
 
             return pcap_id;
@@ -31,6 +48,7 @@ namespace detection
 
         server_session::server_session(int tcp_sock, sockaddr_in client_in) : client(client_in)
         {
+            // assign the socket values and set their booleans
             tcp_fd   = tcp_sock;
             tcp_open = true;
 
@@ -43,13 +61,13 @@ namespace detection
 
         server_session::~server_session()
         {
+            // close any open sockets on destruction
             closeTcp();
             closeUdp();
         }
 
         int server_session::setupUdpSocket(uint16_t port)
         {
-
             // setup connection params
             sockaddr_in serv_addr = {};
 
@@ -59,17 +77,20 @@ namespace detection
 
             // int udp_fd = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
             int udp_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-            if(udp_fd < 0)
+            if(udp_fd < 0)        // error state
             {
                 terminate_session("failed to acquire socket for UDP data train");
             }
 
+            udp_open = true;
+
             int err = bind(udp_fd, (sockaddr*)&serv_addr, sizeof(serv_addr));
-            if(err < 0)
+            if(err < 0)        // error state
             {
                 terminate_session("Failed to bind socket for data train");
             }
 
+            // return the new socket file descriptor
             return udp_fd;
         }
 
@@ -80,14 +101,18 @@ namespace detection
             int n =
               recvfrom(udp_fd, recv_buff, sizeof(recv_buff), 0, reinterpret_cast<sockaddr*>(&client), &client_len);
 
-            if(n < 0)
+            if(n < 0)        // error state
             {
+                // any of these erro values are acceptable, and we can move onto the next packet
                 if(errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
                     return;
+
+                // any other value represents an undefined behavior, and we must terminate the session
                 terminate_session("recvfrom() in data train failed");
             }
             else
             {
+                // when we receive a UDP packet, we must mark them as received
                 packets_received++;
                 bs.set(ntohs(*id));
             }
@@ -95,6 +120,7 @@ namespace detection
 
         test_params server_session::getTcpParams()
         {
+            // initialize our results to a failure
             results.success = (uint16_t) false;
 
             // zero initialize tcp message buffer;
@@ -103,23 +129,25 @@ namespace detection
 
             // get experiment parameters from client
             int err = (int)recv(tcp_fd, &buff, sizeof(buff), 0);
-            if(err < 0)
+            if(err < 0)        // error state
             {
                 terminate_session("Failure receiving experimental parameters from client");
             }
 
+            // if we have enough bytes to read the test parameters we can proceed
             if(err >= (int)sizeof(test_params))
             {
                 params.deserialize(buff);
             }
             else
             {
+                // we do not handle partial data yet, and must terminate
                 terminate_session("Failure receiving test parameters!!");
             }
-
-            // std::cout << "Print prams a s a string:" <<std::endl;
-            // std::cout << params <<std::endl << std::endl;
-
+#if DEBUG
+            std::cout << "Print prams a s a string:" << std::endl;
+            std::cout << params << std::endl << std::endl;
+#endif
             return params;
         }
 
@@ -127,19 +155,25 @@ namespace detection
         {
             // do the tcp_recieve;
             bool stop = false;
-            int err   = (int)recv(tcp_fd, &stop, sizeof(stop), 0);
+            int err = (int)recv(tcp_fd, &stop, sizeof(stop), 0);
             if(err < 0)
             {
                 terminate_session("Failure receiving stop signal from client");
                 return false;
             }
+
             return stop;
         }
 
         void server_session::sendResults()
         {
+            // zero initialize a fixed size buffer
             char buff[sizeof(test_results)] = {};
+
+            // serialize the results into the send buffer
             results.serialize(buff);
+
+            // transmit the results to the client
             int n = (int)send(tcp_fd, buff, sizeof(buff), 0);
             if(n < 0)
             {
@@ -150,12 +184,16 @@ namespace detection
 
         void server_session::terminate_session(std::string msg)
         {
+            // print the error message to standard error
             std::cerr << msg << std::endl;
+
+            // terminate the entire program -- consider only exiting the session
             exit(-1);
         }
 
         void server_session::closeUdp()
         {
+            // if the udp socket is open, close it
             if(udp_open)
             {
                 close(udp_fd);
@@ -166,6 +204,7 @@ namespace detection
 
         void server_session::closeTcp()
         {
+            // if the tcp socket is stil open, close it
             if(tcp_open)
             {
                 close(tcp_fd);
@@ -176,10 +215,12 @@ namespace detection
 
         void server_session::run()
         {
+            // structs for select()
             fd_set master;
             fd_set read_fds;
             int fd_max;
 
+            // initialize the structs from select()
             FD_ZERO(&master);
             FD_ZERO(&read_fds);
 
@@ -195,6 +236,8 @@ namespace detection
             FD_SET(udp_fd, &master);
 
 #ifdef PCAP_ON
+            // get packet traces
+
             pid_t child_id = fork();
             if(child_id == 0)
             {
@@ -247,7 +290,6 @@ namespace detection
 #ifdef PCAP_ON
             kill(child_id, SIGINT);
 #endif
-
 
             // prepare results
             results.success      = true;

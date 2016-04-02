@@ -38,6 +38,9 @@
 
 namespace detection
 {
+    /**
+     * Used to transfer Test data back from a remote host
+     */
     struct test_results
     {
 
@@ -126,6 +129,10 @@ namespace detection
     };
 
 
+    /**
+     * Used to tranfer test parameters to a remote host:w
+     *
+     */
     struct test_params
     {
         uint16_t num_packets;
