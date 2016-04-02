@@ -40,6 +40,7 @@ namespace detection
 {
     struct test_results
     {
+
         uint16_t success;
         double elapsed_time;
         uint16_t lostpackets;
@@ -62,6 +63,11 @@ namespace detection
             return is;
         }
 
+        /**
+         * Serializes the test_results data structure for network transmission
+         *
+         * @param dest a pointer to the destination buffer to serialize this datastructure into -- genreally cha[]
+         */
         void serialize(void* dest)
         {
             uint16_t* d    = reinterpret_cast<uint16_t*>(dest);
@@ -84,6 +90,14 @@ namespace detection
             *d = htons(pcap_id);
         }
 
+
+        /**
+         * Deserializes the data from souce buffer into this struct. Read from network byte order to host byte order.
+         *
+         * @param source pointer to the soucrce buffer -- gernaally a char[]
+         *
+         * @return [description]
+         */
         test_results deserialize(void* source)
         {
             test_results ret;
@@ -140,6 +154,12 @@ namespace detection
             return is;
         }
 
+
+        /**
+         * Serializes the test_results data structure for network transmission
+         *
+         * @param dest a pointer to the destination buffer to serialize this datastructure into -- genreally cha[]
+         */
         void serialize(void* dest)
         {
             uint16_t* d = reinterpret_cast<uint16_t*>(dest);
@@ -156,6 +176,14 @@ namespace detection
             *d = htons(last_train);
         }
 
+
+        /**
+         * Deserializes the data from souce buffer into this struct. Read from network byte order to host byte order.
+         *
+         * @param source pointer to the soucrce buffer -- gernaally a char[]
+         *
+         * @return [description]
+         */
         test_params deserialize(void* source)
         {
             uint16_t* d = reinterpret_cast<uint16_t*>(source);

@@ -5,7 +5,10 @@
 #include "server_session.hpp"
 #include <chrono>
 #include <iostream>
+#include <signal.h>
 #include <sstream>
+
+#define PCAP_ON 1
 
 namespace detection
 {
@@ -191,6 +194,23 @@ namespace detection
             FD_SET(tcp_fd, &master);
             FD_SET(udp_fd, &master);
 
+#ifdef PCAP_ON
+            pid_t child_id = fork();
+            if(child_id == 0)
+            {
+                std::ostringstream convert;
+                convert << params.port;
+                std::string port = convert.str();
+                // std::stringstream str;
+                // str << " -i eth0 "<< " src ip " << inet_ntoa(client.sin_addr) <<" and (udp dest port " << port << "
+                // and src
+                // port " << client.sin_port << ")";
+                execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "lo", "udp and port ", port.data(), "-w",
+                      "temp.pcap", (char*)0);
+
+                _exit(0);
+            }
+#endif
             int err;
             // main receive loop
             auto marker = std::chrono::high_resolution_clock::now();
@@ -221,6 +241,14 @@ namespace detection
 
 
             auto timestamp = std::chrono::high_resolution_clock::now() - marker;
+
+            // give tcpdump time to handle things;
+            sleep(1);
+#ifdef PCAP_ON
+            kill(child_id, SIGINT);
+#endif
+
+
             // prepare results
             results.success      = true;
             results.pcap_id      = get_pcap_id(params.test_id);
@@ -230,5 +258,8 @@ namespace detection
             // send results
             sendResults();
         }
+
+
+        void server_session::capture_traffic() {}
     }
 }        // end namespace detection

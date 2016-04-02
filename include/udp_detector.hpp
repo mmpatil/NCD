@@ -35,24 +35,71 @@
 namespace detection
 {
 
+    /**
+     *
+     * A non-cooperative delay discrimination detector. It uses a UDP packet train, with ICMP messages to detect delay
+     * discrimination in single sided environments.
+     *
+     * Normal use requires 2 instances of the class to be used, with  very nearly identical parameters,
+     * differing in one distinct way: IP header fields, UDP header fields, or by payload.
+     * Both instances should craft a packet train that has the same number of packets, where each packet in the base
+     * measurement is the same size as its counterpart in the discrimination measurement. The only difference between
+     * the two trains should be in the protocol headers, or in the payload data. All other parameters should be
+     * consistent between both packet trains.
+     *
+     * The measured delay between the base measurement and the discrimination measurement can be used to deduce the
+     * precense of a delay discriminator along the transmission path.
+     *
+     * Once the discrimination has been identified, a traceroute like approach can be used to isolate the discriminating
+     * node.
+     *
+     */
     class udp_detector : public base_udp_detector
     {
 
     public:
-        udp_detector(int test_id_in, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
+        /**
+         * Constructor
+         * @param test_id_in the UUID of the test
+         * @param dest_ip string representation of the target IP address
+         * @param tos the Type of Service field in the IP header
+         * @param id the ID field in the IP header
+         * @param tos the Type of Service field in the IP header
+         * @param frag_off the fragmentation offset field in the IP header
+         * @param ttl the Time to Live field in the IP header
+         * @param proto the Protocol field in the IP header
+         * @param check_sum the checksum field in the IP header
+         * @param sport the source port field in the UDP header
+         * @param dport the destination port field in the UDP header
+         * @param filename the filename of the source file used to fill the data portion of the packets in the packet
+         * train
+         * @param num_packets the number of packets in the data train
+         * @param data_length the size of the UDP payload
+         * @param num_tail the number of tail ICMP messages to send for timestamping
+         * @param tail_wait the time in milliseconds between tail ICMP messages
+         * @param raw_status the level of raw sockets required -- requires different permissions and fills payloads
+         * differently
+         * @param trans_proto the transport protocol used
+         */
+        udp_detector(uint16_t test_id_in, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off, uint8_t ttl,
                      uint8_t proto, uint16_t check_sum, uint16_t sport, uint16_t dport,
                      std::string filename = "/dev/urandom", uint16_t num_packets = 1000, uint16_t data_length = 512,
                      uint16_t num_tail = 20, uint16_t tail_wait = 10, raw_level raw_status = none,
                      transport_type trans_proto = transport_type::udp)
             : base_udp_detector(test_id_in, dest_ip, tos, id, frag_off, ttl, proto, check_sum, sport, dport, filename,
                                 num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto, false),
-              icmp_send(ip_header, 64 - sizeof(udphdr), ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand())
+              icmp_send(ip_header, 64 - sizeof(udphdr), ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand()),
+              recv_ready(false),
+              stop(false)
         {
-            setup_packet_train();
             // setup_sockets();
         }
 
-
+        /**
+         * sets up the sockets used by the UDP detector. should be invoked prior to execution
+         *
+         * @method setup_sockets
+         */
         virtual void setup_sockets()
         {
 
@@ -124,7 +171,11 @@ namespace detection
 #endif
         }
 
-
+        /**
+         * Sets up and the header and payload of the ICMP packets used as timestamps
+         *
+         * @method setup_icmp_packet
+         */
         virtual void setup_icmp_packet()
         {
             /* size of ICMP Echo message */
@@ -136,6 +187,11 @@ namespace detection
               ip_icmp_packet(icmp_ip_header, icmp_data_len, ICMP_ECHO, 0, (uint16_t)getpid(), (uint16_t)rand());
         }
 
+        /**
+         * deploys receive() and detect() in their own respective threads and joins them;
+         *
+         * @method run
+         */
         virtual void run()
         {
             std::vector<std::thread> threads;
@@ -149,8 +205,16 @@ namespace detection
 
         }        // end measure()
 
+        /**
+         * Sends the initial timestamp -- precedes the entire datatrain
+         *
+         * @method send_timestamp
+         */
         inline virtual void send_timestamp()
         {
+            std::unique_lock<std::mutex> lk(recv_ready_mutex);
+            recv_ready_cv.wait(lk, [this]() { return this->recv_ready; });
+            lk.release();
             /*send Head ICMP Packet*/
             int n = sendto(icmp_fd, icmp_send.data.data(), icmp_send.data.size(), 0, res->ai_addr, res->ai_addrlen);
             if(n == -1)
@@ -161,8 +225,19 @@ namespace detection
         }
 
 
+        /**
+         * Takes care of special preparation required before send_timestamp() is called
+         *
+         * @method prepare
+         */
         virtual void prepare() { setup_icmp_packet(); }
 
+
+        /**
+         * Sends the ICMP tail packets to timestamp the end of the measurement
+         *
+         * @method send_tail
+         */
         virtual void send_tail()
         {
             struct icmp* icmp = (struct icmp*)(icmp_send.data.data() + sizeof(struct ip));
@@ -189,7 +264,11 @@ namespace detection
             stop_lock.unlock();        // release lock
         }
 
-
+        /**
+         * Recives ICMP replies from the target IP -- relies on the reliableness of ICMP echo responses
+         *
+         * @method receive
+         */
         virtual void receive()
         {
             /*number of bytes received*/
@@ -216,8 +295,14 @@ namespace detection
             struct ip* ip      = (struct ip*)buff.data();
             icmp               = (struct icmp*)(ip + 1);
             struct udphdr* udp = (struct udphdr*)(&(icmp->icmp_data) + sizeof(struct ip));
-            uint32_t* bitset   = make_bs_32(num_packets);
-            uint16_t* id       = (uint16_t*)(udp + 1);
+            uint32_t* bitset = make_bs_32(num_packets);
+            uint16_t* id     = (uint16_t*)(udp + 1);
+
+            {
+                std::lock_guard<std::mutex> lk(recv_ready_mutex);
+                recv_ready = true;
+                recv_ready_cv.notify_all();
+            }
 
             for(;;)
             {
@@ -302,14 +387,14 @@ namespace detection
         }        // end receive()
 
     private:
-        std::mutex stop_mutex;                        // mutex for stop
-        std::mutex recv_ready_mutex;                  // mutex for recv_ready
-        std::condition_variable stop_cv;              // condition variable for stop -- denotes
-        std::condition_variable recv_ready_cv;        // condition variable for recv_ready mutex
+        std::mutex stop_mutex;                        /// mutex for stop
+        std::mutex recv_ready_mutex;                  /// mutex for recv_ready
+        std::condition_variable stop_cv;              /// condition variable for stop -- denotes
+        std::condition_variable recv_ready_cv;        /// condition variable for recv_ready mutex
         /* data */
-        int icmp_fd;
-        ip_icmp_packet icmp_send;
-        const uint16_t icmp_packet_size = 64;        // 64 byte icmp packet size up to a mx of 76 bytes for replies
+        int icmp_fd;                                 /// the socket file descriptor for ICMP replies
+        ip_icmp_packet icmp_send;                    /// the ICMP packet to send for timestamps
+        const uint16_t icmp_packet_size = 64;        /// 64 byte icmp packet size up to a mx of 76 bytes for replies
     };
 
 }        // end namespace detection

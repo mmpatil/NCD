@@ -37,6 +37,8 @@ namespace detection
 
             void run();
 
+            void capture_traffic();
+
         private:
             test_params params;
             test_results results;

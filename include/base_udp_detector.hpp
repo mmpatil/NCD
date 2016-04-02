@@ -24,6 +24,7 @@ namespace detection
                        ttl, proto, check_sum, sport, dport, filename, num_packets, data_length, num_tail, tail_wait,
                        raw_status, trans_proto, verbose_option)
         {
+            setup_packet_train();
         }
 
         virtual void populate_full() override
@@ -80,7 +81,7 @@ namespace detection
             /*send data train*/
             for(const auto& item : data_train)
             {
-                n = sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
+                n = (int)sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
                 if(n == -1)
                 {
                     perror("call to sendto() failed: error sending UDP udp train");

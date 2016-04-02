@@ -37,9 +37,50 @@
 namespace detection
 {
 
+
+    /**
+     * A co-operative UDP detector of delay discriminators
+     *
+     * Normal use requires 2 instances of the class to be used, with  very nearly identical parameters,
+     * differing in one distinct way: IP header fields, UDP header fields, or by payload.
+     * Both instances should craft a packet train that has the same number of packets, where each packet in the base
+     * measurement is the same size as its counterpart in the discrimination measurement. The only difference between
+     * the two trains should be in the protocol headers, or in the payload data. All other parameters should be
+     * consistent between both packet trains.
+     *
+     * The measured delay between the base measurement and the discrimination measurement can be used to deduce the
+     * precense of a delay discriminator along the transmission path.
+     *
+     * Once the discrimination has been identified, a traceroute like approach can be used to isolate the discriminating
+     * node.
+     *
+     */
     class co_op_udp_detector : public base_udp_detector
     {
     public:
+        /**
+         * Constructor
+         * @param test_id_in the UUID of the test
+         * @param dest_ip string representation of the target IP address
+         * @param tos the Type of Service field in the IP header
+         * @param id the ID field in the IP header
+         * @param tos the Type of Service field in the IP header
+         * @param frag_off the fragmentation offset field in the IP header
+         * @param ttl the Time to Live field in the IP header
+         * @param proto the Protocol field in the IP header
+         * @param check_sum the checksum field in the IP header
+         * @param sport the source port field in the UDP header
+         * @param dport the destination port field in the UDP header
+         * @param filename the filename of the source file used to fill the data portion of the packets in the packet
+         * train
+         * @param num_packets the number of packets in the data train
+         * @param data_length the size of the UDP payload
+         * @param num_tail the number of tail ICMP messages to send for timestamping
+         * @param tail_wait the time in milliseconds between tail ICMP messages
+         * @param raw_status the level of raw sockets required -- requires different permissions and fills payloads
+         * differently
+         * @param trans_proto the transport protocol used
+         */
         co_op_udp_detector(int test_id_in, std::string dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off,
                            uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport, bool last,
                            std::string filename = "/dev/urandom", uint16_t num_packets = 1000,
@@ -52,12 +93,18 @@ namespace detection
             tcp_res = NULL;
         }
 
+        /**
+         * Destructor
+         */
         virtual ~co_op_udp_detector()
         {
             if(tcp_res)
                 freeaddrinfo(tcp_res);
         }
 
+        /**
+         * The detection phase of the program, sends the data train and timestamps the measurement
+         */
         inline virtual void detect() override
         {
             //     std::lock_guard<std::mutex> lk(recv_ready_mutex);
@@ -71,12 +118,18 @@ namespace detection
             //       recv_ready_cv.notify_all();
         }        // end detect()
 
+        /**
+         * Runs the program by calling detect followed by receive() -- single threaded
+         */
         virtual void run() override
         {
             detect();
             receive();
         }
 
+        /**
+         * sets up Sockets needed to send and recive UDP messages
+         */
         virtual void setup_sockets() override
         {
             send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
@@ -133,6 +186,10 @@ namespace detection
             }        // end error check
         }
 
+
+        /**
+         * Sends the test parameters to the remote host, and initiates timestamping
+         */
         virtual void send_timestamp() override
         {
             // send message to server indicating how many packet to expect,
@@ -175,7 +232,7 @@ namespace detection
                 std::cout << "Serialization test failed!" << std::endl;
                 exit(-1);
             }
-*/
+            */
             char param_buffer[12] = {};
             p.serialize(param_buffer);
             //            std::cout << "The actual params: " << p <<std::endl;
@@ -192,10 +249,13 @@ namespace detection
 
         }        // end send_timstamp()
 
+        /**
+         * Sends a TCP message indicating that the last packet has been sent. contains 1 nonzero octet
+         */
         virtual void send_tail() override
         {
-            bool done = true;
-            int n     = send(recv_fd, &done, sizeof(done), 0);
+            uint16_t done = (uint16_t) true;
+            int n = send(recv_fd, &done, sizeof(done), 0);
             if(n == -1)
             {
                 perror("Call to send() failed: error with TCP connection");
@@ -203,11 +263,15 @@ namespace detection
             }
         }
 
+
         virtual void prepare() override
         {
             // take care of any setup
         }        // end prepare()
 
+        /**
+         * receives the test results back from the remote host
+         */
         virtual void receive() override
         {
             // receive the tcp reply from the server containing the test results.
@@ -229,6 +293,13 @@ namespace detection
             close(recv_fd);
         }        // end receive()
 
+        /**
+         * Tests the serialization of the test_params datastructure
+         *
+         * @param p The params to serialize
+         *
+         * @return true = Success or false = failure
+         */
         bool testSerialization(test_params p)
         {
             char buff[12] = {};
