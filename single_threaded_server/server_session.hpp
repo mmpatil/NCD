@@ -126,6 +126,7 @@ namespace detection
             boost::dynamic_bitset<> bs;        /// a bitset representing the packets that were received
             sockaddr_in client;                /// the client information used for the udp connection
             socklen_t client_len;              /// the length of the client struct
+            bool must_terminate;               /// boolean vlaue denoting if the seesion must end due to error
         };
     }        // end namespace server
 }        // end namespace detection

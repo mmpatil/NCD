@@ -55,7 +55,8 @@ namespace detection
             udp_fd   = 0;
             udp_open = false;
 
-            client_len = sizeof(client);
+            client_len     = sizeof(client);
+            must_terminate = false;
         }
 
 
@@ -80,6 +81,7 @@ namespace detection
             if(udp_fd < 0)        // error state
             {
                 terminate_session("failed to acquire socket for UDP data train");
+                return -1;
             }
 
             udp_open = true;
@@ -88,6 +90,7 @@ namespace detection
             if(err < 0)        // error state
             {
                 terminate_session("Failed to bind socket for data train");
+                return -1;
             }
 
             // return the new socket file descriptor
@@ -109,6 +112,7 @@ namespace detection
 
                 // any other value represents an undefined behavior, and we must terminate the session
                 terminate_session("recvfrom() in data train failed");
+                return;
             }
             else
             {
@@ -132,6 +136,7 @@ namespace detection
             if(err < 0)        // error state
             {
                 terminate_session("Failure receiving experimental parameters from client");
+                return params;
             }
 
             // if we have enough bytes to read the test parameters we can proceed
@@ -143,6 +148,7 @@ namespace detection
             {
                 // we do not handle partial data yet, and must terminate
                 terminate_session("Failure receiving test parameters!!");
+                return params;
             }
 #if DEBUG
             std::cout << "Print prams a s a string:" << std::endl;
@@ -178,6 +184,7 @@ namespace detection
             if(n < 0)
             {
                 terminate_session("Error sending results to client");
+                return;
             }
         }
 
@@ -188,7 +195,8 @@ namespace detection
             std::cerr << msg << std::endl;
 
             // terminate the entire program -- consider only exiting the session
-            exit(-1);
+            must_terminate = true;
+            // exit(-1);
         }
 
         void server_session::closeUdp()
@@ -227,7 +235,13 @@ namespace detection
 
             // set up server_session
             getTcpParams();
+            if(must_terminate)
+                return;
+
             setupUdpSocket(params.port);
+            if(must_terminate)
+                return;
+
             bool tcp_complete = false;
 
             fd_max = std::max(tcp_fd, udp_fd);
@@ -241,17 +255,8 @@ namespace detection
             pid_t child_id = fork();
             if(child_id == 0)
             {
-                std::ostringstream convert;
-                convert << params.port;
-                std::string port = convert.str();
-                // std::stringstream str;
-                // str << " -i eth0 "<< " src ip " << inet_ntoa(client.sin_addr) <<" and (udp dest port " << port << "
-                // and src
-                // port " << client.sin_port << ")";
-                execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "lo", "udp and port ", port.data(), "-w",
-                      "temp.pcap", (char*)0);
-
-                _exit(0);
+                capture_traffic();
+                _exit(-1);        // if wer're here its an error
             }
 #endif
             int err;
@@ -264,6 +269,7 @@ namespace detection
                 if(err < 0)
                 {
                     terminate_session("select() has errored...");
+                    break;
                 }
 
                 for(int i = 0; i <= fd_max; ++i)
@@ -280,7 +286,7 @@ namespace detection
                         }        // end if
                     }
                 }        // end for
-            } while(!tcp_complete && (packets_received < params.num_packets));
+            } while(!tcp_complete && (packets_received < params.num_packets) && !must_terminate);
 
 
             auto timestamp = std::chrono::high_resolution_clock::now() - marker;
@@ -290,18 +296,32 @@ namespace detection
 #ifdef PCAP_ON
             kill(child_id, SIGINT);
 #endif
-
-            // prepare results
-            results.success      = true;
-            results.pcap_id      = get_pcap_id(params.test_id);
-            results.elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count() / 1000000.0;
-            results.lostpackets  = params.num_packets - packets_received;
+            // if we aren't in an error state, send good results, otherwise, send failure
+            if(!must_terminate)
+            {
+                // prepare results
+                results.success = true;
+                results.pcap_id = get_pcap_id(params.test_id);
+                results.elapsed_time =
+                  std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count() / 1000000.0;
+                results.lostpackets = params.num_packets - packets_received;
+            }
 
             // send results
             sendResults();
         }
 
 
-        void server_session::capture_traffic() {}
+        void server_session::capture_traffic()
+        {
+            std::ostringstream convert;
+            convert << params.port;
+            std::string port = convert.str();
+
+            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "lo", "udp and port ", port.data(), "-w", "temp.pcap",
+                  (char*)0);
+
+            _exit(0);
+        }
     }
 }        // end namespace detection
