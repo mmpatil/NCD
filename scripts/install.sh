@@ -8,10 +8,10 @@ SLICE_HOME=/home/ucla_triton
 echo ${SLICE_HOME}
 
 # Packages to install on remote machine
-PACKAGES="traceroute ping vim tcpdump iperf python mysql zsh python-json python-simplejson MySQL-python"
+PACKAGES="traceroute MySQL-python ping vim tcpdump iperf python mysql zsh python-json python-simplejson"
 
 # SSH into the planet lab node install required packages
-#parallel-ssh -h ${IP_FILE} -vl ucla_triton "sudo yum install ${PACKAGES}"
+parallel-ssh -h ${IP_FILE} -vl ucla_triton "sudo yum install -y ${PACKAGES}"
 
 parallel-ssh -h ${IP_FILE} -vl ucla_triton "rm -rf remote_host"
 

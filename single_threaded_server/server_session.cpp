@@ -85,7 +85,8 @@ namespace detection
             }
 
             udp_open = true;
-
+            int val= 1;
+            setsockopt(udp_fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
             int err = bind(udp_fd, (sockaddr*)&serv_addr, sizeof(serv_addr));
             if(err < 0)        // error state
             {
@@ -292,6 +293,7 @@ namespace detection
                 }        // end for
             } while(!tcp_complete && (packets_received < params.num_packets) && !must_terminate);
 
+            //CloseUdp();
 
             auto timestamp = std::chrono::high_resolution_clock::now() - marker;
 
