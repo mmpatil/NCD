@@ -38,7 +38,7 @@ namespace detection
             uint16_t pcap_id;
 
             // read results back
-            fscanf(in, "%u", &pcap_id);
+            fscanf(in, "%hu", &pcap_id);
 
             // close pipe
             pclose(in);
