@@ -49,6 +49,7 @@ def clientExperiment(args):
         handleExperimentFailure()
 
     command = ["./client ", "--test_id=" + str(expID)] + args[1:]
+    print command
 
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     outfile = open("output.txt", 'w+')

@@ -18,16 +18,11 @@ def getPcapID(expID):
     print insertPcapSQL(db, cursor, expID, "new type")
 
 
-
 def insertPcapSQL(db,cursor, expID, type):
     sql = "INSERT INTO `pcap_data` (`id_Experiments`,`Measurement Type`) VALUES('%s','%s');" % (expID, type)
     pcapID, success = insertToSQL(db, cursor, sql)
 
     return pcapID
-
-
-
-
 
 
 if __name__ == "__main__":

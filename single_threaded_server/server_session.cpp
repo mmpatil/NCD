@@ -178,6 +178,9 @@ namespace detection
 
             // serialize the results into the send buffer
             results.serialize(buff);
+            std::cout << "Results = " << results << std::endl;
+            test_results* my_res = (test_results*)buff;
+            std::cout << "sent Results = " << *my_res <<std::endl;
 
             // transmit the results to the client
             int n = (int)send(tcp_fd, buff, sizeof(buff), 0);
@@ -305,6 +308,10 @@ namespace detection
                 results.elapsed_time =
                   std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count() / 1000000.0;
                 results.lostpackets = params.num_packets - packets_received;
+#if DEBUG
+                std::cout << "Didn't have to terminate" <<std::endl;
+                std::cout <<"Pcap ID = " << results.pcap_id <<std::endl;
+#endif
 #ifdef PCAP_ON
             std::stringstream ss;
             ss << results.pcap_id << ".pcap";
@@ -322,7 +329,7 @@ namespace detection
             convert << params.port;
             std::string port = convert.str();
 
-            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "lo", "udp and port ", port.data(), "-w", "temp.pcap",
+            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "udp and port ", port.data(), "-w", "temp.pcap",
                   (char*)0);
 
             _exit(0);

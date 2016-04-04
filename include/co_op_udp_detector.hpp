@@ -282,8 +282,13 @@ namespace detection
             //        lk.release();
 
             char results_buff[sizeof(t)];
-            recv(recv_fd, results_buff, sizeof(t), 0);
+            int n = recv(recv_fd, results_buff, sizeof(t), 0);
 
+            if(n <= 0)
+            {
+                 perror("Horrible problem with recieve!!!!");
+                 exit(-1);
+            }
             t.deserialize(results_buff);
             // bitset s = t.losses;
             this->packets_lost = t.lostpackets;
@@ -291,6 +296,7 @@ namespace detection
             pcap_id            = t.pcap_id;
             // t.success;
             close(recv_fd);
+            std::cout  << "REsults: " << t <<std::endl;
         }        // end receive()
 
         /**
