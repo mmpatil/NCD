@@ -305,12 +305,16 @@ namespace detection
                 results.elapsed_time =
                   std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count() / 1000000.0;
                 results.lostpackets = params.num_packets - packets_received;
+#ifdef PCAP_ON
+            std::stringstream ss;
+            ss << results.pcap_id << ".pcap";
+            rename("temp.pcap", ss.str().data());
+#endif
             }
 
             // send results
             sendResults();
         }
-
 
         void server_session::capture_traffic()
         {

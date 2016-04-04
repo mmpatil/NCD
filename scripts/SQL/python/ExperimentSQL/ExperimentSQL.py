@@ -31,7 +31,6 @@ def clientExperiment(args):
 
     hash = getCfg("sql.cfg")
 
-
     # connect to the database
     # db = MySQLdb.connect(host="localhost", user="root", passwd="", db="testdb")
     db = MySQLdb.connect(hash["host"], hash["user"], hash["passwd"], hash["db"])
@@ -49,11 +48,12 @@ def clientExperiment(args):
         # print "Error creating a new experiment in the database... aborting"
         handleExperimentFailure()
 
+    command = ["./client ", "--test_id=" + str(expID)] + " ".join(args[1:]).split()
 
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     with open("output.txt", 'w+') as outfile:
-        #ret_code = subprocess.call(args[1:], stdout=outfile)
-        ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)], stdout=outfile)
+        ret_code = subprocess.call(command, stdout=outfile)
+        #ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)], stdout=outfile)
 
     # track the success of the experiment
     # TODO: evaluate the possible return codes from timeout, and other commands to be sure success is correct
@@ -150,16 +150,15 @@ def insertCommonDataSQL(db, cursor, testID, opts):
 
 
 def insertMetadataSQL(db, cursor, testID, options, success):
-    """
+    """inserts test metadata into the given database using the provided testID
     :param db: (MySQLdb) The database to insert into
     :param cursor: database cursor
     :param testID: numeric experiment id
-    :param optionss: a dictionary of the program options used to create the SQL command
+    :param options: a dictionary of the program options used to create the SQL command
     :param success: (bool) the status of the experiment (True is success; False is failure)
     :return: Tuple of the the id of the newly inserted item, and success of the db operation
     """
 
-    """inserts test metadata into the given database using the provided testID"""
     # use a temporary socket to obtain source IP from network interface
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
@@ -187,11 +186,11 @@ def insertMetadataSQL(db, cursor, testID, options, success):
 """
 
 
-def insertPcapSQL(cursor, expID, type):
-    cursor.callproc('pcap_insert', (expID, type))
-    res = cursor.fetchall()
-    pcapID = res[0][0]
-    return pcapID
+# def insertPcapSQL(cursor, expID, type):
+    # cursor.callproc('pcap_insert', (expID, type))
+    # res = cursor.fetchall()
+    # pcapID = res[0][0]
+    # return pcapID
 
 
 def insertExperimentSQL(db, cursor):
