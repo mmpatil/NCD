@@ -267,6 +267,7 @@ test_results SingleThreadedServer::receive_tcp_parameters(int sock_fd, sockaddr_
         } while(!send_tcp);
 
         t.pcap_id = get_pcap_id(params.test_id);
+
         std::stringstream ss;
         ss << t.pcap_id << ".pcap";
         rename("temp.pcap", ss.str().c_str());

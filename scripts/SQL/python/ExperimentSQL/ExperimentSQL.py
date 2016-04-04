@@ -48,12 +48,13 @@ def clientExperiment(args):
         # print "Error creating a new experiment in the database... aborting"
         handleExperimentFailure()
 
-    command = ["./client ", "--test_id=" + str(expID)] + " ".join(args[1:]).split()
+    command = ["./client ", "--test_id=" + str(expID)] + args[1:]
 
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
-    with open("output.txt", 'w+') as outfile:
-        ret_code = subprocess.call(command, stdout=outfile)
-        #ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)], stdout=outfile)
+    outfile = open("output.txt", 'w+')
+    ret_code = subprocess.call(command, stdout=outfile)
+    #ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)], stdout=outfile)
+    outfile.close()
 
     # track the success of the experiment
     # TODO: evaluate the possible return codes from timeout, and other commands to be sure success is correct
