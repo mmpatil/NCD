@@ -45,16 +45,14 @@ def clientExperiment(args):
     (expID, success) = insertExperimentSQL(db, cursor)
 
     if not success:
-        # print "Error creating a new experiment in the database... aborting"
+        print "Error creating a new experiment in the database... aborting"
         handleExperimentFailure()
 
-    command = ["./client ", "--test_id=" + str(expID)] + args[1:]
-    print command
 
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     outfile = open("output.txt", 'w+')
-    ret_code = subprocess.call(command, stdout=outfile)
-    #ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)], stdout=outfile)
+    #ret_code = subprocess.call(command, stdout=outfile)
+    ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)] + args[1:], stdout=outfile)
     outfile.close()
 
     # track the success of the experiment
