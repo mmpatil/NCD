@@ -2,15 +2,18 @@
 # File Containing Target IP Address
 IP_FILE=$1
 # path to local experiment direcory to rsync
-EXPERIMENT_DIRECTORY=ncd
+EXPERIMENT_DIRECTORY=remote_host
+SLICE_HOME=/home/ucla_triton
+
+
 
 # Packages to install on remote machine
-PACKAGES=traceroute ping vim tcpdump iperf python mysql zsh
+PACKAGES="traceroute ping vim tcpdump iperf python mysql zsh python-json python-simplejson MySQL-python"
 
 # SSH into the planet lab node install required packages
-pssh -H ${IP_FILE} -vl ucla_triton "sudo yum install $PACKAGES"
+parallel-ssh -h ${IP_FILE} -vl ucla_triton "sudo yum install ${PACKAGES}"
 
 # Rsync the experimental directory on the Planet lab node
-parallel-rsync -H ${IP_FILE} -l ${ucla_triton} ${EXPERIMENT_DIRECTORY} ~/${EXPERIMENT_DIRECTORY}
+parallel-rsync -h ${IP_FILE} -rl ${ucla_triton} ${EXPERIMENT_DIRECTORY} $SLICE_HOME/  #${EXPERIMENT_DIRECTORY}
 
 
