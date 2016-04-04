@@ -103,12 +103,11 @@ namespace detection
          */
         test_results deserialize(void* source)
         {
-            test_results ret;
             uint16_t* d = reinterpret_cast<uint16_t*>(source);
 
-            uint16_t* time = reinterpret_cast<uint16_t*>(&ret.elapsed_time);
+            uint16_t* time = reinterpret_cast<uint16_t*>(&elapsed_time);
 
-            ret.success = ntohs(*d);
+            success = ntohs(*d);
             d++;
 
             // deserialize the double;
@@ -121,10 +120,10 @@ namespace detection
             time[3] = ntohs(*d);
             d++;
 
-            ret.lostpackets = ntohs(*d);
+            lostpackets = ntohs(*d);
             d++;
-            ret.pcap_id = ntohs(*d);
-            return ret;
+            pcap_id = ntohs(*d);
+            return *this;
         }
     };
 

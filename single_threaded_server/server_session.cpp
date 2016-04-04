@@ -23,7 +23,7 @@ namespace detection
          *
          * @return returns the UUID for the pcap file
          */
-        uint32_t get_pcap_id(uint32_t expID)
+        uint16_t get_pcap_id(uint32_t expID)
         {
 #if DEBUG
             std::cout << "Experimental ID = " << expID << std::endl;
@@ -35,7 +35,7 @@ namespace detection
 
             // make the call to the external program to consult the MYSQL database
             FILE* in = popen(command.str().c_str(), "r");
-            uint32_t pcap_id;
+            uint16_t pcap_id;
 
             // read results back
             fscanf(in, "%u", &pcap_id);
@@ -161,7 +161,7 @@ namespace detection
         {
             // do the tcp_recieve;
             bool stop = false;
-            int err = (int)recv(tcp_fd, &stop, sizeof(stop), 0);
+            int err   = (int)recv(tcp_fd, &stop, sizeof(stop), 0);
             if(err < 0)
             {
                 terminate_session("Failure receiving stop signal from client");
@@ -178,10 +178,11 @@ namespace detection
 
             // serialize the results into the send buffer
             results.serialize(buff);
+            /*
             std::cout << "Results = " << results << std::endl;
             test_results* my_res = (test_results*)buff;
             std::cout << "sent Results = " << *my_res <<std::endl;
-
+            */
             // transmit the results to the client
             int n = (int)send(tcp_fd, buff, sizeof(buff), 0);
             if(n < 0)
@@ -303,19 +304,19 @@ namespace detection
             if(!must_terminate)
             {
                 // prepare results
-                results.success = true;
+                results.success = (uint16_t )true;
                 results.pcap_id = get_pcap_id(params.test_id);
                 results.elapsed_time =
                   std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count() / 1000000.0;
                 results.lostpackets = params.num_packets - packets_received;
 #if DEBUG
-                std::cout << "Didn't have to terminate" <<std::endl;
-                std::cout <<"Pcap ID = " << results.pcap_id <<std::endl;
+                std::cout << "Didn't have to terminate" << std::endl;
+                std::cout << "Pcap ID = " << results.pcap_id << std::endl;
 #endif
 #ifdef PCAP_ON
-            std::stringstream ss;
-            ss << results.pcap_id << ".pcap";
-            rename("temp.pcap", ss.str().data());
+                std::stringstream ss;
+                ss << results.pcap_id << ".pcap";
+                rename("temp.pcap", ss.str().data());
 #endif
             }
 
@@ -329,8 +330,8 @@ namespace detection
             convert << params.port;
             std::string port = convert.str();
 
-            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "udp and port ", port.data(), "-w", "temp.pcap",
-                  (char*)0);
+            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "udp and port ", port.data(), "-w",
+                  "temp.pcap", (char*)0);
 
             _exit(0);
         }

@@ -255,7 +255,7 @@ namespace detection
         virtual void send_tail() override
         {
             uint16_t done = (uint16_t) true;
-            int n = send(recv_fd, &done, sizeof(done), 0);
+            int n         = send(recv_fd, &done, sizeof(done), 0);
             if(n == -1)
             {
                 perror("Call to send() failed: error with TCP connection");
@@ -282,13 +282,8 @@ namespace detection
             //        lk.release();
 
             char results_buff[sizeof(t)];
-            int n = recv(recv_fd, results_buff, sizeof(t), 0);
+            recv(recv_fd, results_buff, sizeof(t), 0);
 
-            if(n <= 0)
-            {
-                 perror("Horrible problem with recieve!!!!");
-                 exit(-1);
-            }
             t.deserialize(results_buff);
             // bitset s = t.losses;
             this->packets_lost = t.lostpackets;
@@ -296,7 +291,6 @@ namespace detection
             pcap_id            = t.pcap_id;
             // t.success;
             close(recv_fd);
-            std::cout  << "REsults: " << t <<std::endl;
         }        // end receive()
 
         /**
