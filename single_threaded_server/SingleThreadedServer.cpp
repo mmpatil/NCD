@@ -55,11 +55,9 @@ void SingleThreadedServer::acceptor()
     listen(listen_fd, 4);
     socklen_t client_len = 0;
 
-    //    while(true)
+        while(true)
     {
-        int n = 0;
-        while(n < 2)
-        {
+
             int temp_fd = accept(listen_fd, (sockaddr*)&client_addr, &client_len);
             if(temp_fd < 0)
             {
@@ -68,8 +66,7 @@ void SingleThreadedServer::acceptor()
             }
             server::server_session s(temp_fd, client_addr);
             s.run();
-            n++;
-        }
+
         //        close(temp_fd);
     }
     close(listen_fd);
