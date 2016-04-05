@@ -1,6 +1,6 @@
 #!/bin/sh
 
-EXPERIMENT=police.sh
+EXPERIMENT=no-police.sh
 USER=ucla_triton
 
 ssh -t ${USER}@$1 "cd remote_host; ./$EXPERIMENT"

@@ -57,6 +57,7 @@ namespace detection
 
             client_len     = sizeof(client);
             must_terminate = false;
+            packets_received = 0;
         }
 
 
@@ -77,7 +78,7 @@ namespace detection
             serv_addr.sin_port        = htons(port);
 
             // int udp_fd = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
-            int udp_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+            udp_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
             if(udp_fd < 0)        // error state
             {
                 terminate_session("failed to acquire socket for UDP data train");
@@ -119,7 +120,7 @@ namespace detection
             {
                 // when we receive a UDP packet, we must mark them as received
                 packets_received++;
-                bs.set(ntohs(*id));
+               // bs.set(ntohs(*id));
             }
         }
 
