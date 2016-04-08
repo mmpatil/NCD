@@ -1,6 +1,6 @@
 #!/bin/sh
 
-EXPERIMENT=tcp_experiment.sh
-USER=paul
+EXPERIMENT=no-police.sh
+USER=ucla_triton
 
-ssh -t ${USER}@$1 "cd ncd/scripts; ./$EXPERIMENT"
+ssh -T ${USER}@$1 "cd remote_host; ./$EXPERIMENT"

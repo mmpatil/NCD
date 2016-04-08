@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # This script takes lines from a tab separated file,
 # and uses them to compose an 'at' command
 # the first field in the file is expected to be a time,
@@ -12,7 +12,7 @@
 # command portion. Also determine a good way to manage flags
 
 # Timeout: maximum running time for an experiment in seconds
-TIMEOUT=55
+TIMEOUT=115
 
 IFS=$'\t'
 while read line
