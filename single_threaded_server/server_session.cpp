@@ -8,7 +8,8 @@
 #include <signal.h>
 #include <sstream>
 
-#define PCAP_ON 1
+//#define PCAP_ON 0
+#define DEBUG 1
 
 namespace detection
 {
@@ -57,6 +58,7 @@ namespace detection
 
             client_len     = sizeof(client);
             must_terminate = false;
+            packets_received = 0;
         }
 
 
@@ -73,11 +75,11 @@ namespace detection
             sockaddr_in serv_addr = {};
 
             serv_addr.sin_family      = AF_INET;
-            serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+            serv_addr.sin_addr.s_addr = INADDR_ANY;
             serv_addr.sin_port        = htons(port);
 
-            // int udp_fd = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
-            int udp_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+            udp_fd = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, IPPROTO_UDP);
+            //int udp_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
             if(udp_fd < 0)        // error state
             {
                 terminate_session("failed to acquire socket for UDP data train");
@@ -118,7 +120,7 @@ namespace detection
             {
                 // when we receive a UDP packet, we must mark them as received
                 packets_received++;
-                bs.set(ntohs(*id));
+                //bs.set(ntohs(*id));
             }
         }
 
@@ -178,11 +180,11 @@ namespace detection
 
             // serialize the results into the send buffer
             results.serialize(buff);
-            /*
+
             std::cout << "Results = " << results << std::endl;
             test_results* my_res = (test_results*)buff;
             std::cout << "sent Results = " << *my_res <<std::endl;
-            */
+
             // transmit the results to the client
             int n = (int)send(tcp_fd, buff, sizeof(buff), 0);
             if(n < 0)
@@ -248,7 +250,7 @@ namespace detection
 
             bool tcp_complete = false;
 
-            fd_max = std::max(tcp_fd, udp_fd);
+            fd_max = tcp_fd > udp_fd ? tcp_fd : udp_fd;
 
             FD_SET(tcp_fd, &master);
             FD_SET(udp_fd, &master);
@@ -290,10 +292,12 @@ namespace detection
                         }        // end if
                     }
                 }        // end for
-            } while(!tcp_complete && (packets_received < params.num_packets) && !must_terminate);
+            } while(!tcp_complete && (packets_received < params.num_packets) );//&& !must_terminate);
 
 
             auto timestamp = std::chrono::high_resolution_clock::now() - marker;
+
+            std::cout << "Packets received: " << packets_received <<"/" << params.num_packets <<std::endl;
 
             // give tcpdump time to handle things;
             sleep(1);
