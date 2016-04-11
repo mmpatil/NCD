@@ -99,6 +99,6 @@ def per_delta(start, end, delta):
 
 
 if __name__ == u"__main__":
-    scheduler = ScheduleMaker(u"ip_list.txt", date(2016, 3, 15), date(2016, 3, 17), timedelta(hours=1),
-                              timedelta(minutes=1), u"start_experiment.sh")
+    scheduler = ScheduleMaker(u"ip_list.txt", date(2016, 4, 8), date(2016, 4, 9), timedelta(hours=1),
+                              timedelta(minutes=2), u"~/experiment/police_experiment.sh")
     scheduler.create_schedule(False, 0)
