@@ -192,15 +192,18 @@ int main(int argc, char* argv[])
                             trans_proto);
 
 
-    int saturate_length = 1000;
     int interval = 50;
 
+#if 0
+    int saturate_length = 1000;
     auto saturate_list = base.data_train;
 
 
+#endif
+
     for(int i = 0; i < base.data_train.size(); ++i)
     {
-        if( i%interval = 0)
+        if( i%interval == 0)
         {
             swap(base.data_train[i], disc.data_train[i]);
         }

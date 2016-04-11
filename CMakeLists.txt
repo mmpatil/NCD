@@ -29,6 +29,7 @@ add_subdirectory(ncd EXCLUDE_FROM_ALL)
 add_subdirectory(co_op_udp_client)
 add_subdirectory(co_op_udp_server)
 add_subdirectory(single_threaded_server)
+add_subdirectory(spq_client)
 
 ################################################################################
 ####                           TEST                                         ####
