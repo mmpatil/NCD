@@ -9,6 +9,7 @@
 #include <sstream>
 
 #define PCAP_ON 1
+#define DEBUG 0
 
 namespace detection
 {
@@ -86,6 +87,7 @@ namespace detection
             }
 
             udp_open = true;
+
             int val= 1;
             setsockopt(udp_fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
             int err = bind(udp_fd, (sockaddr*)&serv_addr, sizeof(serv_addr));
@@ -120,7 +122,7 @@ namespace detection
             {
                 // when we receive a UDP packet, we must mark them as received
                 packets_received++;
-               // bs.set(ntohs(*id));
+                //bs.set(ntohs(*id));
             }
         }
 
@@ -294,13 +296,12 @@ namespace detection
                 }        // end for
             } while(!tcp_complete && (packets_received < params.num_packets) && !must_terminate);
 
-            //CloseUdp();
 
             auto timestamp = std::chrono::high_resolution_clock::now() - marker;
 
+#if PCAP_ON
             // give tcpdump time to handle things;
             sleep(1);
-#ifdef PCAP_ON
             kill(child_id, SIGINT);
 #endif
             // if we aren't in an error state, send good results, otherwise, send failure
@@ -316,6 +317,7 @@ namespace detection
                 std::cout << "Didn't have to terminate" << std::endl;
                 std::cout << "Pcap ID = " << results.pcap_id << std::endl;
 #endif
+
 #ifdef PCAP_ON
                 std::stringstream ss;
                 ss << results.pcap_id << ".pcap";

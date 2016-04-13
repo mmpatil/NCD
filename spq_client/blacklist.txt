@@ -1,0 +1,8 @@
+fun:setup_program_options
+fun:main
+src:/home/atlas/workspace/ncd/spq_client/spq_client.cpp
+src:/home/atlas/workspace/boost/*
+src:/usr/local/include/boost/*
+src:/usr/lib/*
+src:/usr/include/*
+src:/usr/bin/*
