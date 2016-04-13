@@ -12,7 +12,7 @@ else
     sudo apt-get update -qq
 fi
 
-    sudo apt-get install libgtest-dev -y
+    sudo apt-get install libgtest-dev:i386 -y
     cd /usr/src/gtest && sudo cmake .
     sudo cmake --build .
     sudo mv libg* /usr/local/lib/
