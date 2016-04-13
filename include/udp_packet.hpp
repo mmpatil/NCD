@@ -84,7 +84,8 @@ namespace detection
         virtual void checksum(const pseudo_header& ps)
         {
             size_t offset = sizeof(ps);
-            buffer_t buff(offset + data.size() - transport_offset);
+            auto len = data.size();
+            buffer_t buff(offset + len - transport_offset);
 
             // copy the pseudo header into the buffer
             memcpy(&buff[0], &ps, offset);

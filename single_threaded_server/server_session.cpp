@@ -9,7 +9,7 @@
 #include <sstream>
 
 #define PCAP_ON 1
-#define DEBUG 1
+#define DEBUG 0
 
 namespace detection
 {
@@ -58,6 +58,7 @@ namespace detection
 
             client_len     = sizeof(client);
             must_terminate = false;
+            packets_received = 0;
         }
 
 
@@ -297,11 +298,10 @@ namespace detection
 
 
             auto timestamp = std::chrono::high_resolution_clock::now() - marker;
-            std::cout << "Packets received: " << packets_received <<"/" << params.num_packets <<std::endl;
 
+#if PCAP_ON
             // give tcpdump time to handle things;
             sleep(1);
-#ifdef PCAP_ON
             kill(child_id, SIGINT);
 #endif
             // if we aren't in an error state, send good results, otherwise, send failure
@@ -317,6 +317,7 @@ namespace detection
                 std::cout << "Didn't have to terminate" << std::endl;
                 std::cout << "Pcap ID = " << results.pcap_id << std::endl;
 #endif
+
 #ifdef PCAP_ON
                 std::stringstream ss;
                 ss << results.pcap_id << ".pcap";
