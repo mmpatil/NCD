@@ -5,7 +5,6 @@ project(co_op_udp_client)
 #set (ncd_VERSION_MAJOR 0)
 #set (ncd_VERSION_MINOR 1)
 set (Boost_USE_STATIC_LIBS ON)
-#find_package(Threads REQUIRED)
 find_package(Boost COMPONENTS program_options REQUIRED)
 
 include_directories(../include)
@@ -17,7 +16,8 @@ add_executable(sqp_client ${CLIENT_SOURCE_FILES})
 target_compile_features(sqp_client PUBLIC cxx_strong_enums cxx_thread_local)
 set_target_properties(sqp_client PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
 target_link_libraries(sqp_client ${CMAKE_THREAD_LIBS_INIT} m ${Boost_LIBRARIES})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -g -O1 -Wall -fsanitize=address  -fno-omit-frame-pointer")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -g -O1 -Wall -fsanitize=address  -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall")
 
 #add_subdirectory(Test)
 ################################################################################
