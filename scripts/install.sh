@@ -11,7 +11,7 @@ SLICE_HOME=/home/ucla_triton
 PACKAGES="MySQL-python vim tcpdump iperf python mysql zsh python-json python-simplejson"
 
 # SSH into the planet lab node install required packages
-parallel-ssh -t 120 -h ${IP_FILE} -vl ucla_triton "sudo yum --nogpgcheck install -y ${PACKAGES}"
+#parallel-ssh -t 120 -h ${IP_FILE} -vl ucla_triton "sudo yum --nogpgcheck install -y ${PACKAGES}"
 
 #parallel-ssh -h ${IP_FILE} -vl ucla_triton "rm -rf remote_host"
 
