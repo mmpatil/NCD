@@ -27,49 +27,22 @@
  * @file: ip_checksum.h
  */
 
-#ifndef SINGLE_THREADED_SERVER_HPP_
-#define SINGLE_THREADED_SERVER_HPP_
+#ifndef DETECTOR_UNIT_TEST_SPQ_CO_OP_DETECTOR_HPP
+#define DETECTOR_UNIT_TEST_SPQ_CO_OP_DETECTOR_HPP
 
-#include "co_op_data.hpp"
-#include <sstream>
+#include "co_op_udp_detector.hpp"
 
-class SingleThreadedServer
+class spq_co_op_detector: public  co_op_udp_detector
 {
+
+
 public:
-    SingleThreadedServer();
-    void run();
-    void acceptor();
+    spq_co_op_detector()
+    { }
 
-    void receive_train(detection::test_params params, sockaddr_in client);
-    void terminate(std::string msg);
-    void send_tcp_reply(int sock_fd, detection::test_results results);
-    detection::test_results receive_tcp_parameters(int sock_fd, sockaddr_in client);
-    void capture_packets(detection::test_params params);
-
-private:
-    int listen_fd;
-    bool open;
-    bool abort_session;
-
-    int send_complete_fd[2];
-
-    int capture_fd[2];
-
-    uint32_t get_pcap_id(uint32_t expID)
-    {
-        std::stringstream command;
-        command << "~/experiment/pcap_script.py " << expID;
-        // command <<"python pcap_script.py "  << expID;
-        FILE* in = popen(command.str().c_str(), "r");
-        uint32_t pcap_id;
-        fscanf(in, "%u", &pcap_id);
-        pclose(in);
-
-        return pcap_id;
-    }
-
-    int setup_udp_socket(uint16_t port);
+    virtual ~spq_co_op_detector()
+    { }
 };
 
 
-#endif        // SINGLE_THREADED_SERVER_HPP_
+#endif //DETECTOR_UNIT_TEST_SPQ_CO_OP_DETECTOR_HPP

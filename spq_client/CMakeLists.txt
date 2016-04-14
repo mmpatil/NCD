@@ -8,7 +8,7 @@ set (Boost_USE_STATIC_LIBS ON)
 find_package(Boost COMPONENTS program_options REQUIRED)
 
 include_directories(../include)
-set(CLIENT_SOURCE_FILES spq_client.cpp ../include/co_op_udp_detector.hpp blacklist.txt)
+set(CLIENT_SOURCE_FILES spq_client.cpp ../include/co_op_udp_detector.hpp ../include/spq_co_op_detector.cpp ../include/spq_co_op_detector.hpp  ../include/co_op_udp_detector.hpp blacklist.txt)
 #SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 #SET(BUILD_SHARED_LIBRARIES OFF)
 #SET(CMAKE_EXE_LINKER_FLAGS "-static")
