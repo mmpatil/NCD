@@ -27,7 +27,7 @@
  * @file: udp_detector.hpp
  */
 
-#include "co_op_udp_detector.hpp"
+#include "spq_co_op_detector.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -87,7 +87,10 @@ int main(int argc, char* argv[])
     uint8_t proto_disc;
     // uint16_t check_sum;
     uint16_t syn_port_in_disc = 22223;
+    uint16_t saturation_port;
+    uint16_t saturation_length;
 
+    uint16_t junk_interval = 50;
 
     po::options_description cli("CLI Only Options");
 
@@ -103,6 +106,9 @@ int main(int argc, char* argv[])
 
     // clang-format off
     general.add_options()
+        ("saturation_port", po::value<uint16_t>(&saturation_port)->default_value(33335), "The port number of the saturation train")
+        ("saturation_length", po::value<uint16_t>(&saturation_length)->default_value(600), "The number of Saturation Packets")
+        ("junk_interval", po::value<uint16_t>(&junk_interval)->default_value(50), "The number of junk packets between data packets")
         ("test_id_in", po::value<int>(&test_id_in)->default_value(77777), "Experimental ID number")
         ("cooldown", po::value<int>(&cooldown)->default_value(2), "The time in seconds to wait between tests")
         ("dest_ip", po::value<string>(&dest_ip), "Destination IP Address")
@@ -185,29 +191,26 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    co_op_udp_detector base(test_id_in, dest_ip, tos_base, id_base, frag_off_base, ttl_base, IPPROTO_UDP, 0, sport_base,
+    spq_co_op_detector base(spq_co_op_detector::priority::high, saturation_port, saturation_length, test_id_in, dest_ip, tos_base, id_base, frag_off_base, ttl_base, IPPROTO_UDP, 0, sport_base,
                             dport_base, false, filename_base, num_packets, data_length, num_tail, tail_wait, raw_level::transport_only,
                             trans_proto);
-    co_op_udp_detector disc(test_id_in, dest_ip, tos_disc, id_disc, frag_off_base, ttl_disc, IPPROTO_UDP, 0, sport_disc,
+    spq_co_op_detector disc(spq_co_op_detector::priority::low, saturation_port, saturation_length, test_id_in, dest_ip, tos_disc, id_disc, frag_off_base, ttl_disc, IPPROTO_UDP, 0, sport_disc,
                             dport_disc, true, filename_disc, num_packets, data_length, num_tail, tail_wait, raw_level::transport_only,
                             trans_proto);
 
 
-    int saturate_length = 1000;
-    int interval = 50;
-
     auto saturate_list = base.data_train;
-
 
     for(int i = 0; i < base.data_train.size(); ++i)
     {
-        if( i%interval == 0)
+        if( i%junk_interval == 0)
         {
             swap(base.data_train[i], disc.data_train[i]);
         }
     }
 
-
+    // make the length congruent
+    swap(base.data_train, disc.data_train);
 
     base.verbose = disc.verbose = verbose;
     base.sql_output = disc.sql_output = sql_output;

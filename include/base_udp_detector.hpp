@@ -69,9 +69,7 @@ namespace detection
 
             // set TTL
             setsockopt(send_fd, IPPROTO_IP, IP_TTL, &ip_header.ttl, sizeof(ip_header.ttl));
-
             socklen_t size = 1500U * num_packets;
-
             setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
         }
 
