@@ -183,7 +183,7 @@ namespace detection
             ps = {ip_header.saddr, ip_header.daddr, 0, proto,
                   htons((uint16_t)(payload_size + transport_header_size() + sizeof(pseudo_header)))};
 
-            uint16_t packet_id = 0;
+            uint16_t packet_id = 1;
             for(auto& item : data_train)
             {
                 item->fill(file, packet_id++);
