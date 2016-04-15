@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
 
     auto saturate_list = base.data_train;
 
-    for(int i = 0; i < base.data_train.size(); ++i)
+    for(size_t i = 0; i < base.data_train.size(); ++i)
     {
         if( i%junk_interval == 0)
         {
