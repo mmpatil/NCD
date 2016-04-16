@@ -218,9 +218,11 @@ def processDetectionOutput(filename):
     #print line
 
     base = dict(zip(columns, line))
+    base["filename"] = "\"" + base["filname"] +"\""
 
     line = f.readline().split()
     disc = dict(zip(columns, line))
+    disc["filename"] = "\"" + disc["filname"] +"\""
     return base, disc
 
 
