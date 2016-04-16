@@ -120,9 +120,11 @@ namespace detection
             }
             else
             {
-                // when we receive a UDP packet, we must mark them as received
-                packets_received++;
-                //bs.set(ntohs(*id));
+                if(ntohs(*id) != 0x0) {
+                    // when we receive a UDP packet, we must mark them as received
+                    packets_received++;
+                    //bs.set(ntohs(*id));
+                }
             }
         }
 
