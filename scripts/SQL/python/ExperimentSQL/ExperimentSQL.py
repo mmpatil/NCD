@@ -13,12 +13,9 @@ def getCfg(filename):
     :rtype: dict
     """
     f = open(filename, 'r')
-
     lines = f.read().splitlines()
-
     hash = dict(
         item.split("=") for item in lines if not (item.strip().startswith("#") or item.isspace() or len(item) == 0))
-
     return hash
 
 
@@ -28,6 +25,11 @@ def clientExperiment(args):
     # Create base experiment in DB
 
     pocfg = getCfg("detector.cfg")
+    for item in args[2:]:
+        names = item.split('=')
+        print names
+        if names[0].strip('-') in pocfg.keys():
+            pocfg[names[0].strip('-')] = names[1]
 
     hash = getCfg("sql.cfg")
 
@@ -39,9 +41,7 @@ def clientExperiment(args):
     cursor = db.cursor()
 
     # start transaction -- do in a ty catch block so we can roll back on exceptions
-
     # get the ID back from DB
-
     (expID, success) = insertExperimentSQL(db, cursor)
 
     if not success:
@@ -51,15 +51,15 @@ def clientExperiment(args):
 
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     outfile = open("output.txt", 'w+')
-    #ret_code = subprocess.call(command, stdout=outfile)
-    ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)] + args[1:], stdout=outfile)
+
+    ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)] + args[2:], stdout=outfile)
     outfile.close()
 
     # track the success of the experiment
     # TODO: evaluate the possible return codes from timeout, and other commands to be sure success is correct
     exp_success = ret_code == 0
 
-    (metadataID, success) = insertMetadataSQL(db, cursor, expID, pocfg, exp_success)
+    (metadataID, success) = insertMetadataSQL(db, cursor, expID, args, pocfg, exp_success)
 
     if not success:
         # print "Error creating a new experiment in the database... aborting"
@@ -73,9 +73,7 @@ def clientExperiment(args):
 
     cursor.close()
     cursor= db.cursor()
-
     base, disc = processDetectionOutput("output.txt")
-
     baseID, success = insertBaseResultSQL(db, cursor, expID, base)
 
     if not success:
@@ -145,11 +143,10 @@ def insertCommonDataSQL(db, cursor, testID, opts):
     sql = "INSERT INTO `CommonData` (`id_Experiments`,`protocol`,`num_packets`,`num_tail`,`packet_size`) VALUES " \
           " ('%d','%s','%s','%s','%s');" % (
               testID, opts["trans_proto"], opts["num_packets"], opts["num_tail"], opts["data_length"])
-
     return insertToSQL(db, cursor, sql)
 
 
-def insertMetadataSQL(db, cursor, testID, options, success):
+def insertMetadataSQL(db, cursor, testID, args, options, success):
     """inserts test metadata into the given database using the provided testID
     :param db: (MySQLdb) The database to insert into
     :param cursor: database cursor
@@ -164,9 +161,8 @@ def insertMetadataSQL(db, cursor, testID, options, success):
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
     sql = "INSERT INTO `Metadata` (`id_Experiments`,`Project`,`test_name`,`test_date`,`command`,`host_ip`,`dest_ip`,`success`) VALUES ('%d','%s','%s',%s,'%s','%s','%s','%d');" % (
-        testID, "Thesis", "Compression-Co-Op V3 -- discrimination", "NOW()", "client --test_id_in=" + str(testID), ip, options["dest_ip"],
+        testID, "Thesis", args[1], "NOW()", "client --test_id_in=" + str(testID) +" " + " ".join( args[2:]), ip, options["dest_ip"],
         success)
-
     return insertToSQL(db, cursor, sql)
 
 
