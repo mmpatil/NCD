@@ -34,7 +34,6 @@ def clientExperiment(args):
         if names[0].strip('-') in pocfg.keys():
             pocfg[names[0].strip('-')] = names[1]
 
-
     hash = getCfg("sql.cfg")
 
     # connect to the database
