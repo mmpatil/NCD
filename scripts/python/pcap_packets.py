@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import pcapy
 import dpkt
 import socket
 import struct
@@ -22,22 +21,38 @@ def get_packet_id(filename):
             ids[packet_id] = udp.dport
             vals.append(1)
 
+    print "Total packets recieved: %d" % (len(ids))
+
     df = {'Packet ID' : ids.keys(), 'Dest Port': ids.values(), 'Value': vals }
     return df
 
 
-df = get_packet_id('test.pcap')
+def plot_losses(pcap1, pcap2):
+    df = get_packet_id(pcap1)
+    df2 = get_packet_id(pcap2)
+    points1 = pandas.DataFrame(df)
+    points2 = pandas.DataFrame(df2)
+    #points = pandas.concat([points1, points2])
+    plot = ggplot(aes(x='Packet ID', color='Dest Port'), data = points2)
+    #plot + geom_point()
+    print plot + geom_histogram(binwidth=1)
 
-df2 = get_packet_id('test2.pcap')
 
-points1 = pandas.DataFrame(df)
-points2 = pandas.DataFrame(df2)
+def main():
+    """
+    baseline = ['/home/atlas/TestResults/Baseline/2824.pcap', '/home/atlas/TestResults/Baseline/2825.pcap']
+    plot_losses(baseline[0], baseline[1])
+    """
+    policing = ['/home/atlas/TestResults/Police/day-2-policing/1707.pcap', '/home/atlas/TestResults/Police/day-2-policing/1708.pcap']
+    plot_losses(policing[0], policing[1])
 
-points = pandas.concat([points1, points2])
+    shaping = ['/home/atlas/TestResults/misc/6985.pcap', '/home/atlas/TestResults/misc/6986.pcap']
+    plot_losses(shaping[0], shaping[1])
+
+    compression = ['/home/atlas/TestResults/Compression/9101.pcap', '/home/atlas/TestResults/Compression/9102.pcap']
+    plot_losses(compression[0], compression[1])
 
 
-plot = ggplot(aes(x='Packet ID', color='Dest Port'), data = points)
 
-plot + geom_point()
-
-print plot + geom_histogram(binwidth=1)
+if __name__=="__main__":
+    main()

@@ -28,8 +28,16 @@ def clientExperiment(args):
     # Create base experiment in DB
 
     pocfg = getCfg("detector.cfg")
+    for item in args[1:]:
+        names = item.split('=')
+        print names
+        if names[0].strip('-') in pocfg.keys():
+            pocfg[names[0].strip('-')] = names[1]
+    return
+
 
     hash = getCfg("sql.cfg")
+
 
     # connect to the database
     # db = MySQLdb.connect(host="localhost", user="root", passwd="", db="testdb")
@@ -59,7 +67,7 @@ def clientExperiment(args):
     # TODO: evaluate the possible return codes from timeout, and other commands to be sure success is correct
     exp_success = ret_code == 0
 
-    (metadataID, success) = insertMetadataSQL(db, cursor, expID, pocfg, exp_success)
+    (metadataID, success) = insertMetadataSQL(db, cursor, expID, args, pocfg, exp_success)
 
     if not success:
         # print "Error creating a new experiment in the database... aborting"
@@ -149,7 +157,7 @@ def insertCommonDataSQL(db, cursor, testID, opts):
     return insertToSQL(db, cursor, sql)
 
 
-def insertMetadataSQL(db, cursor, testID, options, success):
+def insertMetadataSQL(db, cursor, testID, args, options, success):
     """inserts test metadata into the given database using the provided testID
     :param db: (MySQLdb) The database to insert into
     :param cursor: database cursor
@@ -164,7 +172,7 @@ def insertMetadataSQL(db, cursor, testID, options, success):
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
     sql = "INSERT INTO `Metadata` (`id_Experiments`,`Project`,`test_name`,`test_date`,`command`,`host_ip`,`dest_ip`,`success`) VALUES ('%d','%s','%s',%s,'%s','%s','%s','%d');" % (
-        testID, "Thesis", "Shaping--Co-Op -- discrimination", "NOW()", "client --test_id_in=" + str(testID), ip, options["dest_ip"],
+        testID, "Thesis", "Shaping--Co-Op -- discrimination", "NOW()", "client --test_id_in=" + str(testID) + " ".join( args[1:]), ip, options["dest_ip"],
         success)
 
     return insertToSQL(db, cursor, sql)

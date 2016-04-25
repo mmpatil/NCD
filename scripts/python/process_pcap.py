@@ -1,12 +1,12 @@
-#! /bin/env python
+#! /usr/bin/env python
 
-import sqlalchemy
-from sqlalchemy import create_engine
-import pandas as pd
 import struct
-import dpkt
 from socket import ntohs
 
+import dpkt
+import pandas as pd
+from sqlalchemy import create_engine
+from ggplot import *
 
 def get_sql_query():
     # query the database
@@ -50,17 +50,18 @@ def get_pcaps(df):
         pcaps.append(names)
     return pcaps
 
+
 def add_drops(df):
     for index, row in df.iterrows():
         df.iloc[index, 'drop'] = add_drop_to_row(row)
     return df
+
 
 def drop_by_column(column):
     l = []
     for item in column:
         l.append(add_drop_to_row(item))
     return l
-
 
 
 def add_drop_to_row(pcap_id):
@@ -72,27 +73,21 @@ def add_drop_to_row(pcap_id):
 def process_csv(filename):
     df = pd.read_csv(filename)
     columnName = 'id_real_pcap'
-    #print df[columnName]
-    tester = df.query('id_real_pcap == 9151')
-    tester['drop'] = drop_by_column(tester['id_real_pcap'])
-    #print tester
-    for i in tester.index:
-        tester.iloc[i, 'drop'] = add_drop_to_row(tester.ix[i])
+    drops = drop_by_column(df['id_real_pcap'])
+    print len(drops)
+    print len(df.index)
+    res = pd.DataFrame({'drop_id': pd.Series(drops, index=df.index)})
+    mdf = pd.merge(df, res,left_index=True,right_index=True)
 
+    print mdf
+    print type(mdf)
 
-
-    #pcap_files =  get_pcaps(df)
-    drops = []
-    """for file_list in pcap_files:
-        for pcap_name in file_pair:
-            drops.append(find_first_drop(pcap_name))
-    """
-
+    mdf.to_csv("drop_data.csv")
 
 
 def find_first_drop(pcap_file):
-    """ process a pcap file for plotting number of first dropped packet"""
-    #open the pcap file
+    """ process a pcap file for plotting number of first dropped packet """
+    # open the pcap file
     with open(pcap_file) as f:
         pcap = dpkt.pcap.Reader(f)
         i = 1
@@ -111,16 +106,24 @@ def find_first_drop(pcap_file):
 
 def plot_loss_results():
     # plot the dataframe
-    pass
+    df = pd.read_csv('drop_data.csv')
+
+    plot = ggplot(aes(x='num_packets', y='drop_id', color='packet_size'), data = df)
+    print plot + geom_point()
+
 
 def save_query():
     df = get_sql_query()
     df.to_csv("param_tests.csv")
     return df
 
+
 def main():
+    #df = get_sql_query()
+    #df.to_csv("param_tests.csv")
     #pcap_files = get_pcaps("param_tests.csv")
-    process_csv("param_tests.csv")
+    #process_csv("param_tests.csv")
+    plot_loss_results()
 
 
 if __name__ == "__main__":
