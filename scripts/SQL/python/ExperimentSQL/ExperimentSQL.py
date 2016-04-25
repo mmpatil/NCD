@@ -40,12 +40,8 @@ def clientExperiment(args):
     # obtain method to interact with DB
     cursor = db.cursor()
 
-
-
     # start transaction -- do in a ty catch block so we can roll back on exceptions
-
     # get the ID back from DB
-
     (expID, success) = insertExperimentSQL(db, cursor)
 
     if not success:
@@ -55,7 +51,7 @@ def clientExperiment(args):
 
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     outfile = open("output.txt", 'w+')
-    #ret_code = subprocess.call(command, stdout=outfile)
+
     ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)] + args[2:], stdout=outfile)
     outfile.close()
 
@@ -77,9 +73,7 @@ def clientExperiment(args):
 
     cursor.close()
     cursor= db.cursor()
-
     base, disc = processDetectionOutput("output.txt")
-
     baseID, success = insertBaseResultSQL(db, cursor, expID, base)
 
     if not success:
