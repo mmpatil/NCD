@@ -13,12 +13,9 @@ def getCfg(filename):
     :rtype: dict
     """
     f = open(filename, 'r')
-
     lines = f.read().splitlines()
-
     hash = dict(
         item.split("=") for item in lines if not (item.strip().startswith("#") or item.isspace() or len(item) == 0))
-
     return hash
 
 
