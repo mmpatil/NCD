@@ -164,7 +164,7 @@ def insertMetadataSQL(db, cursor, testID, options, success):
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
     sql = "INSERT INTO `Metadata` (`id_Experiments`,`Project`,`test_name`,`test_date`,`command`,`host_ip`,`dest_ip`,`success`) VALUES ('%d','%s','%s',%s,'%s','%s','%s','%d');" % (
-        testID, "Thesis", "Shaping--Co-Op -- discrimination", "NOW()", "client --test_id_in=" + str(testID), ip, options["dest_ip"],
+        testID, "Thesis", "Compression-Co-Op V3 -- discrimination", "NOW()", "client --test_id_in=" + str(testID), ip, options["dest_ip"],
         success)
 
     return insertToSQL(db, cursor, sql)

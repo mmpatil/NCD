@@ -305,6 +305,7 @@ namespace detection
             // give tcpdump time to handle things;
             sleep(1);
             kill(child_id, SIGINT);
+            wait();
 #endif
             // if we aren't in an error state, send good results, otherwise, send failure
             if(!must_terminate)
