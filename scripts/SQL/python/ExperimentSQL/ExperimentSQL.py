@@ -28,16 +28,14 @@ def clientExperiment(args):
     # Create base experiment in DB
 
     pocfg = getCfg("detector.cfg")
-    for item in args[1:]:
+    for item in args[2:]:
         names = item.split('=')
         print names
         if names[0].strip('-') in pocfg.keys():
             pocfg[names[0].strip('-')] = names[1]
-    return
 
 
     hash = getCfg("sql.cfg")
-
 
     # connect to the database
     # db = MySQLdb.connect(host="localhost", user="root", passwd="", db="testdb")
@@ -45,6 +43,8 @@ def clientExperiment(args):
 
     # obtain method to interact with DB
     cursor = db.cursor()
+
+
 
     # start transaction -- do in a ty catch block so we can roll back on exceptions
 
@@ -60,7 +60,7 @@ def clientExperiment(args):
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     outfile = open("output.txt", 'w+')
     #ret_code = subprocess.call(command, stdout=outfile)
-    ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)] + args[1:], stdout=outfile)
+    ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)] + args[2:], stdout=outfile)
     outfile.close()
 
     # track the success of the experiment
@@ -153,8 +153,8 @@ def insertCommonDataSQL(db, cursor, testID, opts):
     sql = "INSERT INTO `CommonData` (`id_Experiments`,`protocol`,`num_packets`,`num_tail`,`packet_size`) VALUES " \
           " ('%d','%s','%s','%s','%s');" % (
               testID, opts["trans_proto"], opts["num_packets"], opts["num_tail"], opts["data_length"])
-
-    return insertToSQL(db, cursor, sql)
+    print sql
+    #return insertToSQL(db, cursor, sql)
 
 
 def insertMetadataSQL(db, cursor, testID, args, options, success):
@@ -172,10 +172,10 @@ def insertMetadataSQL(db, cursor, testID, args, options, success):
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
     sql = "INSERT INTO `Metadata` (`id_Experiments`,`Project`,`test_name`,`test_date`,`command`,`host_ip`,`dest_ip`,`success`) VALUES ('%d','%s','%s',%s,'%s','%s','%s','%d');" % (
-        testID, "Thesis", "Shaping--Co-Op -- discrimination", "NOW()", "client --test_id_in=" + str(testID) + " ".join( args[1:]), ip, options["dest_ip"],
+        testID, "Thesis", args[1], "NOW()", "client --test_id_in=" + str(testID) +" " + " ".join( args[2:]), ip, options["dest_ip"],
         success)
-
-    return insertToSQL(db, cursor, sql)
+    print sql
+    #return insertToSQL(db, cursor, sql)
 
 
 """
