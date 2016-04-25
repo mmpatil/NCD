@@ -153,8 +153,7 @@ def insertCommonDataSQL(db, cursor, testID, opts):
     sql = "INSERT INTO `CommonData` (`id_Experiments`,`protocol`,`num_packets`,`num_tail`,`packet_size`) VALUES " \
           " ('%d','%s','%s','%s','%s');" % (
               testID, opts["trans_proto"], opts["num_packets"], opts["num_tail"], opts["data_length"])
-    print sql
-    #return insertToSQL(db, cursor, sql)
+    return insertToSQL(db, cursor, sql)
 
 
 def insertMetadataSQL(db, cursor, testID, args, options, success):
@@ -174,8 +173,7 @@ def insertMetadataSQL(db, cursor, testID, args, options, success):
     sql = "INSERT INTO `Metadata` (`id_Experiments`,`Project`,`test_name`,`test_date`,`command`,`host_ip`,`dest_ip`,`success`) VALUES ('%d','%s','%s',%s,'%s','%s','%s','%d');" % (
         testID, "Thesis", args[1], "NOW()", "client --test_id_in=" + str(testID) +" " + " ".join( args[2:]), ip, options["dest_ip"],
         success)
-    print sql
-    #return insertToSQL(db, cursor, sql)
+    return insertToSQL(db, cursor, sql)
 
 
 """
