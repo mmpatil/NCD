@@ -152,7 +152,7 @@ namespace detection
                 memcpy(&data[data_offset], &packet_id, sizeof(packet_id));
                 uint16_t* id = reinterpret_cast<uint16_t*>(&data[data_offset]);
                 *id          = htons(packet_id);
-                file.read(&data[data_offset + sizeof(packet_id)], data.size() -sizeof(packet_id) -data_offset);
+                file.read(&data[data_offset + sizeof(packet_id)], data.size() - sizeof(packet_id) - data_offset);
             }
             else
             {

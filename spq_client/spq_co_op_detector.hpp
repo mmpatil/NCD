@@ -37,22 +37,30 @@ namespace detection
     class spq_co_op_detector : public co_op_udp_detector
     {
     public:
-        enum priority{ high, low};
+        enum priority
+        {
+            high,
+            low
+        };
 
 
-        spq_co_op_detector(priority priority_in, uint16_t saturation_port_in, uint16_t  saturate_length, uint16_t  junk_in, int test_id_in, const std::string &dest_ip, uint8_t tos, uint16_t id, uint16_t frag_off,
-                           uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport, uint32_t dport, bool last,
-                           const std::string &filename, uint16_t num_packets, uint16_t data_length, uint16_t num_tail,
-                           uint16_t tail_wait, raw_level raw_status, transport_type trans_proto) : co_op_udp_detector(
-                test_id_in, dest_ip, tos, id, frag_off, ttl, proto, check_sum, sport, dport, last, filename,
-                num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto), trafficPriority(priority_in), saturation_port(saturation_port_in), saturate_train_length(saturate_length), junk_interval(junk_in)
+        spq_co_op_detector(priority priority_in, uint16_t saturation_port_in, uint16_t saturate_length,
+                           uint16_t junk_in, int test_id_in, const std::string& dest_ip, uint8_t tos, uint16_t id,
+                           uint16_t frag_off, uint8_t ttl, uint8_t proto, uint16_t check_sum, uint32_t sport,
+                           uint32_t dport, bool last, const std::string& filename, uint16_t num_packets,
+                           uint16_t data_length, uint16_t num_tail, uint16_t tail_wait, raw_level raw_status,
+                           transport_type trans_proto)
+            : co_op_udp_detector(test_id_in, dest_ip, tos, id, frag_off, ttl, proto, check_sum, sport, dport, last,
+                                 filename, num_packets, data_length, num_tail, tail_wait, raw_status, trans_proto),
+              trafficPriority(priority_in),
+              saturation_port(saturation_port_in),
+              saturate_train_length(saturate_length),
+              junk_interval(junk_in)
         {
             setup_packet_train();
         }
 
-        virtual ~spq_co_op_detector()
-        {
-        }
+        virtual ~spq_co_op_detector() {}
 
         virtual void setup_packet_train() override
         {
@@ -137,7 +145,8 @@ namespace detection
             /*send data train*/
             for(const auto& item : saturation_train)
             {
-                n = (int)sendto(saturation_fd, item->data.data(), item->data.size(), 0, info->ai_addr, info->ai_addrlen);
+                n =
+                  (int)sendto(saturation_fd, item->data.data(), item->data.size(), 0, info->ai_addr, info->ai_addrlen);
                 if(n == -1)
                 {
                     perror("call to sendto() failed: error sending UDP udp saturation train");
@@ -149,8 +158,8 @@ namespace detection
 
         virtual test_params setup_test_params() override
         {
-            test_params p  = co_op_udp_detector::setup_test_params();
-            p.num_packets =  (uint16_t)(num_packets/junk_interval);
+            test_params p = co_op_udp_detector::setup_test_params();
+            p.num_packets = (uint16_t)(num_packets / junk_interval);
             return p;
         }
 
@@ -164,6 +173,6 @@ namespace detection
         int junk_interval;
     };
 
-}// end namespace
+}        // end namespace
 
-#endif //SPQ_CO_OP_DETECTOR_HPP
+#endif        // SPQ_CO_OP_DETECTOR_HPP

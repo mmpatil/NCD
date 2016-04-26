@@ -56,8 +56,8 @@ namespace detection
             udp_fd   = 0;
             udp_open = false;
 
-            client_len     = sizeof(client);
-            must_terminate = false;
+            client_len       = sizeof(client);
+            must_terminate   = false;
             packets_received = 0;
         }
 
@@ -88,7 +88,7 @@ namespace detection
 
             udp_open = true;
 
-            int val= 1;
+            int val = 1;
             setsockopt(udp_fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
             int err = bind(udp_fd, (sockaddr*)&serv_addr, sizeof(serv_addr));
             if(err < 0)        // error state
@@ -120,10 +120,11 @@ namespace detection
             }
             else
             {
-                if(ntohs(*id) != 0x0) {
+                if(ntohs(*id) != 0x0)
+                {
                     // when we receive a UDP packet, we must mark them as received
                     packets_received++;
-                    //bs.set(ntohs(*id));
+                    // bs.set(ntohs(*id));
                 }
             }
         }
@@ -311,7 +312,7 @@ namespace detection
             if(!must_terminate)
             {
                 // prepare results
-                results.success = (uint16_t )true;
+                results.success = (uint16_t) true;
                 results.pcap_id = get_pcap_id(params.test_id);
                 results.elapsed_time =
                   std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp).count() / 1000000.0;

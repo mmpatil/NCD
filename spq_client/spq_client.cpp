@@ -191,19 +191,21 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    spq_co_op_detector base(spq_co_op_detector::priority::high, saturation_port, saturation_length, junk_interval, test_id_in, dest_ip, tos_base, id_base, frag_off_base, ttl_base, IPPROTO_UDP, 0, sport_base,
-                            dport_base, false, filename_base, num_packets, data_length, num_tail, tail_wait, raw_level::transport_only,
-                            trans_proto);
-    spq_co_op_detector disc(spq_co_op_detector::priority::low, saturation_port, saturation_length, junk_interval, test_id_in, dest_ip, tos_disc, id_disc, frag_off_base, ttl_disc, IPPROTO_UDP, 0, sport_disc,
-                            dport_disc, true, filename_disc, num_packets, data_length, num_tail, tail_wait, raw_level::transport_only,
-                            trans_proto);
+    spq_co_op_detector base(spq_co_op_detector::priority::high, saturation_port, saturation_length, junk_interval,
+                            test_id_in, dest_ip, tos_base, id_base, frag_off_base, ttl_base, IPPROTO_UDP, 0, sport_base,
+                            dport_base, false, filename_base, num_packets, data_length, num_tail, tail_wait,
+                            raw_level::transport_only, trans_proto);
+    spq_co_op_detector disc(spq_co_op_detector::priority::low, saturation_port, saturation_length, junk_interval,
+                            test_id_in, dest_ip, tos_disc, id_disc, frag_off_base, ttl_disc, IPPROTO_UDP, 0, sport_disc,
+                            dport_disc, true, filename_disc, num_packets, data_length, num_tail, tail_wait,
+                            raw_level::transport_only, trans_proto);
 
 
     auto saturate_list = base.data_train;
 
     for(size_t i = 0; i < base.data_train.size(); ++i)
     {
-        if( i%junk_interval == 0)
+        if(i % junk_interval == 0)
         {
             swap(base.data_train[i], disc.data_train[i]);
         }

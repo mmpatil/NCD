@@ -80,17 +80,17 @@ void SingleThreadedServer::acceptor()
     listen(listen_fd, 4);
     socklen_t client_len = 0;
 
-        while(true)
+    while(true)
     {
 
-            int temp_fd = accept(listen_fd, (sockaddr*)&client_addr, &client_len);
-            if(temp_fd < 0)
-            {
-                terminate("Error: the call to accept() has failed...");
-                exit(-1);
-            }
-            server::server_session s(temp_fd, client_addr);
-            s.run();
+        int temp_fd = accept(listen_fd, (sockaddr*)&client_addr, &client_len);
+        if(temp_fd < 0)
+        {
+            terminate("Error: the call to accept() has failed...");
+            exit(-1);
+        }
+        server::server_session s(temp_fd, client_addr);
+        s.run();
 
         //        close(temp_fd);
     }

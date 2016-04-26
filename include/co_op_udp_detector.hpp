@@ -146,14 +146,14 @@ namespace detection
             }        // end error check
 
             sockaddr_in sin = {};
-            sin.sin_family = AF_INET;
-            sin.sin_port = htons(sport);
+            sin.sin_family  = AF_INET;
+            sin.sin_port    = htons(sport);
 
-           if ( bind(send_fd, (sockaddr*)&sin, sizeof(sin)) < 0)
-           {
-               perror("Could not bind socket");
-               exit(EXIT_FAILURE);
-           }
+            if(bind(send_fd, (sockaddr*)&sin, sizeof(sin)) < 0)
+            {
+                perror("Could not bind socket");
+                exit(EXIT_FAILURE);
+            }
 
 
             if(res->ai_family != AF_INET)
@@ -231,7 +231,7 @@ namespace detection
             auto p = setup_test_params();
 
             inet_ntop(AF_INET, &(srcaddrs.sin_addr), str, INET_ADDRSTRLEN);
-            src_ip = str;
+            src_ip                = str;
             char param_buffer[12] = {};
             p.serialize(param_buffer);
             //            std::cout << "The actual params: " << p <<std::endl;
