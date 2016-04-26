@@ -79,9 +79,16 @@ namespace detection
             /*send data train*/
             for(const auto& item : data_train)
             {
+
                 n = (int)sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
                 if(n == -1)
                 {
+                    while(n < 0 && (errno == ENOBUFS || errno == ENOMEM))
+                    {
+                        n = (int)sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
+
+                    }
+
                     perror("call to sendto() failed: error sending UDP train");
                     exit(EXIT_FAILURE);
                 }        // end if
