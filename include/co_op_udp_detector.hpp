@@ -166,14 +166,14 @@ namespace detection
             // set TTL
             setsockopt(send_fd, IPPROTO_IP, IP_TTL, &ip_header.ttl, sizeof(ip_header.ttl));
 
-            socklen_t size = 1500U * num_packets;
+            socklen_t sock_size = 1024U * num_packets;
 
 #if DEBUG
             if(verbose)
                 printf("Buffer size requested %u\n", size);
 #endif
 
-            setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &size, sizeof(size));
+            setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &sock_size, sizeof(sock_size));
 
             // set up TCP socket
             /* set up hints for getaddrinfo() */

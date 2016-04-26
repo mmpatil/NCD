@@ -82,7 +82,7 @@ namespace detection
                 n = (int)sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
                 if(n == -1)
                 {
-                    perror("call to sendto() failed: error sending UDP udp train");
+                    perror("call to sendto() failed: error sending UDP train");
                     exit(EXIT_FAILURE);
                 }        // end if
             }            // end for
