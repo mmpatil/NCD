@@ -217,28 +217,10 @@ namespace detection
             }
             char str[32] = {};
 
+            auto p = setup_test_params();
+
             inet_ntop(AF_INET, &(srcaddrs.sin_addr), str, INET_ADDRSTRLEN);
             src_ip = str;
-
-            // TODO: change underlying classes to write packet id to random location in payload -- chosen at program
-            // start
-            test_params p  = {};
-            p.test_id      = test_id;
-            p.last_train   = last_train;
-            p.num_packets  = num_packets;
-            p.payload_size = payload_size;
-            p.port         = dport;
-            p.offset       = 0;
-
-            /*std::stringstream ss;*/
-            /*ss << p;*/
-            /*
-            if(!testSerialization(p))
-            {
-                std::cout << "Serialization test failed!" << std::endl;
-                exit(-1);
-            }
-            */
             char param_buffer[12] = {};
             p.serialize(param_buffer);
             //            std::cout << "The actual params: " << p <<std::endl;
@@ -254,6 +236,20 @@ namespace detection
             //           std::cout << "Serialized params: " << *((test_params*)param_buffer) <<std::endl;
 
         }        // end send_timstamp()
+
+        virtual test_params setup_test_params()
+        {
+            // TODO: change underlying classes to write packet id to random location in payload -- chosen at program
+            test_params p  = {};
+            p.test_id      = test_id;
+            p.last_train   = last_train;
+            p.num_packets  = num_packets;
+            p.payload_size = payload_size;
+            p.port         = dport;
+            p.offset       = 0;
+            return p;
+        }
+
 
         /**
          * Sends a TCP message indicating that the last packet has been sent. contains 1 nonzero octet
