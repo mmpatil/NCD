@@ -27,7 +27,6 @@ def clientExperiment(args):
     pocfg = getCfg("detector.cfg")
     for item in args[2:]:
         names = item.split('=')
-        print names
         if names[0].strip('-') in pocfg.keys():
             pocfg[names[0].strip('-')] = names[1]
 
@@ -52,7 +51,7 @@ def clientExperiment(args):
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     outfile = open("output.txt", 'w+')
 
-    ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)] + args[2:], stdout=outfile)
+    ret_code = subprocess.call(["./spq_client", "--test_id_in=" + str(expID)] + args[2:], stdout=outfile)
     outfile.close()
 
     # track the success of the experiment

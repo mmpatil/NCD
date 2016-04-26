@@ -132,7 +132,13 @@ namespace detection
          */
         virtual void setup_sockets() override
         {
-            send_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
+            int proto;
+            if(raw == raw_level::none)
+                proto = SOCK_DGRAM;
+            else
+                proto = SOCK_RAW;
+
+            send_fd = socket(res->ai_family, proto, IPPROTO_UDP);
             if(send_fd == -1)
             {
                 perror("call to socket() failed for SEND");

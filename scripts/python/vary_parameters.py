@@ -13,15 +13,15 @@ if __name__ == "__main__":
         pack_arg = "--num_packets="+ str(size)
         for length in large_packet_sizes:
             len_arg = "--data_length=" + str(length)
-            full_args = "--dport_disc=22222 " + len_arg + " " + pack_arg
+            full_args = "--dport_disc=33333 " + len_arg + " " + pack_arg
             args.append(full_args)
 
     for size in small_num_packets:
         pack_arg = "--num_packets="+ str(size)
         for length in small_packet_sizes:
             len_arg = "--data_length=" + str(length)
-            full_args = "--dport_disc=22222 " + len_arg + " " + pack_arg
+            full_args = "--dport_disc=33333 " + len_arg + " " + pack_arg
             args.append(full_args)
 
     for parameters in args:
-        subprocess.call("./ExperimentSQL.py" + parameters)
+        subprocess.call("./ExperimentSQL.py 'Shaping Parameters' " + parameters, shell=True)

@@ -77,7 +77,7 @@ namespace detection
 
         virtual void send_saturation_packets()
         {
-            int saturation_fd             = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
+            int saturation_fd             = socket(res->ai_family, SOCK_RAW, IPPROTO_UDP);
 
 
             if(saturation_fd == -1)
@@ -104,7 +104,7 @@ namespace detection
                 n = (int)sendto(send_fd, item->data.data(), item->data.size(), 0, res->ai_addr, res->ai_addrlen);
                 if(n == -1)
                 {
-                    perror("call to sendto() failed: error sending UDP udp train");
+                    perror("call to sendto() failed: error sending UDP udp saturation train");
                     exit(EXIT_FAILURE);
                 }        // end if
             }            // end for
