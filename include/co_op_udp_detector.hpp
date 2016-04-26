@@ -145,6 +145,17 @@ namespace detection
                 exit(EXIT_FAILURE);
             }        // end error check
 
+            sockaddr_in sin = {};
+            sin.sin_family = AF_INET;
+            sin.sin_port = htons(sport);
+
+           if ( bind(send_fd, (sockaddr*)&sin, sizeof(sin)) < 0)
+           {
+               perror("Could not bind socket");
+               exit(EXIT_FAILURE);
+           }
+
+
             if(res->ai_family != AF_INET)
             {
                 errno = EAFNOSUPPORT;
