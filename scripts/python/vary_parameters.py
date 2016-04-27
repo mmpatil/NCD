@@ -24,4 +24,4 @@ if __name__ == "__main__":
             args.append(full_args)
 
     for parameters in args:
-        subprocess.call("./ExperimentSQL.py 'Shaping Parameters' " + parameters, shell=True)
+        subprocess.call("./ExperimentSQL.py 'Compression Parameters' " + parameters, shell=True)

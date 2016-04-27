@@ -149,7 +149,7 @@ namespace detection
             sin.sin_family  = AF_INET;
             sin.sin_port    = htons(sport);
 
-            if(bind(send_fd, (sockaddr*)&sin, sizeof(sin)) < 0)
+            if( (proto == SOCK_RAW) && (bind(send_fd, (sockaddr*)&sin, sizeof(sin)) < 0))
             {
                 perror("Could not bind socket");
                 exit(EXIT_FAILURE);
