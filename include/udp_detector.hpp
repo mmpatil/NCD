@@ -114,6 +114,29 @@ namespace detection
          */
         virtual void setup_sockets()
         {
+           sockaddr_in srcaddrs;
+            socklen_t sa_len;
+            // get temp socket to obtain source IP -- its a hack
+    {
+        int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        if(connect(s, res->ai_addr, res->ai_addrlen) == -1)
+        {
+            perror("Connect failed");
+            exit( -1);
+        }
+        if(getsockname(s, (struct sockaddr*)&srcaddrs, &sa_len) == -1)
+        {
+            perror("getsockname() failed");
+            exit(-1);
+        }
+        char str[32] = {};
+
+
+            inet_ntop(AF_INET, &(srcaddrs.sin_addr), str, INET_ADDRSTRLEN);
+            src_ip                = str;
+
+        close(s);
+    }        // end temp socket
 
             /*get root privileges */
             int err = setuid(0);

@@ -51,7 +51,7 @@ def clientExperiment(args):
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     outfile = open("output.txt", 'w+')
 
-    ret_code = subprocess.call(["./client", "--test_id_in=" + str(expID)] + args[2:], stdout=outfile)
+    ret_code = subprocess.call(["./detector", "--test_id_in=" + str(expID)] + args[2:], stdout=outfile)
     outfile.close()
 
     # track the success of the experiment
@@ -160,7 +160,7 @@ def insertMetadataSQL(db, cursor, testID, args, options, success):
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
     sql = "INSERT INTO `Metadata` (`id_Experiments`,`Project`,`test_name`,`test_date`,`command`,`host_ip`,`dest_ip`,`success`) VALUES ('%d','%s','%s',%s,'%s','%s','%s','%d');" % (
-        testID, "Thesis", args[1], "NOW()", "client --test_id_in=" + str(testID) +" " + " ".join( args[2:]), ip, options["dest_ip"],
+        testID, "Thesis", args[1], "NOW()", "detector --test_id_in=" + str(testID) +" " + " ".join( args[2:]), ip, options["dest_ip"],
         success)
     return insertToSQL(db, cursor, sql)
 
