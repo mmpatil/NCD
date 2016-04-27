@@ -95,6 +95,18 @@ namespace detection
             // setup_sockets();
         }
 
+        inline virtual void detect() override
+        {
+            prepare();
+
+            std::unique_lock<std::mutex> lk(recv_ready_mutex);
+            recv_ready_cv.wait(lk, [this]() { return this->recv_ready; });
+            lk.release();
+
+            send_timestamp();
+            send_train();
+            send_tail();
+        }        // end detect()
         /**
          * sets up the sockets used by the UDP detector. should be invoked prior to execution
          *
@@ -110,13 +122,6 @@ namespace detection
                 perror("Elevated privileges not acquired...");
                 exit(EXIT_FAILURE);
             }
-
-
-#if DEBUG
-            if(verbose)
-                printf("Buffer size requested %u\n", size);
-#endif
-
 
             /* acquire socket for icmp messages*/
             icmp_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
@@ -134,14 +139,6 @@ namespace detection
                 perror("setsockopt() failed icmp");
             }
 
-            /*give up privileges */
-            err = setuid(getuid());
-            if(err < 0)
-            {
-                perror("Elevated privileges not released");
-                exit(EXIT_FAILURE);
-            }
-
 
             recv_fd = socket(res->ai_family, SOCK_RAW, IPPROTO_ICMP);
             if(recv_fd == -1)
@@ -151,10 +148,23 @@ namespace detection
             }
 
             /*increase size of receive buffer*/
-
             int opts = 1500 * num_packets;
-
             setsockopt(recv_fd, SOL_SOCKET, SO_RCVBUF, &opts, sizeof(opts));
+
+#if DEBUG
+            if(verbose)
+                printf("Buffer size requested %u\n", opts);
+#endif
+
+            base_udp_detector::setup_sockets();
+
+            /*give up privileges */
+            err = setuid(getuid());
+            if(err < 0)
+            {
+                perror("Elevated privileges not released");
+                exit(EXIT_FAILURE);
+            }
 
 #if DEBUG
             if(verbose)
@@ -212,9 +222,6 @@ namespace detection
          */
         inline virtual void send_timestamp()
         {
-            std::unique_lock<std::mutex> lk(recv_ready_mutex);
-            recv_ready_cv.wait(lk, [this]() { return this->recv_ready; });
-            lk.release();
             /*send Head ICMP Packet*/
             int n = sendto(icmp_fd, icmp_send.data.data(), icmp_send.data.size(), 0, res->ai_addr, res->ai_addrlen);
             if(n == -1)
@@ -222,6 +229,9 @@ namespace detection
                 perror("Call to sendto() failed: error sending ICMP packet");
                 exit(EXIT_FAILURE);
             }
+#if DEBUG
+            std::cout << "Timestamp Sent\n";
+#endif
         }
 
 
@@ -245,6 +255,9 @@ namespace detection
             /*send tail ICMP Packets with timer*/
 
             std::unique_lock<std::mutex> stop_lock(stop_mutex);        // acquire lock
+#if DEBUG
+            std::cout << "Sending Tail ..." <<std::endl;
+#endif
             for(int i = 0; i < num_tail && !stop; ++i)
             {
                 // get timestamp
@@ -258,10 +271,14 @@ namespace detection
                 send_timestamp();
 
                 // wait until we should send the next tail_message
-                stop_cv.wait_until(stop_lock, now);
+                stop_cv.wait_for(stop_lock, std::chrono::milliseconds(tail_wait));
             }        // end for
 
             stop_lock.unlock();        // release lock
+
+#if DEBUG
+            std::cout << "Tail Sent" << std::endl;
+#endif
         }
 
         /**
@@ -323,7 +340,7 @@ namespace detection
                 else if(icmp->icmp_type == 3 && icmp->icmp_code == 3)
                 {
                     udp_ack++;
-                    set_bs_32(bitset, *id, num_packets);
+                    set_bs_32(bitset, ntohs(*id), num_packets);
                     continue;
                 }
                 else if(icmp->icmp_type == 0)
@@ -332,6 +349,7 @@ namespace detection
                     {
                         milliseconds = get_time();
                         count        = 1;
+
                     }
                     else
                     {

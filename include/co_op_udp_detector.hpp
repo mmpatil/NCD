@@ -155,7 +155,6 @@ namespace detection
                 exit(EXIT_FAILURE);
             }
 
-
             if(res->ai_family != AF_INET)
             {
                 errno = EAFNOSUPPORT;
@@ -170,7 +169,7 @@ namespace detection
 
 #if DEBUG
             if(verbose)
-                printf("Buffer size requested %u\n", size);
+                printf("Buffer size requested %u\n", sock_size);
 #endif
 
             setsockopt(send_fd, SOL_SOCKET, SO_SNDBUF, &sock_size, sizeof(sock_size));
@@ -192,7 +191,6 @@ namespace detection
                     std::cerr << "Error looking up " << dest_ip << ":" << gai_strerror(err) << std::endl;
                 exit(EXIT_FAILURE);
             }
-
 
             recv_fd = socket(tcp_res->ai_family, SOCK_STREAM, IPPROTO_TCP);
 
