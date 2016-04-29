@@ -45,7 +45,7 @@ void capture_traffic(uint16_t pcap_id)
             std::string pcap_file = convert.str() + ".pcap";
 
 
-    execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "udp", "-w",
+    execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "-w",
           pcap_file.c_str(), (char*)0);
 
     _exit(0);

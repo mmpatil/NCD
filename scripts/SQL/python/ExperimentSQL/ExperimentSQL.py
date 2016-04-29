@@ -51,7 +51,7 @@ def clientExperiment(args):
     # start the measurement client -- passed in from commandline ... or maybe it will use config file...
     outfile = open("output.txt", 'w+')
 
-    ret_code = subprocess.call(["./detector", "--test_id_in=" + str(expID)] + args[2:], stdout=outfile)
+    ret_code = subprocess.call(["./spq_client", "--test_id_in=" + str(expID)] + args[2:], stdout=outfile)
     outfile.close()
 
     # track the success of the experiment
@@ -139,9 +139,9 @@ def insertCommonDataSQL(db, cursor, testID, opts):
     :param opts: a dictionary of the program options used to create the SQL command
     :return: Tuple of the the id of the newly inserted item, and success of the db operation
     """
-    sql = "INSERT INTO `CommonData` (`id_Experiments`,`protocol`,`num_packets`,`num_tail`,`packet_size`) VALUES " \
-          " ('%d','%s','%s','%s','%s');" % (
-              testID, opts["trans_proto"], opts["num_packets"], opts["num_tail"], opts["data_length"])
+    sql = "INSERT INTO `CommonData` (`id_Experiments`,`protocol`,`num_packets`,`num_tail`,`packet_size`, `tail_wait`, `junk_interval`) VALUES " \
+          " ('%d','%s','%s','%s','%s', '%s','%s');" % (
+              testID, opts["trans_proto"], opts["num_packets"], opts["num_tail"], opts["data_length"], opts["tail_wait"], opts["junk_interval"])
     return insertToSQL(db, cursor, sql)
 
 
@@ -160,7 +160,7 @@ def insertMetadataSQL(db, cursor, testID, args, options, success):
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
     sql = "INSERT INTO `Metadata` (`id_Experiments`,`Project`,`test_name`,`test_date`,`command`,`host_ip`,`dest_ip`,`success`) VALUES ('%d','%s','%s',%s,'%s','%s','%s','%d');" % (
-        testID, "Thesis", args[1], "NOW()", "detector --test_id_in=" + str(testID) +" " + " ".join( args[2:]), ip, options["dest_ip"],
+        testID, "Thesis", args[1], "NOW()", "spq_client --test_id_in=" + str(testID) +" " + " ".join( args[2:]), ip, options["dest_ip"],
         success)
     return insertToSQL(db, cursor, sql)
 

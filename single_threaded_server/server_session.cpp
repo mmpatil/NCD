@@ -335,11 +335,11 @@ namespace detection
 
         void server_session::capture_traffic()
         {
-            std::ostringstream convert;
-            convert << params.port;
-            std::string port = convert.str();
+            //std::ostringstream convert;
+            //convert << params.port;
+            //std::string port = convert.str();
 
-            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "udp and port ", port.data(), "-w",
+            execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "udp", "-w",
                   "temp.pcap", (char*)0);
 
             _exit(0);

@@ -115,7 +115,7 @@ namespace detection
         virtual void setup_sockets()
         {
            sockaddr_in srcaddrs;
-            socklen_t sa_len;
+            socklen_t sa_len = sizeof(srcaddrs);
             // get temp socket to obtain source IP -- its a hack
     {
         int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
