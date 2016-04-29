@@ -39,7 +39,7 @@ def junk_only():
 def main():
     args = junk_only()
     for parameters in args:
-        subprocess.call("./ExperimentSQL.py 'Compression Parameters' " + parameters, shell=True)
+        subprocess.call("./ExperimentSQL.py 'SPQ Junk Parameters' " + parameters, shell=True)
 
 
 if __name__ == "__main__":
