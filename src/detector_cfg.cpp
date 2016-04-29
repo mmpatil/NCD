@@ -15,34 +15,34 @@ namespace po = boost::program_options;
 
 
 uint16_t get_pcap_id(uint32_t expID)
-        {
+{
 #if DEBUG
-            std::cout << "Experimental ID = " << expID << std::endl;
-            sleep(2);
+    std::cout << "Experimental ID = " << expID << std::endl;
+    sleep(2);
 #endif
-            // create the command string to pass to popen()
-            std::stringstream command;
-            command << "~/experiment/pcap_script.py " << expID;
+    // create the command string to pass to popen()
+    std::stringstream command;
+    command << "~/experiment/pcap_script.py " << expID;
 
-            // make the call to the external program to consult the MYSQL database
-            FILE* in = popen(command.str().c_str(), "r");
-            uint16_t pcap_id;
+    // make the call to the external program to consult the MYSQL database
+    FILE* in = popen(command.str().c_str(), "r");
+    uint16_t pcap_id;
 
-            // read results back
-            fscanf(in, "%hu", &pcap_id);
+    // read results back
+    fscanf(in, "%hu", &pcap_id);
 
-            // close pipe
-            pclose(in);
+    // close pipe
+    pclose(in);
 
-            return pcap_id;
-        }
+    return pcap_id;
+}
 
 
 void capture_traffic(uint16_t pcap_id)
 {
-                std::ostringstream convert;
-            convert << pcap_id;
-            std::string pcap_file = convert.str() + ".pcap";
+    std::ostringstream convert;
+    convert << pcap_id;
+    std::string pcap_file = convert.str() + ".pcap";
 
 
     execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "-w",
@@ -50,7 +50,6 @@ void capture_traffic(uint16_t pcap_id)
 
     _exit(0);
 }
-
 
 
 int main(int argc, char* argv[])
@@ -233,49 +232,49 @@ int main(int argc, char* argv[])
     base->sql_output = disc->sql_output = sql_output;
 
 #ifdef PCAP_ON
-            // get packet traces
-            auto val = get_pcap_id(test_id_in);
-            base->pcap_id = val;
-            pid_t child_id = fork();
-            if(child_id == 0)
-            {
-                capture_traffic(val);
-                _exit(-1);        // if wer're here its an error
-            }
-            sleep(2);
+    // get packet traces
+    auto val       = get_pcap_id(test_id_in);
+    base->pcap_id  = val;
+    pid_t child_id = fork();
+    if(child_id == 0)
+    {
+        capture_traffic(val);
+        _exit(-1);        // if wer're here its an error
+    }
+    sleep(2);
 #endif
 
     base->measure();
 
 #if PCAP_ON
-            // give tcpdump time to handle things;
-            sleep(1);
-            kill(child_id, SIGINT);
-            wait();
+    // give tcpdump time to handle things;
+    sleep(1);
+    kill(child_id, SIGINT);
+    wait();
 #endif
 
     std::this_thread::sleep_for(std::chrono::seconds(cooldown));
 
 #ifdef PCAP_ON
-            // get packet traces
-    val = get_pcap_id(test_id_in);
-            disc->pcap_id = val;
-            child_id = fork();
-            if(child_id == 0)
-            {
-                capture_traffic(val);
-                _exit(-1);        // if wer're here its an error
-            }
+    // get packet traces
+    val           = get_pcap_id(test_id_in);
+    disc->pcap_id = val;
+    child_id      = fork();
+    if(child_id == 0)
+    {
+        capture_traffic(val);
+        _exit(-1);        // if wer're here its an error
+    }
     sleep(2);
 #endif
 
     disc->measure();
 
 #if PCAP_ON
-            // give tcpdump time to handle things;
-            sleep(1);
-            kill(child_id, SIGINT);
-            wait();
+    // give tcpdump time to handle things;
+    sleep(1);
+    kill(child_id, SIGINT);
+    wait();
 #endif
 
     return 0;
