@@ -75,7 +75,7 @@ namespace detection
         virtual void send_train() override
         {
 #if DEBUG
-            std::cout << "Sending UDP Train ..." <<std::endl;
+            std::cout << "Sending UDP Train ..." << std::endl;
 #endif
             int n;
             /*send data train*/
@@ -102,10 +102,10 @@ namespace detection
             }            // end for
 
 #if DEBUG
-            std::cout << "UDP Train sent" <<std::endl;
+            std::cout << "UDP Train sent" << std::endl;
 #endif
 
-        }                // end send_train()
+        }        // end send_train()
     };
 }        // end namespace detection
 

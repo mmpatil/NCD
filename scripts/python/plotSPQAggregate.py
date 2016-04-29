@@ -12,7 +12,7 @@ def get_sql_query():
     # query the database
     engine = create_engine('mysql://ucla_triton@198.188.2.10/testdb')
     query = """
-    SELECT * from Metadata join
+    SELECT  * , discrimination_losses_str - base_losses_str as delta from Metadata join
     (
         CommonData join
         (
@@ -85,25 +85,6 @@ def process_csv(filename):
     mdf.to_csv("spq_drop_data.csv")
 
 
-def find_first_drop(pcap_file):
-    """ process a pcap file for plotting number of first dropped packet """
-    # open the pcap file
-    with open(pcap_file) as f:
-        pcap = dpkt.pcap.Reader(f)
-        i = 1
-        # go through each packet and look for packet id
-        for ts, buf in pcap:
-            eth = dpkt.sll.SLL(buf)
-            ip = eth.data
-            udp = ip.data
-            packet_id = ntohs(struct.unpack_from('H', udp.data)[0])
-            #return the id of the first packet drop
-            if i != packet_id:
-                return True, i
-            i += 1
-    return False, 0
-
-
 def plot_loss_results():
     # plot the dataframe
     df = pd.read_csv('drop_data.csv')
@@ -118,12 +99,19 @@ def save_query():
     return df
 
 
+
+def plot_aggregate_results():
+    df = pd.read_csv("spqtest.csv")
+    plot = ggplot(aes(x='test_date', y='delta', color="host_ip"), data=df)
+    print plot + geom_point()
+
+
 def main():
-    df = get_sql_query()
-    df.to_csv("spq_param_tests.csv")
+    #df = get_sql_query()
+    #df.to_csv("spqtest.csv")
     #pcap_files = get_pcaps("param_tests.csv")
     #process_csv("spq_param_tests.csv")
-    plot_loss_results()
+    plot_aggregate_results()
 
 
 if __name__ == "__main__":

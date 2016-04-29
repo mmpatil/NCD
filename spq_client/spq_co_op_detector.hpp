@@ -87,20 +87,21 @@ namespace detection
         {
             int saturation_fd = socket(res->ai_family, SOCK_DGRAM, IPPROTO_UDP);
             int n;
-
-            if(saturation_fd == -1)
+            // Error Checking
             {
-                perror("call to socket() failed for SEND");
-                exit(EXIT_FAILURE);
-            }        // end error check
+                if(saturation_fd == -1)
+                {
+                    perror("call to socket() failed for SEND");
+                    exit(EXIT_FAILURE);
+                }        // end error check
 
-            if(res->ai_family != AF_INET)
-            {
-                errno = EAFNOSUPPORT;
-                perror("ncd only supports IPV4 at this time");
-                exit(EXIT_FAILURE);
-            }        // end error check
-
+                if(res->ai_family != AF_INET)
+                {
+                    errno = EAFNOSUPPORT;
+                    perror("ncd only supports IPV4 at this time");
+                    exit(EXIT_FAILURE);
+                }        // end error check
+            }
             // set TTL
             setsockopt(saturation_fd, IPPROTO_IP, IP_TTL, &ip_header.ttl, sizeof(ip_header.ttl));
             socklen_t size = 1500U * saturate_train_length;
@@ -112,21 +113,22 @@ namespace detection
             addrinfo hints = {}; /* for get addrinfo */
             hints.ai_flags = AI_CANONNAME;
 
-
-            // choose the correct protocol
-            switch(trans)
+            // Protocol Selection
             {
-            case transport_type::udp:
-                hints.ai_protocol = IPPROTO_UDP;
-                break;
-            case transport_type::tcp:
-                hints.ai_protocol = IPPROTO_TCP;
-                break;
-            default:
-                std::cerr << "Error: the transport_type selected is not supported" << std::endl;
-                break;
+                // choose the correct protocol
+                switch(trans)
+                {
+                case transport_type::udp:
+                    hints.ai_protocol = IPPROTO_UDP;
+                    break;
+                case transport_type::tcp:
+                    hints.ai_protocol = IPPROTO_TCP;
+                    break;
+                default:
+                    std::cerr << "Error: the transport_type selected is not supported" << std::endl;
+                    break;
+                }
             }
-
             /* pass a string of the destination point to getaddrinfo */
             std::stringstream ss;
             ss << saturation_port;
@@ -146,7 +148,7 @@ namespace detection
             for(const auto& item : saturation_train)
             {
                 n =
-                  (int)sendto(saturation_fd, item->data.data(), item->data.size(), 0, info->ai_addr, info->ai_addrlen);
+                 (int)sendto(saturation_fd, item->data.data(), item->data.size(), 0, info->ai_addr, info->ai_addrlen);
                 if(n == -1)
                 {
                     perror("call to sendto() failed: error sending UDP udp saturation train");
