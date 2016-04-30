@@ -4,7 +4,7 @@ import subprocess
 
 
 def all_args():
-    large_num_packets = range(400, 8000, 200)
+    large_num_packets = range(1000, 8000, 500)
     large_packet_sizes = [512, 1024, 1400]
     small_num_packets = range(4000, 50000, 1000)
     small_packet_sizes = [32, 64, 128, 256]
@@ -16,15 +16,9 @@ def all_args():
             pack_arg = junk_args + " --num_packets=" + str(size)
             for length in large_packet_sizes:
                 len_arg = "--data_length=" + str(length)
-                full_args = "--dport_disc=33333 " + len_arg + " " + pack_arg
+                full_args = "--dport_disc=22223 " + len_arg + " " + pack_arg
                 args.append(full_args)
-
-        for size in small_num_packets:
-            pack_arg = junk_args + " --num_packets=" + str(size)
-            for length in small_packet_sizes:
-                len_arg = "--data_length=" + str(length)
-                full_args = "--dport_disc=33333 " + len_arg + " " + pack_arg
-                args.append(full_args)
+    return args
 
 
 def junk_only():
@@ -37,9 +31,9 @@ def junk_only():
 
 
 def main():
-    args = junk_only()
+    args = all_args()
     for parameters in args:
-        subprocess.call("./ExperimentSQL.py 'SPQ Junk Parameters' " + parameters, shell=True)
+        subprocess.call("./ExperimentSQL.py 'SPQ Junk Parameters V2' " + parameters, shell=True)
 
 
 if __name__ == "__main__":
