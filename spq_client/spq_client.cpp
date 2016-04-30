@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
         ("tos_disc", po::value<uint8_t>(&tos_disc)->default_value(0), "Type of Service for Discrimination stream")
         ("id_disc", po::value<uint16_t>(&id_disc)->default_value(0), "TCP ID for Discrimination stream")
         ("frag_off_disc", po::value<uint16_t>(&frag_off_disc)->default_value(0), "Time to wait between tail packets for Discrimination stream")
-        ("ttl_disc", po::value<uint8_t>(&ttl_disc)->default_value(10), "Time to Live for Discrimination stream")
+        ("ttl_disc", po::value<uint8_t>(&ttl_disc)->default_value(255), "Time to Live for Discrimination stream")
         ("proto_disc", po::value<uint8_t>(&proto_disc)->default_value(IPPROTO_TCP), "TCP Protcol for Discrimination stream")
         ("syn_port_in_disc", po::value<uint16_t>(&syn_port_in_disc)->default_value(22223), "TCP SYN Port # for Discrimination stream")
         ;
