@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
     // clang-format off
     cli.add_options()
         ("help,h", "produce help message")
-        ("config,c", po::value<string>(&cfg_file)->default_value("detector.cfg"), "Name of a configuration file")
+        ("config,c", po::value<string>(&cfg_file)->default_value("single_detector.cfg"), "Name of a configuration file")
         ("version", "print version string")
         ;
     // clang-format on

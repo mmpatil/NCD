@@ -86,7 +86,10 @@ int main(int argc, char* argv[])
     uint8_t proto_disc;
     // uint16_t check_sum;
     uint16_t syn_port_in_disc = 22223;
+    uint16_t saturation_port;
+    uint16_t saturation_length;
 
+    uint16_t junk_interval = 50;
 
     po::options_description cli("CLI Only Options");
 
@@ -102,6 +105,9 @@ int main(int argc, char* argv[])
 
     // clang-format off
     general.add_options()
+        ("saturation_port", po::value<uint16_t>(&saturation_port)->default_value(33335), "The port number of the saturation train")
+        ("saturation_length", po::value<uint16_t>(&saturation_length)->default_value(1000), "The number of Saturation Packets")
+        ("junk_interval", po::value<uint16_t>(&junk_interval)->default_value(3), "The number of junk packets between data packets")
         ("test_id_in", po::value<int>(&test_id_in)->default_value(77777), "Experimental ID number")
         ("cooldown", po::value<int>(&cooldown)->default_value(2), "The time in seconds to wait between tests")
         ("dest_ip", po::value<string>(&dest_ip), "Destination IP Address")
