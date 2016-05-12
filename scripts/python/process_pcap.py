@@ -25,7 +25,7 @@ def get_sql_query():
         using (id_Experiments)
     )
     using (id_Experiments)
-    where test_name = 'SPQ Parameters V2';
+    where test_name = 'SPQ Junk Parameters';
     """
 
     # store the query in a data frame
@@ -57,23 +57,25 @@ def add_drops(df):
     return df
 
 
-def drop_by_column(column):
+def drop_by_column(column, num_packets):
     l = []
-    for item in column:
-        l.append(add_drop_to_row(item))
+    for item, n in zip(column, num_packets):
+        l.append(add_drop_to_row(item, n))
     return l
 
 
-def add_drop_to_row(pcap_id):
+def add_drop_to_row(pcap_id, num_packets):
     name = str(pcap_id) + '.pcap'
-    res = find_first_drop(name)
+    res = find_first_drop(name, num_packets)
     return res[1] if res[0] else 0
 
 
 def process_csv(filename):
     df = pd.read_csv(filename)
     columnName = 'id_real_pcap'
-    drops = drop_by_column(df['id_real_pcap'])
+    #columnName = 'id_pcap_data'
+    #print df['num_packets']
+    drops = drop_by_column(df[columnName], df['num_packets'])
     print len(drops)
     print len(df.index)
     res = pd.DataFrame({'drop_id': pd.Series(drops, index=df.index)})
@@ -82,10 +84,10 @@ def process_csv(filename):
     print mdf
     print type(mdf)
 
-    mdf.to_csv("spq_drop_data.csv")
+    mdf.to_csv("policing_processed.csv")
 
 
-def find_first_drop(pcap_file):
+def find_first_drop(pcap_file, num_packets):
     """ process a pcap file for plotting number of first dropped packet """
     # open the pcap file
     with open(pcap_file) as f:
@@ -97,19 +99,39 @@ def find_first_drop(pcap_file):
             ip = eth.data
             udp = ip.data
             packet_id = ntohs(struct.unpack_from('H', udp.data)[0])
+
+            if packet_id == 0 :
+                continue
+
             #return the id of the first packet drop
-            if i != packet_id:
+            if i != packet_id :
+            #if ((i-1)*3 +1) != packet_id and  udp.dport == 22223:
                 return True, i
             i += 1
+        #print num_packets
+        if i < num_packets:
+            return True, i
     return False, 0
 
 
-def plot_loss_results():
+def plot_loss_results(filename):
     # plot the dataframe
-    df = pd.read_csv('drop_data.csv')
+    df = pd.read_csv(filename)
+    xlabel = "Number of Packets"
 
-    plot = ggplot(aes(x='num_packets', y='drop_id', color='packet_size'), data = df)
-    print plot + geom_point()
+    ylabel = "ID of First Lost Packet"
+    #ylabel = 'Delta Losses'
+
+    print df['id_real_pcap'], df['num_packets'] , df['drop_id']
+
+
+    plot = ggplot(aes(x='num_packets', y='drop_id', color='packet_size'), data = df) +\
+        xlab(xlabel) +\
+        ylab(ylabel) +\
+        ggtitle(filename + " Paramter Test")
+    print plot + geom_point(size=50)
+    print plot + geom_line(size=5)
+    print plot + facet_wrap('packet_size') + geom_line(size=4)
 
 
 def save_query():
@@ -119,11 +141,15 @@ def save_query():
 
 
 def main():
-    df = get_sql_query()
-    df.to_csv("spq_param_tests.csv")
+    #df = get_sql_query()
+    #df.to_csv("spq_junk_param_tests.csv")
     #pcap_files = get_pcaps("param_tests.csv")
+    #process_csv("spq_junk_param_tests.csv")
+    #process_csv("spq_delta_param_tests.csv")
     #process_csv("spq_param_tests.csv")
-    plot_loss_results()
+    #process_csv("spqtest.csv")
+    process_csv("PolicingParameters.csv")
+    plot_loss_results("policing_processed.csv")
 
 
 if __name__ == "__main__":
