@@ -45,7 +45,8 @@ void capture_traffic(uint16_t pcap_id)
     std::string pcap_file = convert.str() + ".pcap";
 
 
-    execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "udp", "-w", pcap_file.c_str(), (char*)0);
+    execl("/usr/sbin/tcpdump", "/usr/sbin/tcpdump", "-i", "any", "-w",
+          pcap_file.c_str(), (char*)0);
 
     _exit(0);
 }
@@ -106,7 +107,7 @@ int main(int argc, char* argv[])
     // clang-format off
     cli.add_options()
         ("help,h", "produce help message")
-        ("config,c", po::value<string>(&cfg_file)->default_value("detector.cfg"), "Name of a configuration file")
+        ("config,c", po::value<string>(&cfg_file)->default_value("single_detector.cfg"), "Name of a configuration file")
         ("version", "print version string")
         ;
     // clang-format on
