@@ -88,20 +88,20 @@ def clientExperiment(args):
 
 def insertBaseResultSQL(db, cursor, testID, ret_hash):
     sql = "INSERT INTO `BaseResults` (`id_Experiments`,`base_time`,`base_losses_str`,`base_src_port`,`base_dest_port`,`base_tos`,`base_id`,`base_ttl`,`base_frag_off`,`base_filename`,`id_pcap_data`) VALUES " \
-          "('%d','%s','%s','%s','%s','%s','%s','%s','%s',%s, '%s');" % (
+          "('%d','%s','%s','%s','%s','%s','%s','%s','%s',%s, '%s', '%s');" % (
               testID, ret_hash["milliseconds"], ret_hash["packets_lost"], ret_hash["sport"], ret_hash["dport"],
               ret_hash["tos"], ret_hash["id"], ret_hash["ttl"],
-              ret_hash["frag_off"], ret_hash["filename"], ret_hash["pcap_id"])
+              ret_hash["frag_off"], ret_hash["filename"], ret_hash["pcap_id"], ret_hash["last_packet"])
 
     return insertToSQL(db, cursor, sql)
 
 
 def insertDiscriminationResultSQL(db, cursor, testID, ret_hash):
     sql = "INSERT INTO `DiscriminationResults` (`id_Experiments`,`discrimination_time`,`discrimination_losses_str`,`disc_src_port`,`disc_dest_port`,`disc_tos`,`disc_id`,`disc_frag_off`,`disc_ttl`,`disc_filename`,`id_pcap_data`) VALUES " \
-          "('%d','%s','%s','%s','%s','%s','%s','%s','%s',%s, '%s');" % (
+          "('%d','%s','%s','%s','%s','%s','%s','%s','%s',%s, '%s', '%s');" % (
               testID, ret_hash["milliseconds"], ret_hash["packets_lost"], ret_hash["sport"], ret_hash["dport"],
               ret_hash["tos"], ret_hash["id"], ret_hash["ttl"],
-              ret_hash["frag_off"], ret_hash["filename"], ret_hash["pcap_id"])
+              ret_hash["frag_off"], ret_hash["filename"], ret_hash["pcap_id"], ret_hash['last_packet'])
 
     return insertToSQL(db, cursor, sql)
 
@@ -206,7 +206,8 @@ def handleExperimentFailure():
 
 def processDetectionOutput(filename):
     columns = ["trans_proto", "src_ip", "dest_ip", "sport", "dport", "num_packets", "num_tail", "payload_size",
-               "tail_wait", "filename","tos", "id", "ttl", "frag_off", "packets_lost", "milliseconds", "pcap_id"]
+               "tail_wait", "filename","tos", "id", "ttl", "frag_off", "packets_lost", "milliseconds", "pcap_id",
+               "last_packet"]
 
     f = open(filename)
     line = f.readline().split()

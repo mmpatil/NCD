@@ -274,6 +274,7 @@ namespace detection
         virtual void send_tail()
         {
             struct icmp* icmp = (struct icmp*)(icmp_send.data.data() + sizeof(struct ip));
+            uint16_t* packet_id = (uint16_t*)(icmp + 1);
 
             /*send tail ICMP Packets with timer*/
 
@@ -283,13 +284,12 @@ namespace detection
 #endif
             for(int i = 0; i < num_tail && !stop; ++i)
             {
-                // get timestamp
-                auto now = std::chrono::system_clock::now() + std::chrono::milliseconds(tail_wait);
 
                 // do some work
                 /*not sure if changing the sequence number will help*/
                 icmp->icmp_cksum = 0;
-                icmp->icmp_seq += 1;
+                icmp->icmp_seq = htons(i);
+                *packet_id = icmp->icmp_seq;
                 icmp->icmp_cksum = ip_checksum(icmp, icmp_packet_size);
                 send_timestamp();
 
@@ -376,6 +376,7 @@ namespace detection
                     else
                     {
                         milliseconds = get_time() - milliseconds;
+                        last_recieved_id =  ntohs(icmp->icmp_seq);
                         std::lock_guard<std::mutex> guard(stop_mutex);        // acquire lock
                         stop = true;
                         stop_cv.notify_all();

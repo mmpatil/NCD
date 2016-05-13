@@ -48,12 +48,13 @@ namespace detection
         double elapsed_time;
         uint16_t lostpackets;
         uint16_t pcap_id;
+        uint16_t last_recieved_packet_id;
 
         friend std::ostream& operator<<(std::ostream& os, const detection::test_results& res)
         {
             std::string s = res.success ? "true" : "false";
 
-            os << res.lostpackets << " " << res.elapsed_time << " " << res.pcap_id << s;
+            os << res.lostpackets << " " << res.elapsed_time << " " << res.pcap_id <<  " " << res.last_recieved_packet_id << s;
             return os;
         }        // char losses[512];
 
@@ -61,7 +62,7 @@ namespace detection
         {
             std::string s;        // = res.success ? "true" : "false";
 
-            is >> res.lostpackets >> res.elapsed_time >> res.pcap_id >> s;
+            is >> res.lostpackets >> res.elapsed_time >> res.pcap_id >> res.last_recieved_packet_id >> s;
             res.success = (s == "true");
             return is;
         }
@@ -91,6 +92,8 @@ namespace detection
             *d = htons(lostpackets);
             d++;
             *d = htons(pcap_id);
+            d++;
+            *d= htons(last_recieved_packet_id);
         }
 
 
@@ -123,6 +126,8 @@ namespace detection
             lostpackets = ntohs(*d);
             d++;
             pcap_id = ntohs(*d);
+            d++;
+            last_recieved_packet_id = ntohs(*d);
             return *this;
         }
     };
