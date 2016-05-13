@@ -47,9 +47,6 @@ class CommandMaker:
         return new_commands
 
 
-
-
-
 def ExecuteCommands(command_name, fixed_params, param_map):
     # type: (basestring, basestring, dictionary) -> void
     """
@@ -81,37 +78,25 @@ def ExecuteCommandsDebug(command, fixed_param, command_map):
 
 
 
-
-if __name__ == "__main__":
-    """
-    large_num_packets = range(400, 8000, 200)
+def testCommandMaker():
+    large_num_packets = range(500, 8000, 500)
     large_packet_sizes = [512, 1024, 1400]
-    small_num_packets = range(4000, 50000, 1000)
+
+    command_map = {"--num_packets": large_num_packets,
+                   "--packet_sizes": large_packet_sizes}
+    command = "./testCommand.py"
+    name = 'Policing Parameters Test V2'
+
+    ExecuteCommandsDebug(command, name, command_map)
+
+    small_num_packets = range(4000, 20000, 500)
     small_packet_sizes = [32, 64, 128, 256]
 
-    args = []
-    for size in large_num_packets:
-        pack_arg = "--num_packets="+ str(size)
-        for length in large_packet_sizes:
-            len_arg = "--data_length=" + str(length)
-            full_args = "--dport_disc=33333 " + len_arg + " " + pack_arg
-            args.append(full_args)
+    command_map = {"--num_packets": small_num_packets,
+                   "--packet_sizes": small_packet_sizes}
 
-    for size in small_num_packets:
-        pack_arg = "--num_packets="+ str(size)
-        for length in small_packet_sizes:
-            len_arg = "--data_length=" + str(length)
-            full_args = "--dport_disc=33333 " + len_arg + " " + pack_arg
-            args.append(full_args)
+    ExecuteCommandsDebug(command, name, command_map)
 
-    for parameters in args:
-        subprocess.call("./ExperimentSQL.py 'Compression Parameters' " + parameters, shell=True)
-        """
-    cmd = CommandMaker('./ExperimentSQL.py', 'Compression Parameters')
-    mappings= {"--num_packets=" : range(400,1000, 200),
-               "--packet_size=" : [512, 1024, 1400]}
 
-    cmd.add_parameters(mappings)
-
-    for item in  cmd.get_commands():
-        print item
+if __name__ == "__main__":
+    testCommandMaker()
