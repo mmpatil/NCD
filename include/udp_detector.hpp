@@ -376,7 +376,7 @@ namespace detection
                     else
                     {
                         milliseconds = get_time() - milliseconds;
-                        last_recieved_id =  ntohs(icmp->icmp_seq);
+                        last_received_id =  ntohs(icmp->icmp_seq);
                         std::lock_guard<std::mutex> guard(stop_mutex);        // acquire lock
                         stop = true;
                         stop_cv.notify_all();

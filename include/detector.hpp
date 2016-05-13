@@ -254,7 +254,7 @@ namespace detection
             out << src_ip << " " << dest_ip << " " << sport << " " << dport << " " << num_packets << " " << num_tail
                 << " " << payload_size << " " << tail_wait << " " << filename << " " << ntohs(ip_header.tos) << " "
                 << (int)ip_header.id << " " << (int)ip_header.ttl << " " << (int)ntohs(ip_header.frag_off) << " "
-                << packets_lost << " " << milliseconds << " " << pcap_id <<  " " << last_recieved_id << std::endl;
+                << packets_lost << " " << milliseconds << " " << pcap_id <<  " " << last_received_id << std::endl;
 
             std::cout << out.str();
         }
@@ -366,7 +366,7 @@ namespace detection
         bool sockets_ready;
         pseudo_header ps;
         std::array<char, 1500> buff;
-        uint16_t last_recieved_id;
+        uint16_t last_received_id;
         uint16_t test_id;
         uint32_t pcap_id;
     };

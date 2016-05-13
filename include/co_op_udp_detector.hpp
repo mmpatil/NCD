@@ -300,7 +300,7 @@ namespace detection
             this->packets_lost = t.lostpackets;
             milliseconds       = t.elapsed_time;
             pcap_id            = t.pcap_id;
-            last_recieved_id = t.last_recieved_packet_id;
+            last_received_id = t.last_recieved_packet_id;
             // t.success;
             close(recv_fd);
         }        // end receive()
